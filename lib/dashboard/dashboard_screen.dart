@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:bandspace_mobile/auth/auth_screen.dart';
 import 'package:bandspace_mobile/core/components/user_drawer.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/cubit/auth_state.dart';
+import 'package:bandspace_mobile/core/models/user.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -17,16 +19,22 @@ class DashboardScreen extends StatelessWidget {
       builder: (context, state) {
         // Pobierz dane użytkownika z AuthState
         final user = state.user;
-        final userName = user?.email.split('@').first ?? 'Użytkownik';
-        final userEmail = user?.email ?? 'uzytkownik@example.com';
+
+        // Jeśli użytkownik nie jest zalogowany, przekieruj do ekranu logowania
+        if (user == null) {
+          // Użyj WidgetsBinding.instance.addPostFrameCallback, aby uniknąć błędu podczas budowania
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const AuthScreen()));
+            }
+          });
+          // Pokaż ekran ładowania podczas przekierowania
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
 
         return Scaffold(
           backgroundColor: AppColors.background,
-          endDrawer: UserDrawer(
-            userName: userName,
-            userEmail: userEmail,
-            // Możemy dodać avatarUrl, gdy będzie dostępny w modelu użytkownika
-          ),
+          endDrawer: UserDrawer(user: user),
           body: SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,7 +60,6 @@ class DashboardScreen extends StatelessWidget {
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, state) {
         final user = state.user;
-        final userName = user?.email.split('@').first ?? 'U';
 
         return Builder(
           builder: (context) {
@@ -65,7 +72,10 @@ class DashboardScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.primary, width: 2),
                 ),
-                child: ClipRRect(borderRadius: BorderRadius.circular(20), child: _buildAvatarContent(userName)),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: user != null ? _buildAvatarContent(user) : _buildAvatarPlaceholder('U'),
+                ),
               ),
             );
           },
@@ -75,16 +85,38 @@ class DashboardScreen extends StatelessWidget {
   }
 
   /// Buduje zawartość avatara użytkownika
-  Widget _buildAvatarContent(String userName) {
-    // Tutaj możemy dodać logikę pobierania avatara z API, gdy będzie dostępna
-    // Na razie używamy pierwszej litery nazwy użytkownika
+  Widget _buildAvatarContent(User user) {
+    // Jeśli użytkownik ma URL avatara, wyświetl go
+    if (user.avatarUrl != null) {
+      return Image.network(
+        user.avatarUrl!,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildAvatarPlaceholder(user.initial),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+              value:
+                  loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                      : null,
+            ),
+          );
+        },
+      );
+    }
+
+    // W przeciwnym razie wyświetl placeholder z inicjałem
+    return _buildAvatarPlaceholder(user.initial);
+  }
+
+  /// Buduje placeholder dla avatara
+  Widget _buildAvatarPlaceholder(String initial) {
     return Container(
       color: AppColors.primary,
       child: Center(
-        child: Text(
-          userName[0].toUpperCase(),
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
-        ),
+        child: Text(initial, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
       ),
     );
   }

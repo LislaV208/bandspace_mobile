@@ -5,26 +5,16 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/auth/auth_screen.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
+import 'package:bandspace_mobile/core/models/user.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 
 ///
 /// Zawiera informacje o użytkowniku oraz opcje nawigacji.
 class UserDrawer extends StatelessWidget {
-  const UserDrawer({
-    super.key,
-    this.userName = 'Użytkownik',
-    this.userEmail = 'uzytkownik@example.com',
-    this.avatarUrl,
-  });
+  const UserDrawer({super.key, required this.user});
 
-  /// Nazwa użytkownika do wyświetlenia w nagłówku drawera.
-  final String userName;
-
-  /// Email użytkownika do wyświetlenia w nagłówku drawera.
-  final String userEmail;
-
-  /// URL do avatara użytkownika. Jeśli null, wyświetlany jest placeholder.
-  final String? avatarUrl;
+  /// Obiekt użytkownika zawierający dane do wyświetlenia.
+  final User user;
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +52,7 @@ class UserDrawer extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  userName,
+                  user.displayName,
                   style: AppTextStyles.titleMedium.copyWith(
                     color: AppColors.textPrimary,
                   ), // Lekko mniejszy niż titleLarge
@@ -71,7 +61,7 @@ class UserDrawer extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  userEmail,
+                  user.email,
                   style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
@@ -91,14 +81,14 @@ class UserDrawer extends StatelessWidget {
       height: 64,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.primary.withOpacity(0.8), width: 1.5), // Subtelniejsza ramka
+        border: Border.all(color: AppColors.primary.withAlpha(204), width: 1.5), // Subtelniejsza ramka (opacity 0.8)
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32), // Dopasowanie do rozmiaru
         child:
-            avatarUrl != null
+            user.avatarUrl != null
                 ? Image.network(
-                  avatarUrl!,
+                  user.avatarUrl!,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => _buildAvatarPlaceholder(),
                   // Opcjonalnie: Lepsze wrażenia podczas ładowania
@@ -129,8 +119,8 @@ class UserDrawer extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
-          style: AppTextStyles.titleLarge.copyWith(color: AppColors.onPrimary.withOpacity(0.8)),
+          user.initial,
+          style: AppTextStyles.titleLarge.copyWith(color: AppColors.onPrimary.withAlpha(204)), // opacity 0.8
         ),
       ),
     );
@@ -183,9 +173,9 @@ class UserDrawer extends StatelessWidget {
         title: Text(title, style: AppTextStyles.bodyLarge.copyWith(color: AppColors.textPrimary)),
         onTap: onTap,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)), // Zaokrąglone krawędzie dla efektów
-        hoverColor: AppColors.surfaceLight.withOpacity(0.8),
-        splashColor: AppColors.primary.withOpacity(0.15),
-        focusColor: AppColors.primary.withOpacity(0.1),
+        hoverColor: AppColors.surfaceLight.withAlpha(204), // opacity 0.8
+        splashColor: AppColors.primary.withAlpha(38), // opacity 0.15
+        focusColor: AppColors.primary.withAlpha(26), // opacity 0.1
         tileColor: Colors.transparent,
       ),
     );
