@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:bandspace_mobile/auth/auth_screen.dart';
+import 'package:bandspace_mobile/dashboard/dashboard_screen.dart';
 import 'package:bandspace_mobile/theme/theme.dart';
 
 void main() {
@@ -20,7 +21,9 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       title: 'BandSpace',
       theme: AppTheme.darkTheme,
-      home: const AuthScreen(),
+      // Używamy DashboardScreen jako ekranu głównego
+      // Możesz przełączyć na AuthScreen, aby zobaczyć ekran logowania
+      home: const DashboardScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
