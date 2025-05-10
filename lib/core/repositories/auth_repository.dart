@@ -1,37 +1,8 @@
 import 'package:dio/dio.dart';
 
 import 'package:bandspace_mobile/core/api/api_client.dart';
+import 'package:bandspace_mobile/core/models/session.dart';
 import 'package:bandspace_mobile/core/repositories/base_repository.dart';
-
-/// Model danych użytkownika
-class User {
-  final String id;
-  final String email;
-  final Map<String, dynamic> userData;
-
-  User({required this.id, required this.email, required this.userData});
-
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(id: json['id'] ?? '', email: json['email'] ?? '', userData: json);
-  }
-}
-
-/// Model danych sesji
-class Session {
-  final String accessToken;
-  final String refreshToken;
-  final User user;
-
-  Session({required this.accessToken, required this.refreshToken, required this.user});
-
-  factory Session.fromJson(Map<String, dynamic> json) {
-    return Session(
-      accessToken: json['access_token'] ?? '',
-      refreshToken: json['refresh_token'] ?? '',
-      user: User.fromJson(json['user'] ?? {}),
-    );
-  }
-}
 
 /// Repozytorium odpowiedzialne za operacje związane z autoryzacją.
 ///
