@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/components/user_drawer.dart';
+import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
+import 'package:bandspace_mobile/core/cubit/auth_state.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -10,19 +13,28 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      endDrawer: const UserDrawer(
-        userName: 'Jan Kowalski',
-        userEmail: 'jan.kowalski@example.com',
-        avatarUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
-      ),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [_buildHeader(context), Expanded(child: _buildProjectsList())],
-        ),
-      ),
+    return BlocBuilder<AuthCubit, AuthState>(
+      builder: (context, state) {
+        // Pobierz dane użytkownika z AuthState
+        final user = state.user;
+        final userName = user?.email.split('@').first ?? 'Użytkownik';
+        final userEmail = user?.email ?? 'uzytkownik@example.com';
+
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          endDrawer: UserDrawer(
+            userName: userName,
+            userEmail: userEmail,
+            // Możemy dodać avatarUrl, gdy będzie dostępny w modelu użytkownika
+          ),
+          body: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [_buildHeader(context), Expanded(child: _buildProjectsList())],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -37,26 +49,47 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildUserAvatar(BuildContext context) {
-    return Builder(
-      builder: (context) {
-        return GestureDetector(
-          onTap: () => _openUserDrawer(context),
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 2)),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Image.network('https://randomuser.me/api/portraits/men/32.jpg', fit: BoxFit.cover),
-            ),
-          ),
+    return BlocBuilder<AuthCubit, AuthState>(
+      builder: (context, state) {
+        final user = state.user;
+        final userName = user?.email.split('@').first ?? 'U';
+
+        return Builder(
+          builder: (context) {
+            return GestureDetector(
+              onTap: () => _openUserDrawer(context),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primary, width: 2),
+                ),
+                child: ClipRRect(borderRadius: BorderRadius.circular(20), child: _buildAvatarContent(userName)),
+              ),
+            );
+          },
         );
       },
     );
   }
 
+  /// Buduje zawartość avatara użytkownika
+  Widget _buildAvatarContent(String userName) {
+    // Tutaj możemy dodać logikę pobierania avatara z API, gdy będzie dostępna
+    // Na razie używamy pierwszej litery nazwy użytkownika
+    return Container(
+      color: AppColors.primary,
+      child: Center(
+        child: Text(
+          userName[0].toUpperCase(),
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+      ),
+    );
+  }
+
   void _openUserDrawer(BuildContext context) {
-    print('Otwieram drawer');
     // Otwiera drawer z prawej strony ekranu
     Scaffold.of(context).openEndDrawer();
   }

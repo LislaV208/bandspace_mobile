@@ -165,4 +165,39 @@ class AuthCubit extends Cubit<AuthState> {
     // Implementacja pozostaje w widoku, ponieważ wymaga kontekstu
     // i jest ściśle związana z UI
   }
+
+  /// Obsługuje proces wylogowania
+  Future<void> logout() async {
+    // Ustaw stan ładowania
+    emit(state.copyWith(isLoading: true, errorMessage: null));
+
+    try {
+      // Wywołanie metody wylogowania z repozytorium
+      await authRepository.logout();
+
+      // Wyczyść stan ładowania i dane użytkownika
+      emit(state.copyWith(isLoading: false, user: null));
+
+      // Wyczyść pola formularza
+      emailController.clear();
+      passwordController.clear();
+      confirmPasswordController.clear();
+
+      debugPrint("Wylogowano pomyślnie");
+    } catch (e) {
+      // Obsługa błędów
+      String errorMessage = "Błąd wylogowania: ${e.toString()}";
+
+      // Sprawdzamy typ wyjątku i dostosowujemy komunikat
+      if (e.toString().contains("ApiException")) {
+        errorMessage = e.toString().replaceAll("ApiException: ", "");
+      } else if (e.toString().contains("NetworkException")) {
+        errorMessage = "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
+      } else if (e.toString().contains("TimeoutException")) {
+        errorMessage = "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
+      }
+
+      emit(state.copyWith(isLoading: false, errorMessage: errorMessage));
+    }
+  }
 }

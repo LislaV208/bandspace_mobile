@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/core/theme/theme.dart'; // Załóżmy, że tu są AppColors i AppTextStyles
+import 'package:bandspace_mobile/auth/auth_screen.dart';
+import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
+import 'package:bandspace_mobile/core/theme/theme.dart';
 
 ///
 /// Zawiera informacje o użytkowniku oraz opcje nawigacji.
@@ -192,13 +195,55 @@ class UserDrawer extends StatelessWidget {
   Widget _buildLogoutButton() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      child: ElevatedButton.icon(
-        icon: const Icon(LucideIcons.logOut, size: 20),
-        label: Text('Wyloguj się'),
-        onPressed: () {
-          // Implementacja wylogowania
+      child: Builder(
+        builder: (context) {
+          return ElevatedButton.icon(
+            icon: const Icon(LucideIcons.logOut, size: 20),
+            label: const Text('Wyloguj się'),
+            onPressed: () => _handleLogout(context),
+          );
         },
       ),
     );
+  }
+
+  /// Obsługuje proces wylogowania
+  void _handleLogout(BuildContext context) async {
+    // Pobierz AuthCubit przed operacją asynchroniczną
+    final authCubit = context.read<AuthCubit>();
+
+    // Pokaż dialog potwierdzenia
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Wylogowanie'),
+            content: const Text('Czy na pewno chcesz się wylogować?'),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Anuluj')),
+              ElevatedButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Wyloguj')),
+            ],
+          ),
+    );
+
+    // Sprawdź, czy widget jest nadal w drzewie widgetów
+    if (!context.mounted) return;
+
+    if (shouldLogout == true) {
+      // Wywołaj metodę logout
+      await authCubit.logout();
+
+      // Sprawdź ponownie, czy widget jest nadal w drzewie widgetów
+      if (!context.mounted) return;
+
+      // Zamknij drawer
+      Navigator.of(context).pop();
+
+      // Nawiguj do ekranu logowania
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const AuthScreen()),
+        (route) => false, // Usuń wszystkie poprzednie ekrany ze stosu
+      );
+    }
   }
 }

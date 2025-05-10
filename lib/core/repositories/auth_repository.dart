@@ -77,13 +77,26 @@ class AuthRepository extends BaseRepository {
 
   /// Wylogowuje użytkownika.
   ///
-  /// Czyści token autoryzacji w ApiClient.
+  /// Wywołuje endpoint wylogowania i czyści token autoryzacji w ApiClient.
   Future<void> logout() async {
     try {
-      // TODO: Dodać wywołanie endpointu wylogowania gdy będzie dostępny
+      // Wywołanie endpointu wylogowania
+      final response = await apiClient.post('api/auth/logout');
+
+      final responseData = response.data;
+
+      if (responseData['success'] != true) {
+        throw ApiException(
+          message: responseData['error'] ?? 'Nieznany błąd podczas wylogowywania',
+          statusCode: response.statusCode,
+          data: responseData,
+        );
+      }
 
       // Czyszczenie tokenu autoryzacji
       apiClient.clearAuthToken();
+    } on ApiException {
+      rethrow;
     } catch (e) {
       throw UnknownException('Wystąpił błąd podczas wylogowywania: $e');
     }
