@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:bandspace_mobile/core/components/user_drawer.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -11,35 +12,53 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      endDrawer: const UserDrawer(
+        userName: 'Jan Kowalski',
+        userEmail: 'jan.kowalski@example.com',
+        avatarUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
+      ),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [_buildHeader(), Expanded(child: _buildProjectsList())],
+          children: [_buildHeader(context), Expanded(child: _buildProjectsList())],
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [Text('BandSpace', style: AppTextStyles.headlineMedium), _buildUserAvatar()],
+        children: [Text('BandSpace', style: AppTextStyles.headlineMedium), _buildUserAvatar(context)],
       ),
     );
   }
 
-  Widget _buildUserAvatar() {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 2)),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Image.network('https://randomuser.me/api/portraits/men/32.jpg', fit: BoxFit.cover),
-      ),
+  Widget _buildUserAvatar(BuildContext context) {
+    return Builder(
+      builder: (context) {
+        return GestureDetector(
+          onTap: () => _openUserDrawer(context),
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 2)),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.network('https://randomuser.me/api/portraits/men/32.jpg', fit: BoxFit.cover),
+            ),
+          ),
+        );
+      },
     );
+  }
+
+  void _openUserDrawer(BuildContext context) {
+    print('Otwieram drawer');
+    // Otwiera drawer z prawej strony ekranu
+    Scaffold.of(context).openEndDrawer();
   }
 
   Widget _buildProjectsList() {
