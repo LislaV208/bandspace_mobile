@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 class ApiClient {
   /// Bazowy URL API
   static const String baseUrl = 'https://app.bandspace.pl/';
+  // static const String baseUrl = 'http://192.168.0.235:5173/';
 
   /// Instancja Dio używana do wykonywania żądań
   final Dio _dio;

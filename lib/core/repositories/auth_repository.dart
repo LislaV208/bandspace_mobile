@@ -1,5 +1,3 @@
-import 'package:dio/dio.dart';
-
 import 'package:bandspace_mobile/core/api/api_client.dart';
 import 'package:bandspace_mobile/core/models/session.dart';
 import 'package:bandspace_mobile/core/repositories/base_repository.dart';
@@ -36,8 +34,7 @@ class AuthRepository extends BaseRepository {
           data: responseData,
         );
       }
-    } on DioException {
-      // Błędy Dio są już obsługiwane w ApiClient, ale możemy dodać dodatkową logikę
+    } on ApiException {
       rethrow;
     } catch (e) {
       throw UnknownException('Wystąpił nieoczekiwany błąd podczas logowania: $e');
@@ -71,8 +68,7 @@ class AuthRepository extends BaseRepository {
           data: responseData,
         );
       }
-    } on DioException {
-      // Błędy Dio są już obsługiwane w ApiClient
+    } on ApiException {
       rethrow;
     } catch (e) {
       throw UnknownException('Wystąpił nieoczekiwany błąd podczas rejestracji: $e');
