@@ -8,7 +8,10 @@ import 'package:bandspace_mobile/core/repositories/auth_repository.dart';
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository authRepository;
 
-  AuthCubit({required this.authRepository}) : super(const AuthState());
+  AuthCubit({required this.authRepository}) : super(const AuthState()) {
+    // Inicjalizacja sesji przy tworzeniu cubita
+    _initSession();
+  }
 
   // Kontrolery tekstowe
   final TextEditingController emailController = TextEditingController();
@@ -164,6 +167,25 @@ class AuthCubit extends Cubit<AuthState> {
   void openResetPasswordModal(BuildContext context) {
     // Implementacja pozostaje w widoku, ponieważ wymaga kontekstu
     // i jest ściśle związana z UI
+  }
+
+  /// Inicjalizuje sesję użytkownika na podstawie danych z lokalnego magazynu.
+  ///
+  /// Sprawdza, czy użytkownik jest zalogowany i ustawia odpowiedni stan.
+  Future<void> _initSession() async {
+    try {
+      // Sprawdź, czy użytkownik jest zalogowany
+      final session = await authRepository.initSession();
+
+      if (session != null) {
+        // Użytkownik jest zalogowany, ustaw dane użytkownika w stanie
+        emit(state.copyWith(user: session.user));
+        debugPrint("Załadowano sesję użytkownika: ${session.user.email}");
+      }
+    } catch (e) {
+      // W przypadku błędu, nie emituj żadnego stanu błędu, po prostu zaloguj
+      debugPrint("Błąd podczas inicjalizacji sesji: ${e.toString()}");
+    }
   }
 
   /// Obsługuje proces wylogowania
