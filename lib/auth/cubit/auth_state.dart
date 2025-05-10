@@ -1,10 +1,9 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:bandspace_mobile/core/models/user.dart';
+
 /// Enum reprezentujący różne widoki ekranu autoryzacji
-enum AuthView {
-  login,
-  register,
-}
+enum AuthView { login, register }
 
 /// Klasa bazowa dla wszystkich stanów autoryzacji
 class AuthState extends Equatable {
@@ -13,6 +12,7 @@ class AuthState extends Equatable {
   final String? errorMessage;
   final bool showPassword;
   final bool showConfirmPassword;
+  final User? user;
 
   const AuthState({
     this.view = AuthView.login,
@@ -20,6 +20,7 @@ class AuthState extends Equatable {
     this.errorMessage,
     this.showPassword = false,
     this.showConfirmPassword = false,
+    this.user,
   });
 
   /// Tworzy kopię stanu z nowymi wartościami
@@ -29,6 +30,7 @@ class AuthState extends Equatable {
     String? errorMessage,
     bool? showPassword,
     bool? showConfirmPassword,
+    User? user,
   }) {
     return AuthState(
       view: view ?? this.view,
@@ -36,15 +38,10 @@ class AuthState extends Equatable {
       errorMessage: errorMessage,
       showPassword: showPassword ?? this.showPassword,
       showConfirmPassword: showConfirmPassword ?? this.showConfirmPassword,
+      user: user ?? this.user,
     );
   }
 
   @override
-  List<Object?> get props => [
-        view,
-        isLoading,
-        errorMessage,
-        showPassword,
-        showConfirmPassword,
-      ];
+  List<Object?> get props => [view, isLoading, errorMessage, showPassword, showConfirmPassword, user];
 }

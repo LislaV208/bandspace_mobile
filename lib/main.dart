@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bandspace_mobile/auth/auth_screen.dart';
 import 'package:bandspace_mobile/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/repositories/auth_repository.dart';
-import 'package:bandspace_mobile/dashboard/dashboard_screen.dart';
 import 'package:bandspace_mobile/theme/theme.dart';
 
 void main() {
@@ -25,7 +24,7 @@ class MainApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         RepositoryProvider(create: (_) => AuthRepository()),
-        BlocProvider<AuthCubit>(create: (_) => AuthCubit()),
+        BlocProvider<AuthCubit>(create: (_) => AuthCubit(authRepository: context.read<AuthRepository>())),
       ],
       child: MaterialApp(
         title: 'BandSpace',

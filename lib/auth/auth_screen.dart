@@ -6,6 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/auth/cubit/auth_state.dart';
+import 'package:bandspace_mobile/dashboard/dashboard_screen.dart';
 import 'package:bandspace_mobile/theme/theme.dart';
 
 class AuthScreen extends StatelessWidget {
@@ -63,7 +64,14 @@ class _AuthScreenContent extends StatelessWidget {
     // Pobieramy referencję do Cubita
     final authCubit = context.read<AuthCubit>();
 
-    return BlocBuilder<AuthCubit, AuthState>(
+    return BlocConsumer<AuthCubit, AuthState>(
+      listener: (context, state) {
+        // Obsługa nawigacji po udanym logowaniu/rejestracji
+        if (state.user != null) {
+          // Nawigacja do DashboardScreen
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const DashboardScreen()));
+        }
+      },
       builder: (context, state) {
         final isLoginView = state.view == AuthView.login;
 

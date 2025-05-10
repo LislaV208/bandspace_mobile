@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'auth_state.dart';
+import 'package:bandspace_mobile/auth/cubit/auth_state.dart';
+import 'package:bandspace_mobile/core/repositories/auth_repository.dart';
 
-/// Cubit zarządzający stanem ekranu autoryzacji
 class AuthCubit extends Cubit<AuthState> {
+  final AuthRepository authRepository;
+
+  AuthCubit({required this.authRepository}) : super(const AuthState());
+
   // Kontrolery tekstowe
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -15,8 +19,6 @@ class AuthCubit extends Cubit<AuthState> {
   final FocusNode emailFocus = FocusNode();
   final FocusNode passwordFocus = FocusNode();
   final FocusNode confirmPasswordFocus = FocusNode();
-
-  AuthCubit() : super(const AuthState());
 
   @override
   Future<void> close() {
@@ -60,32 +62,53 @@ class AuthCubit extends Cubit<AuthState> {
 
   /// Obsługuje proces logowania
   Future<void> login() async {
+    // Sprawdź, czy pola nie są puste
+    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+      emit(state.copyWith(errorMessage: "Wprowadź email i hasło."));
+      return;
+    }
+
     // Ustaw stan ładowania
     emit(state.copyWith(isLoading: true, errorMessage: null));
 
     try {
-      // Symulacja opóźnienia sieciowego
-      await Future.delayed(const Duration(seconds: 2));
-
-      // Tutaj dodaj rzeczywistą logikę logowania
-      // np. wywołanie API, Firebase Auth, itp.
-
-      // Dla celów demonstracyjnych, zawsze sukces
-      // W rzeczywistej implementacji, tutaj byłaby logika weryfikacji
+      // Wywołanie metody logowania z repozytorium
+      final session = await authRepository.login(email: emailController.text.trim(), password: passwordController.text);
 
       // Wyczyść stan ładowania
       emit(state.copyWith(isLoading: false));
 
-      // Tutaj można by wywołać nawigację do następnego ekranu
-      // lub zaktualizować globalny stan aplikacji
+      // Nawigacja do ekranu głównego po udanym logowaniu
+      debugPrint("Zalogowano pomyślnie: ${session.user.email}");
+
+      // Nawigacja do DashboardScreen zostanie obsłużona przez widok
+      // Emitujemy stan z danymi użytkownika, co oznacza że jest zalogowany
+      emit(state.copyWith(user: session.user));
     } catch (e) {
       // Obsługa błędów
-      emit(state.copyWith(isLoading: false, errorMessage: "Błąd logowania: ${e.toString()}"));
+      String errorMessage = "Błąd logowania: ${e.toString()}";
+
+      // Sprawdzamy typ wyjątku i dostosowujemy komunikat
+      if (e.toString().contains("ApiException")) {
+        errorMessage = e.toString().replaceAll("ApiException: ", "");
+      } else if (e.toString().contains("NetworkException")) {
+        errorMessage = "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
+      } else if (e.toString().contains("TimeoutException")) {
+        errorMessage = "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
+      }
+
+      emit(state.copyWith(isLoading: false, errorMessage: errorMessage));
     }
   }
 
   /// Obsługuje proces rejestracji
   Future<void> register() async {
+    // Sprawdź, czy pola nie są puste
+    if (emailController.text.isEmpty || passwordController.text.isEmpty || confirmPasswordController.text.isEmpty) {
+      emit(state.copyWith(errorMessage: "Wypełnij wszystkie pola."));
+      return;
+    }
+
     // Sprawdź, czy hasła są zgodne
     if (passwordController.text != confirmPasswordController.text) {
       emit(state.copyWith(errorMessage: "Hasła nie są zgodne."));
@@ -96,23 +119,35 @@ class AuthCubit extends Cubit<AuthState> {
     emit(state.copyWith(isLoading: true, errorMessage: null));
 
     try {
-      // Symulacja opóźnienia sieciowego
-      await Future.delayed(const Duration(seconds: 2));
-
-      // Tutaj dodaj rzeczywistą logikę rejestracji
-      // np. wywołanie API, Firebase Auth, itp.
-
-      // Dla celów demonstracyjnych, zawsze sukces
-      // W rzeczywistej implementacji, tutaj byłaby logika rejestracji
+      // Wywołanie metody rejestracji z repozytorium
+      final session = await authRepository.register(
+        email: emailController.text.trim(),
+        password: passwordController.text,
+        confirmPassword: confirmPasswordController.text,
+      );
 
       // Wyczyść stan ładowania
       emit(state.copyWith(isLoading: false));
 
-      // Tutaj można by wywołać nawigację do następnego ekranu
-      // lub zaktualizować globalny stan aplikacji
+      // Nawigacja do ekranu głównego po udanej rejestracji
+      debugPrint("Zarejestrowano pomyślnie: ${session.user.email}");
+
+      // Emitujemy stan z danymi użytkownika, co oznacza że jest zalogowany
+      emit(state.copyWith(user: session.user));
     } catch (e) {
       // Obsługa błędów
-      emit(state.copyWith(isLoading: false, errorMessage: "Błąd rejestracji: ${e.toString()}"));
+      String errorMessage = "Błąd rejestracji: ${e.toString()}";
+
+      // Sprawdzamy typ wyjątku i dostosowujemy komunikat
+      if (e.toString().contains("ApiException")) {
+        errorMessage = e.toString().replaceAll("ApiException: ", "");
+      } else if (e.toString().contains("NetworkException")) {
+        errorMessage = "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
+      } else if (e.toString().contains("TimeoutException")) {
+        errorMessage = "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
+      }
+
+      emit(state.copyWith(isLoading: false, errorMessage: errorMessage));
     }
   }
 
