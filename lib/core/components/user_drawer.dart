@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/core/theme/theme.dart'; // Załóżmy, że tu są AppColors i AppTextStyles
 
 ///
 /// Zawiera informacje o użytkowniku oraz opcje nawigacji.
@@ -29,12 +29,15 @@ class UserDrawer extends StatelessWidget {
       backgroundColor: AppColors.background,
       child: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildHeader(),
-            const Divider(color: AppColors.divider),
+            const Divider(color: AppColors.divider, height: 1, thickness: 1, indent: 16, endIndent: 16),
             Expanded(child: _buildMenuItems()),
-            const Divider(color: AppColors.divider),
+            const Divider(color: AppColors.divider, height: 1, thickness: 1, indent: 16, endIndent: 16),
+            const SizedBox(height: 8.0), // Dodatkowy odstęp
             _buildLogoutButton(),
+            const SizedBox(height: 8.0), // Odstęp od dołu
           ],
         ),
       ),
@@ -43,26 +46,35 @@ class UserDrawer extends StatelessWidget {
 
   /// Buduje nagłówek drawera z informacjami o użytkowniku.
   Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0), // Zwiększony padding
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
-            children: [
-              _buildAvatar(),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(userName, style: AppTextStyles.titleLarge, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 4),
-                    Text(userEmail, style: AppTextStyles.bodySmall, overflow: TextOverflow.ellipsis),
-                  ],
+          _buildAvatar(),
+          const SizedBox(width: 16), // Zwiększony odstęp
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  userName,
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: AppColors.textPrimary,
+                  ), // Lekko mniejszy niż titleLarge
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  userEmail,
+                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -72,17 +84,33 @@ class UserDrawer extends StatelessWidget {
   /// Buduje avatar użytkownika.
   Widget _buildAvatar() {
     return Container(
-      width: 60,
-      height: 60,
-      decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 2)),
+      width: 64, // Lekko zwiększony rozmiar
+      height: 64,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.primary.withOpacity(0.8), width: 1.5), // Subtelniejsza ramka
+      ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(32), // Dopasowanie do rozmiaru
         child:
             avatarUrl != null
                 ? Image.network(
                   avatarUrl!,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => _buildAvatarPlaceholder(),
+                  // Opcjonalnie: Lepsze wrażenia podczas ładowania
+                  loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                        value:
+                            loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                : null,
+                      ),
+                    );
+                  },
                 )
                 : _buildAvatarPlaceholder(),
       ),
@@ -92,11 +120,14 @@ class UserDrawer extends StatelessWidget {
   /// Buduje placeholder dla avatara, gdy URL jest null lub wystąpił błąd ładowania.
   Widget _buildAvatarPlaceholder() {
     return Container(
-      color: AppColors.surfaceMedium,
+      decoration: BoxDecoration(
+        color: AppColors.surfaceMedium,
+        borderRadius: BorderRadius.circular(30), // Aby pasowało do ClipRRect
+      ),
       child: Center(
         child: Text(
           userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
-          style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+          style: AppTextStyles.titleLarge.copyWith(color: AppColors.onPrimary.withOpacity(0.8)),
         ),
       ),
     );
@@ -105,7 +136,7 @@ class UserDrawer extends StatelessWidget {
   /// Buduje listę opcji menu.
   Widget _buildMenuItems() {
     return ListView(
-      padding: EdgeInsets.zero,
+      padding: const EdgeInsets.symmetric(vertical: 8.0), // Odstęp od Dividerów
       children: [
         _buildMenuItem(
           icon: LucideIcons.user,
@@ -141,33 +172,32 @@ class UserDrawer extends StatelessWidget {
 
   /// Buduje pojedynczy element menu.
   Widget _buildMenuItem({required IconData icon, required String title, required VoidCallback onTap}) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.iconPrimary),
-      title: Text(title, style: AppTextStyles.bodyLarge),
-      onTap: onTap,
-      hoverColor: AppColors.surfaceLight,
-      tileColor: Colors.transparent,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0), // Odstęp między elementami
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0), // Wewnętrzny padding
+        leading: Icon(icon, color: AppColors.iconPrimary, size: 22), // Ujednolicony rozmiar ikony
+        title: Text(title, style: AppTextStyles.bodyLarge.copyWith(color: AppColors.textPrimary)),
+        onTap: onTap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)), // Zaokrąglone krawędzie dla efektów
+        hoverColor: AppColors.surfaceLight.withOpacity(0.8),
+        splashColor: AppColors.primary.withOpacity(0.15),
+        focusColor: AppColors.primary.withOpacity(0.1),
+        tileColor: Colors.transparent,
+      ),
     );
   }
 
   /// Buduje przycisk wylogowania.
   Widget _buildLogoutButton() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: SizedBox(
-        width: double.infinity,
-        child: OutlinedButton.icon(
-          icon: const Icon(LucideIcons.logOut),
-          label: const Text('Wyloguj się'),
-          onPressed: () {
-            // Implementacja wylogowania
-          },
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            foregroundColor: AppColors.error,
-            side: const BorderSide(color: AppColors.error),
-          ),
-        ),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      child: ElevatedButton.icon(
+        icon: const Icon(LucideIcons.logOut, size: 20),
+        label: Text('Wyloguj się'),
+        onPressed: () {
+          // Implementacja wylogowania
+        },
       ),
     );
   }
