@@ -14,6 +14,10 @@ class AuthState extends Equatable {
   final bool showConfirmPassword;
   final User? user;
 
+  /// Flaga wskazująca, czy stan autentykacji został zainicjalizowany.
+  /// Używana do określenia, czy aplikacja powinna pokazać ekran ładowania czy przejść do odpowiedniego ekranu.
+  final bool isAuthStateInitialized;
+
   const AuthState({
     this.view = AuthView.login,
     this.isLoading = false,
@@ -21,6 +25,7 @@ class AuthState extends Equatable {
     this.showPassword = false,
     this.showConfirmPassword = false,
     this.user,
+    this.isAuthStateInitialized = false,
   });
 
   /// Tworzy kopię stanu z nowymi wartościami
@@ -31,6 +36,7 @@ class AuthState extends Equatable {
     bool? showPassword,
     bool? showConfirmPassword,
     User? user,
+    bool? isAuthStateInitialized,
   }) {
     return AuthState(
       view: view ?? this.view,
@@ -39,9 +45,18 @@ class AuthState extends Equatable {
       showPassword: showPassword ?? this.showPassword,
       showConfirmPassword: showConfirmPassword ?? this.showConfirmPassword,
       user: user ?? this.user,
+      isAuthStateInitialized: isAuthStateInitialized ?? this.isAuthStateInitialized,
     );
   }
 
   @override
-  List<Object?> get props => [view, isLoading, errorMessage, showPassword, showConfirmPassword, user];
+  List<Object?> get props => [
+    view,
+    isLoading,
+    errorMessage,
+    showPassword,
+    showConfirmPassword,
+    user,
+    isAuthStateInitialized,
+  ];
 }

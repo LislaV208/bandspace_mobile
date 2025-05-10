@@ -179,11 +179,16 @@ class AuthCubit extends Cubit<AuthState> {
 
       if (session != null) {
         // Użytkownik jest zalogowany, ustaw dane użytkownika w stanie
-        emit(state.copyWith(user: session.user));
+        emit(state.copyWith(user: session.user, isAuthStateInitialized: true));
         debugPrint("Załadowano sesję użytkownika: ${session.user.email}");
+      } else {
+        // Użytkownik nie jest zalogowany, ustaw flagę inicjalizacji
+        emit(state.copyWith(isAuthStateInitialized: true));
+        debugPrint("Brak zapisanej sesji użytkownika");
       }
     } catch (e) {
-      // W przypadku błędu, nie emituj żadnego stanu błędu, po prostu zaloguj
+      // W przypadku błędu, ustaw flagę inicjalizacji, aby aplikacja mogła przejść dalej
+      emit(state.copyWith(isAuthStateInitialized: true));
       debugPrint("Błąd podczas inicjalizacji sesji: ${e.toString()}");
     }
   }
