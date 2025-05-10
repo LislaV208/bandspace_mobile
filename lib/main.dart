@@ -3,12 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/auth/auth_screen.dart';
+import 'package:bandspace_mobile/core/config/env_config.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/repositories/auth_repository.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 
-void main() {
+/// Główna funkcja uruchamiająca aplikację.
+///
+/// Parametr [envFileName] określa nazwę pliku konfiguracyjnego, który ma zostać załadowany.
+/// Domyślnie używany jest plik '.env'.
+Future<void> main({String envFileName = '.env'}) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Załadowanie odpowiedniego pliku .env
+  await EnvConfig().init(fileName: envFileName);
 
   // Ustawienie przezroczystego statusbara
   AppTheme.setStatusBarColor();

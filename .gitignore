@@ -33,6 +33,9 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Environment files
+.env.local
+
 # Symbolication related
 app.*.symbols
 

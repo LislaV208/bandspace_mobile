@@ -1,12 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:bandspace_mobile/core/config/env_config.dart';
 
 /// Klasa ApiClient odpowiedzialna za wykonywanie żądań HTTP
 /// do API BandSpace przy użyciu biblioteki dio.
 class ApiClient {
-  /// Bazowy URL API
-  static const String baseUrl = 'https://app.bandspace.pl/';
-  // static const String baseUrl = 'http://192.168.0.235:5173/';
-
   /// Instancja Dio używana do wykonywania żądań
   final Dio _dio;
 
@@ -20,6 +17,9 @@ class ApiClient {
 
   /// Konstruktor prywatny inicjalizujący Dio z odpowiednimi ustawieniami
   ApiClient._internal() : _dio = Dio() {
+    // Pobranie bazowego URL z konfiguracji środowiskowej
+    final baseUrl = EnvConfig().apiBaseUrl;
+
     _dio.options.baseUrl = baseUrl;
     _dio.options.connectTimeout = const Duration(seconds: 10);
     _dio.options.receiveTimeout = const Duration(seconds: 10);

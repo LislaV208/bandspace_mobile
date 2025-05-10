@@ -5,21 +5,37 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "bandspace_mobile",
-      "request": "launch",
-      "type": "dart"
-    },
-    {
-      "name": "bandspace_mobile (profile mode)",
+      "name": "BandSpace (.env)",
       "request": "launch",
       "type": "dart",
-      "flutterMode": "profile"
+      "program": "lib/main.dart"
     },
     {
-      "name": "bandspace_mobile (release mode)",
+      "name": "BandSpace (.env.local)",
       "request": "launch",
       "type": "dart",
-      "flutterMode": "release"
+      "program": "lib/main_local.dart"
+    },
+    {
+      "name": "BandSpace (.env) - profile",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile",
+      "program": "lib/main.dart"
+    },
+    {
+      "name": "BandSpace (.env.local) - profile",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile",
+      "program": "lib/main_local.dart"
+    },
+    {
+      "name": "BandSpace (.env) - release",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "program": "lib/main.dart"
     }
   ]
 }
