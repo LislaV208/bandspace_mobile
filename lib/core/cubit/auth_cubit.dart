@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/auth/cubit/auth_state.dart';
+import 'package:bandspace_mobile/core/cubit/auth_state.dart';
 import 'package:bandspace_mobile/core/repositories/auth_repository.dart';
 
 class AuthCubit extends Cubit<AuthState> {

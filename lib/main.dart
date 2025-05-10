@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/auth/auth_screen.dart';
-import 'package:bandspace_mobile/auth/cubit/auth_cubit.dart';
+import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/repositories/auth_repository.dart';
-import 'package:bandspace_mobile/theme/theme.dart';
+import 'package:bandspace_mobile/core/theme/theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,13 +24,11 @@ class MainApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         RepositoryProvider(create: (_) => AuthRepository()),
-        BlocProvider<AuthCubit>(create: (_) => AuthCubit(authRepository: context.read<AuthRepository>())),
+        BlocProvider<AuthCubit>(create: (context) => AuthCubit(authRepository: context.read<AuthRepository>())),
       ],
       child: MaterialApp(
         title: 'BandSpace',
         theme: AppTheme.darkTheme,
-        // Używamy AuthScreen jako ekranu głównego do testowania
-        // Możesz przełączyć na DashboardScreen, aby zobaczyć ekran główny
         home: const AuthScreen(),
         debugShowCheckedModeBanner: false,
       ),

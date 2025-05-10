@@ -4,10 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/auth/cubit/auth_cubit.dart';
-import 'package:bandspace_mobile/auth/cubit/auth_state.dart';
+import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
+import 'package:bandspace_mobile/core/cubit/auth_state.dart';
+import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/dashboard/dashboard_screen.dart';
-import 'package:bandspace_mobile/theme/theme.dart';
 
 class AuthScreen extends StatelessWidget {
   const AuthScreen({super.key});

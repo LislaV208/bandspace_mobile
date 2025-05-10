@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/theme/theme.dart';
+import 'package:bandspace_mobile/core/theme/theme.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
