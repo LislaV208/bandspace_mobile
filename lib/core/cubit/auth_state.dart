@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:bandspace_mobile/core/models/user.dart';
+import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 
 /// Enum reprezentujący różne widoki ekranu autoryzacji
 enum AuthView { login, register }
@@ -32,19 +33,19 @@ class AuthState extends Equatable {
   AuthState copyWith({
     AuthView? view,
     bool? isLoading,
-    String? errorMessage,
+    Value<String?>? errorMessage,
     bool? showPassword,
     bool? showConfirmPassword,
-    User? user,
+    Value<User?>? user,
     bool? isAuthStateInitialized,
   }) {
     return AuthState(
       view: view ?? this.view,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage,
+      errorMessage: errorMessage != null ? errorMessage.value : this.errorMessage,
       showPassword: showPassword ?? this.showPassword,
       showConfirmPassword: showConfirmPassword ?? this.showConfirmPassword,
-      user: user ?? this.user,
+      user: user != null ? user.value : this.user,
       isAuthStateInitialized: isAuthStateInitialized ?? this.isAuthStateInitialized,
     );
   }

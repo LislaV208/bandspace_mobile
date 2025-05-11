@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/cubit/auth_state.dart';
 import 'package:bandspace_mobile/core/repositories/auth_repository.dart';
+import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository authRepository;
@@ -14,8 +16,8 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   // Kontrolery tekstowe
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController(text: kDebugMode ? 'lislav.hms@gmail.com' : null);
+  final TextEditingController passwordController = TextEditingController(text: kDebugMode ? '@rbuz0Hol' : null);
   final TextEditingController confirmPasswordController = TextEditingController();
 
   // Węzły fokusa
@@ -47,7 +49,7 @@ class AuthCubit extends Cubit<AuthState> {
     emit(
       state.copyWith(
         view: newView,
-        errorMessage: null, // Wyczyść błędy przy zmianie widoku
+        errorMessage: Value(null), // Wyczyść błędy przy zmianie widoku
         showConfirmPassword: newView == AuthView.register ? false : state.showConfirmPassword,
       ),
     );
@@ -67,12 +69,12 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> login() async {
     // Sprawdź, czy pola nie są puste
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      emit(state.copyWith(errorMessage: "Wprowadź email i hasło."));
+      emit(state.copyWith(errorMessage: Value("Wprowadź email i hasło.")));
       return;
     }
 
     // Ustaw stan ładowania
-    emit(state.copyWith(isLoading: true, errorMessage: null));
+    emit(state.copyWith(isLoading: true, errorMessage: Value(null)));
 
     try {
       // Wywołanie metody logowania z repozytorium
@@ -86,7 +88,7 @@ class AuthCubit extends Cubit<AuthState> {
 
       // Nawigacja do DashboardScreen zostanie obsłużona przez widok
       // Emitujemy stan z danymi użytkownika, co oznacza że jest zalogowany
-      emit(state.copyWith(user: session.user));
+      emit(state.copyWith(user: Value(session.user)));
     } catch (e) {
       // Obsługa błędów
       String errorMessage = "Błąd logowania: ${e.toString()}";
@@ -100,7 +102,7 @@ class AuthCubit extends Cubit<AuthState> {
         errorMessage = "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
       }
 
-      emit(state.copyWith(isLoading: false, errorMessage: errorMessage));
+      emit(state.copyWith(isLoading: false, errorMessage: Value(errorMessage)));
     }
   }
 
@@ -108,18 +110,18 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> register() async {
     // Sprawdź, czy pola nie są puste
     if (emailController.text.isEmpty || passwordController.text.isEmpty || confirmPasswordController.text.isEmpty) {
-      emit(state.copyWith(errorMessage: "Wypełnij wszystkie pola."));
+      emit(state.copyWith(errorMessage: Value("Wypełnij wszystkie pola.")));
       return;
     }
 
     // Sprawdź, czy hasła są zgodne
     if (passwordController.text != confirmPasswordController.text) {
-      emit(state.copyWith(errorMessage: "Hasła nie są zgodne."));
+      emit(state.copyWith(errorMessage: Value("Hasła nie są zgodne.")));
       return;
     }
 
     // Ustaw stan ładowania
-    emit(state.copyWith(isLoading: true, errorMessage: null));
+    emit(state.copyWith(isLoading: true, errorMessage: Value(null)));
 
     try {
       // Wywołanie metody rejestracji z repozytorium
@@ -136,7 +138,7 @@ class AuthCubit extends Cubit<AuthState> {
       debugPrint("Zarejestrowano pomyślnie: ${session.user.email}");
 
       // Emitujemy stan z danymi użytkownika, co oznacza że jest zalogowany
-      emit(state.copyWith(user: session.user));
+      emit(state.copyWith(user: Value(session.user)));
     } catch (e) {
       // Obsługa błędów
       String errorMessage = "Błąd rejestracji: ${e.toString()}";
@@ -150,7 +152,7 @@ class AuthCubit extends Cubit<AuthState> {
         errorMessage = "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
       }
 
-      emit(state.copyWith(isLoading: false, errorMessage: errorMessage));
+      emit(state.copyWith(isLoading: false, errorMessage: Value(errorMessage)));
     }
   }
 
@@ -179,7 +181,7 @@ class AuthCubit extends Cubit<AuthState> {
 
       if (session != null) {
         // Użytkownik jest zalogowany, ustaw dane użytkownika w stanie
-        emit(state.copyWith(user: session.user, isAuthStateInitialized: true));
+        emit(state.copyWith(user: Value(session.user), isAuthStateInitialized: true));
         debugPrint("Załadowano sesję użytkownika: ${session.user.email}");
       } else {
         // Użytkownik nie jest zalogowany, ustaw flagę inicjalizacji
@@ -196,18 +198,20 @@ class AuthCubit extends Cubit<AuthState> {
   /// Obsługuje proces wylogowania
   Future<void> logout() async {
     // Ustaw stan ładowania
-    emit(state.copyWith(isLoading: true, errorMessage: null));
+    emit(state.copyWith(isLoading: true, errorMessage: Value(null)));
 
     try {
       // Wywołanie metody wylogowania z repozytorium
       await authRepository.logout();
 
       // Wyczyść stan ładowania i dane użytkownika
-      emit(state.copyWith(isLoading: false, user: null));
+      emit(state.copyWith(isLoading: false, user: Value(null)));
 
       // Wyczyść pola formularza
-      emailController.clear();
-      passwordController.clear();
+      if (!kDebugMode) {
+        emailController.clear();
+        passwordController.clear();
+      }
       confirmPasswordController.clear();
 
       debugPrint("Wylogowano pomyślnie");
@@ -224,7 +228,7 @@ class AuthCubit extends Cubit<AuthState> {
         errorMessage = "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
       }
 
-      emit(state.copyWith(isLoading: false, errorMessage: errorMessage));
+      emit(state.copyWith(isLoading: false, errorMessage: Value(errorMessage)));
     }
   }
 }
