@@ -8,7 +8,10 @@ import 'package:bandspace_mobile/core/components/user_drawer.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/cubit/auth_state.dart';
 import 'package:bandspace_mobile/core/models/user.dart';
+import 'package:bandspace_mobile/core/repositories/project_repository.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/dashboard/cubit/dashboard_cubit.dart';
+import 'package:bandspace_mobile/dashboard/cubit/dashboard_state.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -16,9 +19,9 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthCubit, AuthState>(
-      builder: (context, state) {
+      builder: (context, authState) {
         // Pobierz dane użytkownika z AuthState
-        final user = state.user;
+        final user = authState.user;
 
         // Jeśli użytkownik nie jest zalogowany, przekieruj do ekranu logowania
         if (user == null) {
@@ -32,17 +35,29 @@ class DashboardScreen extends StatelessWidget {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
 
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          endDrawer: UserDrawer(user: user),
-          body: SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [_buildHeader(context), Expanded(child: _buildProjectsList())],
-            ),
-          ),
-        );
+        // Utwórz DashboardCubit, jeśli jeszcze nie istnieje
+        if (context.read<DashboardCubit?>() == null) {
+          return BlocProvider(
+            create: (context) => DashboardCubit(projectRepository: ProjectRepository())..loadProjects(),
+            child: _buildDashboardContent(context, user),
+          );
+        }
+
+        return _buildDashboardContent(context, user);
       },
+    );
+  }
+
+  Widget _buildDashboardContent(BuildContext context, User user) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      endDrawer: UserDrawer(user: user),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [_buildHeader(context), Expanded(child: _buildProjectsList(context))],
+        ),
+      ),
     );
   }
 
@@ -126,70 +141,201 @@ class DashboardScreen extends StatelessWidget {
     Scaffold.of(context).openEndDrawer();
   }
 
-  Widget _buildProjectsList() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 16),
-          Text('Moje Projekty', style: AppTextStyles.headlineLarge),
-          Text('Zarządzaj i organizuj swoje projekty muzyczne', style: AppTextStyles.bodyMedium),
-          const SizedBox(height: 16),
-          _buildNewProjectButton(),
-          const SizedBox(height: 16),
-          _buildProjectCard(
-            name: 'BetaTesters',
-            createdTime: '1m temu',
-            memberCount: 3,
-            members: [
-              'https://randomuser.me/api/portraits/men/32.jpg',
-              'https://ui-avatars.com/api/?name=G&background=4263EB&color=fff',
-              'https://randomuser.me/api/portraits/men/45.jpg',
+  Widget _buildProjectsList(BuildContext context) {
+    return BlocBuilder<DashboardCubit, DashboardState>(
+      builder: (context, state) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 16),
+              Text('Moje Projekty', style: AppTextStyles.headlineLarge),
+              Text('Zarządzaj i organizuj swoje projekty muzyczne', style: AppTextStyles.bodyMedium),
+              const SizedBox(height: 16),
+              _buildNewProjectButton(context),
+              const SizedBox(height: 16),
+
+              // Wyświetlanie komunikatu błędu, jeśli wystąpił
+              if (state.errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withAlpha(25), // 0.1 * 255 = 25
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.withAlpha(76)), // 0.3 * 255 = 76
+                    ),
+                    child: Text(state.errorMessage!, style: const TextStyle(color: Colors.red)),
+                  ),
+                ),
+
+              // Wyświetlanie wskaźnika ładowania, jeśli trwa ładowanie
+              if (state.status == DashboardStatus.loading)
+                const Center(child: Padding(padding: EdgeInsets.all(32.0), child: CircularProgressIndicator())),
+
+              // Wyświetlanie projektów, jeśli są dostępne
+              if (state.status == DashboardStatus.loaded && state.projects.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32.0),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        const Icon(LucideIcons.folderPlus, size: 48, color: Color(0xFF9CA3AF)),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Nie masz jeszcze żadnych projektów',
+                          style: AppTextStyles.bodyLarge.copyWith(color: const Color(0xFF9CA3AF)),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Utwórz swój pierwszy projekt, aby rozpocząć',
+                          style: AppTextStyles.bodyMedium.copyWith(color: const Color(0xFF6B7280)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // Wyświetlanie listy projektów
+              if (state.status == DashboardStatus.loaded)
+                ...state.projects.map((project) {
+                  // Formatowanie czasu utworzenia projektu
+                  final createdTime = _formatCreatedTime(project.createdAt);
+
+                  // Pobieranie avatarów członków projektu
+                  final memberAvatars = project.members.map((member) => member.avatarUrl).toList();
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: _buildProjectCard(
+                      name: project.name,
+                      createdTime: createdTime,
+                      memberCount: project.membersCount,
+                      members: memberAvatars,
+                    ),
+                  );
+                }),
+
+              const SizedBox(height: 16),
             ],
           ),
-          const SizedBox(height: 16),
-          _buildProjectCard(
-            name: 'Velow',
-            createdTime: '1m temu',
-            memberCount: 4,
-            members: [
-              'https://randomuser.me/api/portraits/men/32.jpg',
-              'https://ui-avatars.com/api/?name=S&background=000000&color=fff',
-              'https://ui-avatars.com/api/?name=W&background=008000&color=fff',
-              'https://ui-avatars.com/api/?name=E&background=9932CC&color=fff',
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildProjectCard(
-            name: 'Projekt 3',
-            createdTime: '2h temu',
-            memberCount: 2,
-            members: [
-              'https://randomuser.me/api/portraits/men/32.jpg',
-              'https://randomuser.me/api/portraits/women/44.jpg',
-            ],
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildNewProjectButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('Nowy Projekt'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF2563EB), // Jasny niebieski kolor z zrzutu ekranu
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        onPressed: () {},
-      ),
+  /// Formatuje czas utworzenia projektu w formie względnej (np. "2h temu")
+  String _formatCreatedTime(DateTime? createdAt) {
+    if (createdAt == null) return 'niedawno';
+
+    final now = DateTime.now();
+    final difference = now.difference(createdAt);
+
+    if (difference.inDays > 365) {
+      final years = (difference.inDays / 365).floor();
+      return '$years ${years == 1
+          ? 'rok'
+          : years < 5
+          ? 'lata'
+          : 'lat'} temu';
+    } else if (difference.inDays > 30) {
+      final months = (difference.inDays / 30).floor();
+      return '$months ${months == 1
+          ? 'miesiąc'
+          : months < 5
+          ? 'miesiące'
+          : 'miesięcy'} temu';
+    } else if (difference.inDays > 0) {
+      return '${difference.inDays} ${difference.inDays == 1 ? 'dzień' : 'dni'} temu';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h temu';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m temu';
+    } else {
+      return 'przed chwilą';
+    }
+  }
+
+  Widget _buildNewProjectButton(BuildContext context) {
+    return BlocBuilder<DashboardCubit, DashboardState>(
+      builder: (context, state) {
+        return SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.add, color: Colors.white),
+            label:
+                state.isCreatingProject
+                    ? const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Text('Tworzenie...'),
+                      ],
+                    )
+                    : const Text('Nowy Projekt'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB), // Jasny niebieski kolor z zrzutu ekranu
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: state.isCreatingProject ? null : () => _showCreateProjectDialog(context),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Wyświetla dialog tworzenia nowego projektu
+  void _showCreateProjectDialog(BuildContext context) {
+    final cubit = context.read<DashboardCubit>();
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Nowy Projekt'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: cubit.nameController,
+                  decoration: const InputDecoration(labelText: 'Nazwa projektu', hintText: 'Wprowadź nazwę projektu'),
+                  autofocus: true,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: cubit.descriptionController,
+                  decoration: const InputDecoration(
+                    labelText: 'Opis (opcjonalnie)',
+                    hintText: 'Wprowadź opis projektu',
+                  ),
+                  maxLines: 3,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Anuluj')),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  cubit.createProject();
+                },
+                child: const Text('Utwórz'),
+              ),
+            ],
+          ),
     );
   }
 
@@ -197,7 +343,7 @@ class DashboardScreen extends StatelessWidget {
     required String name,
     required String createdTime,
     required int memberCount,
-    required List<String> members,
+    required List<String?> members,
   }) {
     // Funkcja do określenia prawidłowej odmiany słowa "członek"
     String getMemberCountText(int count) {
@@ -288,7 +434,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMemberAvatars(List<String> avatarUrls) {
+  Widget _buildMemberAvatars(List<String?> avatarUrls) {
     final maxVisibleAvatars = 5;
     final visibleAvatars =
         avatarUrls.length > maxVisibleAvatars ? avatarUrls.sublist(0, maxVisibleAvatars) : avatarUrls;
@@ -310,7 +456,10 @@ class DashboardScreen extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: Image.network(visibleAvatars[index], fit: BoxFit.cover),
+                  child:
+                      visibleAvatars[index] != null
+                          ? Image.network(visibleAvatars[index]!, fit: BoxFit.cover)
+                          : Text('-'),
                 ),
               ),
             ),

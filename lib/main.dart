@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bandspace_mobile/core/config/env_config.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/repositories/auth_repository.dart';
+import 'package:bandspace_mobile/core/repositories/project_repository.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/splash/splash_screen.dart';
 
@@ -29,16 +30,21 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
+    return MultiRepositoryProvider(
       providers: [
         RepositoryProvider(create: (_) => AuthRepository()),
-        BlocProvider<AuthCubit>(create: (context) => AuthCubit(authRepository: context.read<AuthRepository>())),
+        RepositoryProvider(create: (_) => ProjectRepository()),
       ],
-      child: MaterialApp(
-        title: 'BandSpace',
-        theme: AppTheme.darkTheme,
-        home: const SplashScreen(),
-        debugShowCheckedModeBanner: false,
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthCubit>(create: (context) => AuthCubit(authRepository: context.read<AuthRepository>())),
+        ],
+        child: MaterialApp(
+          title: 'BandSpace',
+          theme: AppTheme.darkTheme,
+          home: const SplashScreen(),
+          debugShowCheckedModeBanner: false,
+        ),
       ),
     );
   }
