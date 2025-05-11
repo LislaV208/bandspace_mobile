@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/auth/auth_screen.dart';
+import 'package:bandspace_mobile/core/components/user_avatar.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/models/user.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
@@ -76,53 +77,14 @@ class UserDrawer extends StatelessWidget {
 
   /// Buduje avatar użytkownika.
   Widget _buildAvatar() {
-    return Container(
-      width: 64, // Lekko zwiększony rozmiar
-      height: 64,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: AppColors.primary.withAlpha(204), width: 1.5), // Subtelniejsza ramka (opacity 0.8)
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(32), // Dopasowanie do rozmiaru
-        child:
-            user.avatarUrl != null
-                ? Image.network(
-                  user.avatarUrl!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => _buildAvatarPlaceholder(),
-                  // Opcjonalnie: Lepsze wrażenia podczas ładowania
-                  loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Center(
-                      child: CircularProgressIndicator(
-                        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                        value:
-                            loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                : null,
-                      ),
-                    );
-                  },
-                )
-                : _buildAvatarPlaceholder(),
-      ),
-    );
-  }
-
-  /// Buduje placeholder dla avatara, gdy URL jest null lub wystąpił błąd ładowania.
-  Widget _buildAvatarPlaceholder() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surfaceMedium,
-        borderRadius: BorderRadius.circular(30), // Aby pasowało do ClipRRect
-      ),
-      child: Center(
-        child: Text(
-          user.initial,
-          style: AppTextStyles.titleLarge.copyWith(color: AppColors.onPrimary.withAlpha(204)), // opacity 0.8
-        ),
-      ),
+    return UserAvatar(
+      avatarUrl: user.avatarUrl,
+      name: user.fullName,
+      email: user.email,
+      size: 64,
+      borderWidth: 1.5,
+      borderColor: AppColors.primary.withAlpha(204),
+      textStyle: AppTextStyles.titleLarge.copyWith(color: AppColors.onPrimary.withAlpha(204)),
     );
   }
 

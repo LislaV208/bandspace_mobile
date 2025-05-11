@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/auth/auth_screen.dart';
+import 'package:bandspace_mobile/core/components/user_avatar.dart';
 import 'package:bandspace_mobile/core/components/user_drawer.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/cubit/auth_state.dart';
@@ -78,61 +79,30 @@ class DashboardScreen extends StatelessWidget {
 
         return Builder(
           builder: (context) {
-            return GestureDetector(
-              onTap: () => _openUserDrawer(context),
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.primary, width: 2),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: user != null ? _buildAvatarContent(user) : _buildAvatarPlaceholder('U'),
-                ),
-              ),
-            );
+            if (user != null) {
+              return UserAvatar(
+                avatarUrl: user.avatarUrl,
+                name: user.fullName,
+                email: user.email,
+                size: 40,
+                borderWidth: 2,
+                borderColor: AppColors.primary,
+                backgroundColor: AppColors.primary,
+                onTap: () => _openUserDrawer(context),
+              );
+            } else {
+              return UserAvatar(
+                email: 'user',
+                size: 40,
+                borderWidth: 2,
+                borderColor: AppColors.primary,
+                backgroundColor: AppColors.primary,
+                onTap: () => _openUserDrawer(context),
+              );
+            }
           },
         );
       },
-    );
-  }
-
-  /// Buduje zawartość avatara użytkownika
-  Widget _buildAvatarContent(User user) {
-    // Jeśli użytkownik ma URL avatara, wyświetl go
-    if (user.avatarUrl != null) {
-      return Image.network(
-        user.avatarUrl!,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _buildAvatarPlaceholder(user.initial),
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Center(
-            child: CircularProgressIndicator(
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-              value:
-                  loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                      : null,
-            ),
-          );
-        },
-      );
-    }
-
-    // W przeciwnym razie wyświetl placeholder z inicjałem
-    return _buildAvatarPlaceholder(user.initial);
-  }
-
-  /// Buduje placeholder dla avatara
-  Widget _buildAvatarPlaceholder(String initial) {
-    return Container(
-      color: AppColors.primary,
-      child: Center(
-        child: Text(initial, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-      ),
     );
   }
 
@@ -447,20 +417,12 @@ class DashboardScreen extends StatelessWidget {
             visibleAvatars.length,
             (index) => Positioned(
               left: index * 20.0,
-              child: Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF1F2937), width: 2), // border-gray-800
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child:
-                      visibleAvatars[index] != null
-                          ? Image.network(visibleAvatars[index]!, fit: BoxFit.cover)
-                          : Text('-'),
-                ),
+              child: UserAvatar(
+                avatarUrl: visibleAvatars[index],
+                email: 'user$index@example.com', // Fallback email
+                size: 32,
+                borderWidth: 2,
+                borderColor: const Color(0xFF1F2937), // border-gray-800
               ),
             ),
           ),
