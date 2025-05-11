@@ -11,6 +11,7 @@ import 'package:bandspace_mobile/core/cubit/auth_state.dart';
 import 'package:bandspace_mobile/core/models/user.dart';
 import 'package:bandspace_mobile/core/repositories/project_repository.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/dashboard/components/dashboard_project_card.dart';
 import 'package:bandspace_mobile/dashboard/cubit/dashboard_cubit.dart';
 import 'package:bandspace_mobile/dashboard/cubit/dashboard_state.dart';
 
@@ -175,16 +176,14 @@ class DashboardScreen extends StatelessWidget {
                   // Formatowanie czasu utworzenia projektu
                   final createdTime = _formatCreatedTime(project.createdAt);
 
-                  // Pobieranie avatarów członków projektu
-                  final memberAvatars = project.members.map((member) => member.avatarUrl).toList();
-
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16.0),
-                    child: _buildProjectCard(
-                      name: project.name,
+                    child: DashboardProjectCard(
+                      project: project,
                       createdTime: createdTime,
-                      memberCount: project.membersCount,
-                      members: memberAvatars,
+                      onTap: () {
+                        // TODO: Implementacja nawigacji do szczegółów projektu
+                      },
                     ),
                   );
                 }),
@@ -306,147 +305,6 @@ class DashboardScreen extends StatelessWidget {
               ),
             ],
           ),
-    );
-  }
-
-  Widget _buildProjectCard({
-    required String name,
-    required String createdTime,
-    required int memberCount,
-    required List<String?> members,
-  }) {
-    // Funkcja do określenia prawidłowej odmiany słowa "członek"
-    String getMemberCountText(int count) {
-      if (count == 1) {
-        return "członek";
-      } else {
-        return "członków";
-      }
-    }
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {}, // Dodaj obsługę kliknięcia
-        borderRadius: BorderRadius.circular(8),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: const Color(0xFF1F2937), // bg-gray-800
-            border: Border.all(color: const Color(0xFF374151)), // border-gray-700
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Ikona muzyczna z gradientem
-              Container(
-                width: double.infinity,
-                height: 128, // h-32 w Tailwind
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    colors: [Color(0xFF1E3A8A), Color(0xFF312E81)], // from-blue-900 to-indigo-900
-                  ),
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(8), topRight: Radius.circular(8)),
-                ),
-                child: Center(
-                  child: Icon(
-                    LucideIcons.music,
-                    size: 48,
-                    color: const Color(0xFF60A5FA).withAlpha(204), // text-blue-400 opacity-80 (0.8 * 255 = 204)
-                  ),
-                ),
-              ),
-              // Informacje o projekcie
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.white)),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Utworzono $createdTime',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF9CA3AF), // text-gray-400
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(child: _buildMemberAvatars(members)),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF2563EB).withAlpha(51), // bg-blue-600/20 (0.2 * 255 = 51)
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Text(
-                            '$memberCount ${getMemberCountText(memberCount)}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF60A5FA), // text-blue-400
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMemberAvatars(List<String?> avatarUrls) {
-    final maxVisibleAvatars = 5;
-    final visibleAvatars =
-        avatarUrls.length > maxVisibleAvatars ? avatarUrls.sublist(0, maxVisibleAvatars) : avatarUrls;
-
-    return SizedBox(
-      height: 32,
-      child: Stack(
-        children: [
-          ...List.generate(
-            visibleAvatars.length,
-            (index) => Positioned(
-              left: index * 20.0,
-              child: UserAvatar(
-                avatarUrl: visibleAvatars[index],
-                email: 'user$index@example.com', // Fallback email
-                size: 32,
-                borderWidth: 2,
-                borderColor: const Color(0xFF1F2937), // border-gray-800
-              ),
-            ),
-          ),
-          if (avatarUrls.length > maxVisibleAvatars)
-            Positioned(
-              left: maxVisibleAvatars * 20.0,
-              child: Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF374151), // bg-gray-700
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF1F2937), width: 2), // border-gray-800
-                ),
-                child: Center(
-                  child: Text(
-                    '+${avatarUrls.length - maxVisibleAvatars}',
-                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
     );
   }
 }

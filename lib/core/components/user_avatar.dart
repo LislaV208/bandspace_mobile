@@ -100,7 +100,7 @@ class UserAvatar extends StatelessWidget {
   Widget _buildAvatarPlaceholder() {
     return Container(
       decoration: BoxDecoration(
-        color: backgroundColor ?? AppColors.surfaceMedium,
+        color: backgroundColor ?? AppColors.accent,
         borderRadius: BorderRadius.circular(size / 2),
       ),
       child: Center(
