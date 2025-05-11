@@ -281,6 +281,7 @@ class DashboardScreen extends StatelessWidget {
                 TextField(
                   controller: cubit.nameController,
                   decoration: const InputDecoration(labelText: 'Nazwa projektu', hintText: 'Wprowadź nazwę projektu'),
+
                   autofocus: true,
                 ),
                 const SizedBox(height: 16),
@@ -296,7 +297,7 @@ class DashboardScreen extends StatelessWidget {
             ),
             actions: [
               TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Anuluj')),
-              TextButton(
+              ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                   cubit.createProject();
