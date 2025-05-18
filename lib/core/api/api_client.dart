@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+
 import 'package:bandspace_mobile/core/config/env_config.dart';
 
 /// Klasa ApiClient odpowiedzialna za wykonywanie żądań HTTP
@@ -32,6 +33,7 @@ class ApiClient {
   /// Metoda do ustawiania tokenu autoryzacji
   void setAuthToken(String token) {
     _dio.options.headers['Authorization'] = 'Bearer $token';
+    // _dio.options.headers['Authorization'] = 'Bearer dupa';
   }
 
   /// Metoda do usuwania tokenu autoryzacji

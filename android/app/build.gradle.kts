@@ -6,9 +6,10 @@ plugins {
 }
 
 android {
+    ndkVersion = "29.0.13113456"
     namespace = "com.example.bandspace_mobile"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

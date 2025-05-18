@@ -11,6 +11,7 @@ import 'package:bandspace_mobile/core/cubit/auth_state.dart';
 import 'package:bandspace_mobile/core/models/user.dart';
 import 'package:bandspace_mobile/core/repositories/project_repository.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/dashboard/components/create_project_bottom_sheet.dart';
 import 'package:bandspace_mobile/dashboard/components/dashboard_project_card.dart';
 import 'package:bandspace_mobile/dashboard/cubit/dashboard_cubit.dart';
 import 'package:bandspace_mobile/dashboard/cubit/dashboard_state.dart';
@@ -234,27 +235,10 @@ class DashboardScreen extends StatelessWidget {
         return SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            icon: const Icon(Icons.add, color: Colors.white),
-            label:
-                state.isCreatingProject
-                    ? const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Text('Tworzenie...'),
-                      ],
-                    )
-                    : const Text('Nowy Projekt'),
+            icon: const Icon(LucideIcons.plus, color: Colors.white),
+            label: const Text('Nowy Projekt'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2563EB), // Jasny niebieski kolor z zrzutu ekranu
+              backgroundColor: AppColors.buttonPrimary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -266,46 +250,22 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  /// Wyświetla dialog tworzenia nowego projektu
+  /// Wyświetla bottom sheet tworzenia nowego projektu
   void _showCreateProjectDialog(BuildContext context) {
+    // Wyczyść pola formularza przed otwarciem
     final cubit = context.read<DashboardCubit>();
+    cubit.nameController.clear();
+    cubit.descriptionController.clear();
 
-    showDialog(
+    // Wyczyść ewentualne błędy
+    cubit.clearError();
+
+    showModalBottomSheet(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Nowy Projekt'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: cubit.nameController,
-                  decoration: const InputDecoration(labelText: 'Nazwa projektu', hintText: 'Wprowadź nazwę projektu'),
-
-                  autofocus: true,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: cubit.descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Opis (opcjonalnie)',
-                    hintText: 'Wprowadź opis projektu',
-                  ),
-                  maxLines: 3,
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Anuluj')),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  cubit.createProject();
-                },
-                child: const Text('Utwórz'),
-              ),
-            ],
-          ),
+      isDismissible: false,
+      isScrollControlled: true, // Pozwala na dostosowanie wysokości do zawartości
+      backgroundColor: Colors.transparent, // Przezroczyste tło, aby widoczne były zaokrąglone rogi
+      builder: (context) => BlocProvider.value(value: cubit, child: const CreateProjectBottomSheet()),
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'app_colors.dart';
 import 'text_styles.dart';
 
@@ -12,56 +13,56 @@ class AppTheme {
       brightness: Brightness.dark,
       colorScheme: _darkColorScheme,
       scaffoldBackgroundColor: AppColors.background,
-      
+
       // Konfiguracja tekstu
       textTheme: _textTheme,
-      
+
       // Konfiguracja przycisków
       elevatedButtonTheme: _elevatedButtonTheme,
       outlinedButtonTheme: _outlinedButtonTheme,
       textButtonTheme: _textButtonTheme,
-      
+
       // Konfiguracja pól formularzy
       inputDecorationTheme: _inputDecorationTheme,
-      
+
       // Konfiguracja AppBar
       appBarTheme: _appBarTheme,
-      
+
       // Konfiguracja Divider
       dividerTheme: _dividerTheme,
-      
+
       // Konfiguracja Card
       cardTheme: _cardTheme,
-      
+
       // Konfiguracja Dialog
       dialogTheme: _dialogTheme,
-      
+
       // Konfiguracja BottomSheet
       bottomSheetTheme: _bottomSheetTheme,
-      
+
       // Konfiguracja SnackBar
       snackBarTheme: _snackBarTheme,
-      
+
       // Konfiguracja TabBar
       tabBarTheme: _tabBarTheme,
-      
+
       // Konfiguracja Checkbox
       checkboxTheme: _checkboxTheme,
-      
+
       // Konfiguracja Radio
       radioTheme: _radioTheme,
-      
+
       // Konfiguracja Switch
       switchTheme: _switchTheme,
-      
+
       // Konfiguracja Slider
       sliderTheme: _sliderTheme,
-      
+
       // Konfiguracja ProgressIndicator
       progressIndicatorTheme: _progressIndicatorTheme,
     );
   }
-  
+
   // Schemat kolorów dla ciemnego motywu
   static ColorScheme get _darkColorScheme {
     return const ColorScheme(
@@ -82,11 +83,9 @@ class AppTheme {
       onError: Colors.white,
       errorContainer: AppColors.errorBackground,
       onErrorContainer: AppColors.error,
-      background: AppColors.background,
-      onBackground: AppColors.textPrimary,
       surface: AppColors.surfaceLight,
       onSurface: AppColors.textPrimary,
-      surfaceVariant: AppColors.surfaceMedium,
+      surfaceContainerHighest: AppColors.surfaceMedium,
       onSurfaceVariant: AppColors.textSecondary,
       outline: AppColors.border,
       outlineVariant: AppColors.divider,
@@ -97,7 +96,7 @@ class AppTheme {
       inversePrimary: AppColors.primaryLight,
     );
   }
-  
+
   // Motyw tekstu
   static TextTheme get _textTheme {
     return TextTheme(
@@ -118,7 +117,7 @@ class AppTheme {
       labelSmall: AppTextStyles.buttonSmall,
     );
   }
-  
+
   // Motyw przycisków Elevated
   static ElevatedButtonThemeData get _elevatedButtonTheme {
     return ElevatedButtonThemeData(
@@ -133,7 +132,7 @@ class AppTheme {
       ),
     );
   }
-  
+
   // Motyw przycisków Outlined
   static OutlinedButtonThemeData get _outlinedButtonTheme {
     return OutlinedButtonThemeData(
@@ -146,7 +145,7 @@ class AppTheme {
       ),
     );
   }
-  
+
   // Motyw przycisków Text
   static TextButtonThemeData get _textButtonTheme {
     return TextButtonThemeData(
@@ -157,7 +156,7 @@ class AppTheme {
       ),
     );
   }
-  
+
   // Motyw pól formularzy
   static InputDecorationTheme get _inputDecorationTheme {
     return InputDecorationTheme(
@@ -186,14 +185,13 @@ class AppTheme {
       ),
       disabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(
-          color: AppColors.withAlpha(AppColors.border, 0.5),
-        ),
+        borderSide: BorderSide(color: AppColors.withAlpha(AppColors.border, 0.5)),
       ),
       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      labelStyle: TextStyle(color: AppColors.textSecondary),
     );
   }
-  
+
   // Motyw AppBar
   static AppBarTheme get _appBarTheme {
     return const AppBarTheme(
@@ -201,23 +199,15 @@ class AppTheme {
       foregroundColor: Colors.white,
       elevation: 0,
       centerTitle: false,
-      titleTextStyle: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-      ),
+      titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
     );
   }
-  
+
   // Motyw Divider
   static DividerThemeData get _dividerTheme {
-    return const DividerThemeData(
-      color: AppColors.divider,
-      thickness: 1,
-      space: 1,
-    );
+    return const DividerThemeData(color: AppColors.divider, thickness: 1, space: 1);
   }
-  
+
   // Motyw Card
   static CardTheme get _cardTheme {
     return CardTheme(
@@ -230,7 +220,7 @@ class AppTheme {
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
     );
   }
-  
+
   // Motyw Dialog
   static DialogTheme get _dialogTheme {
     return DialogTheme(
@@ -239,18 +229,16 @@ class AppTheme {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
-  
+
   // Motyw BottomSheet
   static BottomSheetThemeData get _bottomSheetTheme {
     return const BottomSheetThemeData(
       backgroundColor: AppColors.surfaceLight,
       modalBackgroundColor: AppColors.surfaceLight,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
     );
   }
-  
+
   // Motyw SnackBar
   static SnackBarThemeData get _snackBarTheme {
     return SnackBarThemeData(
@@ -260,7 +248,7 @@ class AppTheme {
       behavior: SnackBarBehavior.floating,
     );
   }
-  
+
   // Motyw TabBar
   static TabBarTheme get _tabBarTheme {
     return const TabBarTheme(
@@ -271,64 +259,64 @@ class AppTheme {
       unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
     );
   }
-  
+
   // Motyw Checkbox
   static CheckboxThemeData get _checkboxTheme {
     return CheckboxThemeData(
-      fillColor: MaterialStateProperty.resolveWith<Color>((states) {
-        if (states.contains(MaterialState.disabled)) {
+      fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.disabled)) {
           return AppColors.buttonPrimaryDisabled;
         }
-        if (states.contains(MaterialState.selected)) {
+        if (states.contains(WidgetState.selected)) {
           return AppColors.accent;
         }
         return AppColors.surfaceMedium;
       }),
-      checkColor: MaterialStateProperty.all(Colors.white),
+      checkColor: WidgetStateProperty.all(Colors.white),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       side: const BorderSide(color: AppColors.border),
     );
   }
-  
+
   // Motyw Radio
   static RadioThemeData get _radioTheme {
     return RadioThemeData(
-      fillColor: MaterialStateProperty.resolveWith<Color>((states) {
-        if (states.contains(MaterialState.disabled)) {
+      fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.disabled)) {
           return AppColors.buttonPrimaryDisabled;
         }
-        if (states.contains(MaterialState.selected)) {
+        if (states.contains(WidgetState.selected)) {
           return AppColors.accent;
         }
         return AppColors.surfaceMedium;
       }),
     );
   }
-  
+
   // Motyw Switch
   static SwitchThemeData get _switchTheme {
     return SwitchThemeData(
-      thumbColor: MaterialStateProperty.resolveWith<Color>((states) {
-        if (states.contains(MaterialState.disabled)) {
+      thumbColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.disabled)) {
           return Colors.grey;
         }
-        if (states.contains(MaterialState.selected)) {
+        if (states.contains(WidgetState.selected)) {
           return AppColors.accent;
         }
         return Colors.white;
       }),
-      trackColor: MaterialStateProperty.resolveWith<Color>((states) {
-        if (states.contains(MaterialState.disabled)) {
+      trackColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.disabled)) {
           return Colors.grey.withAlpha(100);
         }
-        if (states.contains(MaterialState.selected)) {
+        if (states.contains(WidgetState.selected)) {
           return AppColors.accent.withAlpha(100);
         }
         return Colors.grey.withAlpha(180);
       }),
     );
   }
-  
+
   // Motyw Slider
   static SliderThemeData get _sliderTheme {
     return const SliderThemeData(
@@ -340,7 +328,7 @@ class AppTheme {
       valueIndicatorTextStyle: TextStyle(color: Colors.white),
     );
   }
-  
+
   // Motyw ProgressIndicator
   static ProgressIndicatorThemeData get _progressIndicatorTheme {
     return const ProgressIndicatorThemeData(
@@ -349,7 +337,7 @@ class AppTheme {
       linearTrackColor: AppColors.surfaceMedium,
     );
   }
-  
+
   // Konfiguracja statusbar
   static void setStatusBarColor({bool darkMode = true}) {
     SystemChrome.setSystemUIOverlayStyle(

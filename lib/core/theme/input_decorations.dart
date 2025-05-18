@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
+
 import 'app_colors.dart';
 
 /// Klasa zawierająca style dla pól formularzy używane w aplikacji BandSpace
 class AppInputDecorations {
   // Podstawowa dekoracja dla pól tekstowych
-  static InputDecoration textField({
-    String? hintText,
-    Widget? prefixIcon,
-    Widget? suffixIcon,
-    bool enabled = true,
-  }) {
+  static InputDecoration textField({String? hintText, Widget? prefixIcon, Widget? suffixIcon, bool enabled = true}) {
     return InputDecoration(
       hintText: hintText,
       hintStyle: TextStyle(color: AppColors.textHint),
@@ -24,36 +20,25 @@ class AppInputDecorations {
       errorBorder: _errorBorder(),
       focusedErrorBorder: _focusedErrorBorder(),
       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      labelStyle: TextStyle(color: AppColors.textSecondary),
     );
   }
 
   // Dekoracja dla pól z błędem
-  static InputDecoration errorTextField({
-    String? hintText,
-    Widget? prefixIcon,
-    Widget? suffixIcon,
-    String? errorText,
-  }) {
+  static InputDecoration errorTextField({String? hintText, Widget? prefixIcon, Widget? suffixIcon, String? errorText}) {
     return textField(
       hintText: hintText,
       prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
-    ).copyWith(
-      errorText: errorText,
-      errorStyle: const TextStyle(color: AppColors.error),
-    );
+    ).copyWith(errorText: errorText, errorStyle: const TextStyle(color: AppColors.error));
   }
 
   // Dekoracja dla pól wyszukiwania
-  static InputDecoration searchField({
-    String? hintText,
-  }) {
+  static InputDecoration searchField({String? hintText}) {
     return textField(
       hintText: hintText,
       prefixIcon: const Icon(Icons.search, color: AppColors.iconSecondary),
-    ).copyWith(
-      contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-    );
+    ).copyWith(contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12));
   }
 
   // Prywatne metody pomocnicze dla obramowań
@@ -74,9 +59,7 @@ class AppInputDecorations {
   static OutlineInputBorder _disabledBorder() {
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide(
-        color: AppColors.withAlpha(AppColors.border, 0.5),
-      ),
+      borderSide: BorderSide(color: AppColors.withAlpha(AppColors.border, 0.5)),
     );
   }
 

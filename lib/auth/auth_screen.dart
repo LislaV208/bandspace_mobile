@@ -357,12 +357,7 @@ class _AuthScreenContent extends StatelessWidget {
       keyboardType: keyboardType,
       enabled: enabled,
       style: TextStyle(color: AppColors.textSecondary),
-      decoration: AppInputDecorations.textField(
-        hintText: hintText,
-        prefixIcon: prefixIcon,
-        suffixIcon: suffixIcon,
-        enabled: enabled,
-      ),
+      decoration: InputDecoration(hintText: hintText, prefixIcon: prefixIcon, suffixIcon: suffixIcon, enabled: enabled),
     );
   }
 }
