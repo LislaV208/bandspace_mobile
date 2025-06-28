@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/components/member_avatar.dart';
 import 'package:bandspace_mobile/core/models/project.dart';
+import 'package:bandspace_mobile/project/project_screen.dart';
 
 /// Komponent karty projektu dla ekranu dashboardu.
 ///
@@ -25,8 +26,9 @@ class DashboardProjectCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
+
       child: InkWell(
-        onTap: onTap ?? () {}, // Obsługa kliknięcia
+        onTap: () => _navigateToProject(context), // Obsługa kliknięcia
         borderRadius: BorderRadius.circular(8),
         child: Ink(
           decoration: BoxDecoration(
@@ -111,9 +113,7 @@ class DashboardProjectCard extends StatelessWidget {
   Widget _buildMemberAvatars() {
     const maxVisibleAvatars = 5;
     final members = project.members;
-    final visibleMembers = members.length > maxVisibleAvatars 
-        ? members.sublist(0, maxVisibleAvatars) 
-        : members;
+    final visibleMembers = members.length > maxVisibleAvatars ? members.sublist(0, maxVisibleAvatars) : members;
 
     if (members.isEmpty) {
       return const Text(
@@ -158,11 +158,7 @@ class DashboardProjectCard extends StatelessWidget {
                 child: Center(
                   child: Text(
                     '+${members.length - maxVisibleAvatars}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -181,4 +177,9 @@ class DashboardProjectCard extends StatelessWidget {
     }
   }
 
+  /// Nawiguje do ekranu szczegółów projektu
+  void _navigateToProject(BuildContext context) {
+    print('_navigateToProject');
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProjectScreen(project: project)));
+  }
 }

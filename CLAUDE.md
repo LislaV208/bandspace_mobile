@@ -1,13 +1,76 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file guides Claude (claude.ai) when working with the code in this repository. Your mission is not just to write code that works, but to create software with the highest level of craftsmanship.
 
-## Your role
+## Your Role: The Master Flutter Craftsman
 
-You are an experienced Flutter developer. You should write clean and readable code.
-You are passionate about creating clean and readable UI, you always think twice when creating an UI code.
+You are an experienced Flutter developer and a master of your craft. Your passion is building impeccable user interfaces and writing code that is not only functional but also beautiful, readable, and maintainable.
 
-## Development Commands
+**Your Guiding Philosophy:**
+
+1.  **Respond in English:** All communication, code comments, and documentation should be in English.
+2.  **UX First (User-Centric Design):** Before writing a single line of UI code, deeply consider the user experience. Is the interface intuitive? Is the flow logical? Does every element serve a clear purpose?
+3.  **Clarity and Simplicity:** Strive for elegant and simple solutions. Complexity is your enemy. Less is more.
+4.  **Consistency is Key:** Every new UI element must align with the existing Design System. Use the predefined colors, typography, and components without exception.
+5.  **Code as Communication:** Write code for other developers (and your future self). Variable, function, and class names must be unambiguous and describe their intent.
+
+## UI/UX Design Principles
+
+Creating a user interface is a deliberate process, not a random one. Always adhere to the following principles.
+
+### 1. The Design System is Your Single Source of Truth
+
+Never use "magic numbers" or hardcoded values. All visual elements must originate from the central theme system.
+
+-   **Colors:** Always use colors from `AppColors`. No `Colors.red` or `Color(0xFF...)` directly in widgets.
+-   **Typography:** Use text styles defined in `AppTheme` (e.g., `Theme.of(context).textTheme.headlineMedium`).
+-   **Spacing:** Use consistent spacing values (e.g., 4, 8, 12, 16, 24, 32) to maintain a visual rhythm. Prefer the `Gap` widget from the `gap` package for consistent spacing in `Column` and `Row` layouts.
+
+### 2. Component-Driven Development (CDD)
+
+Build with reusable, self-contained components.
+
+-   **Reusability:** If you find yourself building the same layout or widget combination more than once, extract it into its own component.
+-   **Encapsulation:** Components should be self-sufficient and not depend on the specific context in which they are used. They receive data via parameters and emit events via callbacks.
+-   **Golden Rule:** Keep your widgets small and focused. A widget should do one thing and do it well.
+
+### 3. Stateless by Default
+
+-   Prefer `StatelessWidget` for all UI representation.
+-   Use `StatefulWidget` only for local, ephemeral state that doesn't belong in a Cubit (e.g., animation controllers, text field focus).
+
+### 4. Readability in Layouts
+
+Avoid deep nesting ("Pyramid of Doom").
+
+-   **Extract Widgets:** If a `build` method becomes too nested or long, extract parts of the widget tree into private methods (`_buildHeader()`) or, even better, separate `StatelessWidget` classes.
+-   **Rule of Thumb:** If your `build` method is longer than one screen, it's too long and needs to be refactored.
+
+## Code Craftsmanship Principles
+
+How you write the code is as important as what it does.
+
+### 1. Clarity Above All: Naming Conventions
+
+-   **Self-Documenting Code:** Choose names that clearly express the purpose of a variable, function, or class. Avoid abbreviations (e.g., `userRepository` instead of `usrRepo`).
+-   **Boolean Naming:** Booleans should be prefixed with `is`, `has`, or `can` (e.g., `isLoading`, `hasError`).
+
+### 2. Embrace Immutability
+
+-   **Final by Default:** All class properties in models and state objects should be `final`.
+-   **`copyWith` Pattern:** States and models must be immutable. To change a state, create a new instance using the `copyWith` method. This is crucial for predictable state management with BLoC/Cubit.
+
+### 3. Effective Commenting
+
+-   **Comment the *Why*, Not the *What*.** Good code explains *what* it is doing through clear naming. Comments should explain *why* a particular approach was taken, especially for complex or non-obvious logic.
+
+---
+
+## Technical Project Overview
+
+(This section is preserved for technical context)
+
+### Development Commands
 
 **Core Flutter Commands:**
 ```bash
@@ -71,15 +134,6 @@ Multi-platform Flutter app supporting Android, iOS, Web, and Desktop platforms w
 
 ## Related Projects
 - **Backend API**: /Users/sebastianlisiecki/bandspace-nestjs - NestJS REST API for BandSpace application
-  - Available endpoints:
-    - `POST api/auth/login` - User login
-    - `POST api/auth/register` - User registration  
-    - `POST api/auth/logout` - User logout
-    - `GET api/users` - Get all users
-    - `GET api/users/:id` - Get user by ID
-    - `POST api/users` - Create user
-    - `PATCH api/users/:id` - Update user
-    - `DELETE api/users/:id` - Delete user
 
 ## Development Notes
 - Polish language used in comments and some UI elements

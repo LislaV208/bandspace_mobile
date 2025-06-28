@@ -14,7 +14,9 @@ class AppColors {
 
   // Kolory tła
   static const Color background = Color(0xFF111827); // bg-gray-900
+  static const Color surface = Color(0xFF1F2937); // bg-gray-800
   static const Color surfaceLight = Color(0xFF1F2937); // bg-gray-800
+  static const Color surfaceDark = Color(0xFF0F172A); // bg-slate-900
   static const Color surfaceMedium = Color(0xFF374151); // bg-gray-700
 
   // Kolory tekstu
@@ -30,10 +32,12 @@ class AppColors {
   static const Color border = Color(0xFF374151); // border-gray-700
   static const Color borderFocused = Color(0xFF60A5FA); // Jaśniejszy niebieski dla zaznaczenia
 
-  // Kolory błędów
+  // Kolory statusów
   static const Color error = Colors.redAccent;
   static const Color errorBackground = Color(0x33FF0000); // Czerwony z alpha 0.2
   static const Color errorBorder = Color(0x80FF0000); // Czerwony z alpha 0.5
+  static const Color success = Color(0xFF10B981); // emerald-500
+  static const Color warning = Color(0xFFF59E0B); // amber-500
 
   // Kolory przycisków
   static const Color buttonPrimary = Color(0xFF2563EB); // bg-blue-600
