@@ -10,11 +10,10 @@ class ProjectRepository extends BaseRepository {
   /// Konstruktor przyjmujący opcjonalną instancję ApiClient
   ProjectRepository({super.apiClient});
 
-  /// Pobiera listę projektów użytkownika.
+  /// Pobiera listę wszystkich projektów.
   ///
-  /// Zwraca listę projektów użytkownika wraz z dodatkowymi danymi
-  /// potrzebnymi do wyświetlenia na ekranie dashboardu.
-  Future<List<DashboardProject>> getProjects() async {
+  /// Zwraca listę projektów posortowanych według daty utworzenia (najnowsze pierwsze).
+  Future<List<Project>> getProjects() async {
     try {
       // Wywołanie endpointu pobierania projektów
       final response = await apiClient.get('api/projects');
@@ -26,7 +25,7 @@ class ProjectRepository extends BaseRepository {
 
       // Konwersja danych na listę projektów
       final List<dynamic> projectsData = response.data;
-      return projectsData.map((projectData) => DashboardProject.fromJson(projectData)).toList();
+      return projectsData.map((projectData) => Project.fromJson(projectData)).toList();
     } on ApiException {
       rethrow;
     } catch (e) {

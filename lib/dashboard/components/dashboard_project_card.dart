@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/core/components/user_avatar.dart';
 import 'package:bandspace_mobile/core/models/project.dart';
 
 /// Komponent karty projektu dla ekranu dashboardu.
@@ -11,7 +10,7 @@ import 'package:bandspace_mobile/core/models/project.dart';
 /// liczbę członków oraz avatary członków projektu.
 class DashboardProjectCard extends StatelessWidget {
   /// Model projektu zawierający wszystkie dane do wyświetlenia
-  final DashboardProject project;
+  final Project project;
 
   /// Czas utworzenia projektu w formie względnej (np. "2h temu")
   final String createdTime;
@@ -89,7 +88,7 @@ class DashboardProjectCard extends StatelessWidget {
     );
   }
 
-  /// Buduje badge z liczbą członków projektu
+  /// Buduje badge z informacją o projekcie
   Widget _buildMemberCountBadge() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -98,7 +97,7 @@ class DashboardProjectCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Text(
-        '${project.membersCount} ${_getMemberCountText(project.membersCount)}',
+        project.slug,
         style: const TextStyle(
           fontSize: 12,
           color: Color(0xFF60A5FA), // text-blue-400
@@ -107,61 +106,15 @@ class DashboardProjectCard extends StatelessWidget {
     );
   }
 
-  /// Buduje avatary członków projektu
+  /// Buduje informacje o utworzeniu projektu
   Widget _buildMemberAvatars() {
-    final maxVisibleAvatars = 5;
-    final memberAvatars = project.members.map((member) => member.avatarUrl).toList();
-    final visibleAvatars =
-        memberAvatars.length > maxVisibleAvatars ? memberAvatars.sublist(0, maxVisibleAvatars) : memberAvatars;
-
-    return SizedBox(
-      height: 32,
-      child: Stack(
-        children: [
-          ...List.generate(
-            visibleAvatars.length,
-            (index) => Positioned(
-              left: index * 24.0,
-              child: UserAvatar(
-                avatarUrl: visibleAvatars[index],
-                email: project.members[index].email ?? '',
-                name: project.members[index].name,
-                size: 32,
-                borderWidth: 2,
-                borderColor: const Color(0xFF1F2937), // border-gray-800
-              ),
-            ),
-          ),
-          if (memberAvatars.length > maxVisibleAvatars)
-            Positioned(
-              left: maxVisibleAvatars * 20.0,
-              child: Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF374151), // bg-gray-700
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF1F2937), width: 2), // border-gray-800
-                ),
-                child: Center(
-                  child: Text(
-                    '+${memberAvatars.length - maxVisibleAvatars}',
-                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ),
-        ],
+    return Text(
+      'Slug: ${project.slug}',
+      style: const TextStyle(
+        fontSize: 14,
+        color: Color(0xFF9CA3AF), // text-gray-400
       ),
     );
   }
 
-  /// Zwraca prawidłową odmianę słowa "członek" w zależności od liczby
-  String _getMemberCountText(int count) {
-    if (count == 1) {
-      return "członek";
-    } else {
-      return "członków";
-    }
-  }
 }

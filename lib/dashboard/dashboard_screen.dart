@@ -115,8 +115,6 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildProjectsList(BuildContext context) {
-    return const SizedBox.shrink();
-
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (context, state) {
         return SingleChildScrollView(

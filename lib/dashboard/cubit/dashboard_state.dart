@@ -23,7 +23,7 @@ class DashboardState extends Equatable {
   final DashboardStatus status;
 
   /// Lista projektów użytkownika
-  final List<DashboardProject> projects;
+  final List<Project> projects;
 
   /// Komunikat błędu, jeśli wystąpił
   final String? errorMessage;
@@ -41,7 +41,7 @@ class DashboardState extends Equatable {
   /// Tworzy kopię stanu z nowymi wartościami
   DashboardState copyWith({
     DashboardStatus? status,
-    List<DashboardProject>? projects,
+    List<Project>? projects,
     String? errorMessage,
     bool? isCreatingProject,
   }) {
