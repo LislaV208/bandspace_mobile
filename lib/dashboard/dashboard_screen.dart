@@ -83,9 +83,10 @@ class DashboardScreen extends StatelessWidget {
           builder: (context) {
             if (user != null) {
               return UserAvatar(
-                avatarUrl: user.avatarUrl,
-                name: user.fullName,
-                email: user.email,
+                // avatarUrl: user.avatarUrl,
+                avatarUrl: null,
+                name: user.name,
+                email: user.email ?? '',
                 size: 40,
                 borderWidth: 2,
                 borderColor: AppColors.primary,
@@ -114,6 +115,8 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildProjectsList(BuildContext context) {
+    return const SizedBox.shrink();
+
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (context, state) {
         return SingleChildScrollView(

@@ -209,8 +209,8 @@ class AppTheme {
   }
 
   // Motyw Card
-  static CardTheme get _cardTheme {
-    return CardTheme(
+  static CardThemeData get _cardTheme {
+    return CardThemeData(
       color: AppColors.surfaceLight,
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -222,8 +222,8 @@ class AppTheme {
   }
 
   // Motyw Dialog
-  static DialogTheme get _dialogTheme {
-    return DialogTheme(
+  static DialogThemeData get _dialogTheme {
+    return DialogThemeData(
       backgroundColor: AppColors.surfaceLight,
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -250,8 +250,8 @@ class AppTheme {
   }
 
   // Motyw TabBar
-  static TabBarTheme get _tabBarTheme {
-    return const TabBarTheme(
+  static TabBarThemeData get _tabBarTheme {
+    return const TabBarThemeData(
       labelColor: AppColors.textPrimary,
       unselectedLabelColor: AppColors.textHint,
       indicatorColor: AppColors.accent,

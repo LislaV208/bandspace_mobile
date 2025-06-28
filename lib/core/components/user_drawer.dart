@@ -53,7 +53,7 @@ class UserDrawer extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  user.displayName,
+                  user.name ?? user.email ?? 'Użytkownik',
                   style: AppTextStyles.titleMedium.copyWith(
                     color: AppColors.textPrimary,
                   ), // Lekko mniejszy niż titleLarge
@@ -62,7 +62,7 @@ class UserDrawer extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  user.email,
+                  user.email ?? 'Brak adresu email',
                   style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
@@ -78,9 +78,10 @@ class UserDrawer extends StatelessWidget {
   /// Buduje avatar użytkownika.
   Widget _buildAvatar() {
     return UserAvatar(
-      avatarUrl: user.avatarUrl,
-      name: user.fullName,
-      email: user.email,
+      // avatarUrl: user.avatarUrl,
+      avatarUrl: null,
+      name: user.name,
+      email: user.email ?? '',
       size: 64,
       borderWidth: 1.5,
       borderColor: AppColors.primary.withAlpha(204),

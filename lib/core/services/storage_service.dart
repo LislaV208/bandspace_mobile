@@ -42,7 +42,7 @@ class StorageService {
   }
 
   /// Zapisuje token odświeżania
-  Future<void> saveRefreshToken(String token) async {
+  Future<void> saveRefreshToken(String? token) async {
     await _storage.write(key: StorageKeys.refreshToken, value: token);
   }
 
@@ -53,7 +53,7 @@ class StorageService {
 
   /// Zapisuje dane użytkownika
   Future<void> saveUser(User user) async {
-    final userJson = jsonEncode(user.toJson());
+    final userJson = jsonEncode(user.toMap());
     await _storage.write(key: StorageKeys.user, value: userJson);
   }
 
@@ -61,9 +61,9 @@ class StorageService {
   Future<User?> getUser() async {
     final userJson = await _storage.read(key: StorageKeys.user);
     if (userJson == null) return null;
-    
+
     try {
-      return User.fromJson(jsonDecode(userJson));
+      return User.fromMap(jsonDecode(userJson));
     } catch (e) {
       return null;
     }
@@ -71,9 +71,9 @@ class StorageService {
 
   /// Zapisuje dane sesji
   Future<void> saveSession(Session session) async {
-    final sessionJson = jsonEncode(session.toJson());
+    final sessionJson = jsonEncode(session.toMap());
     await _storage.write(key: StorageKeys.session, value: sessionJson);
-    
+
     // Zapisz również tokeny i dane użytkownika osobno dla łatwiejszego dostępu
     await saveAccessToken(session.accessToken);
     await saveRefreshToken(session.refreshToken);
@@ -84,9 +84,9 @@ class StorageService {
   Future<Session?> getSession() async {
     final sessionJson = await _storage.read(key: StorageKeys.session);
     if (sessionJson == null) return null;
-    
+
     try {
-      return Session.fromJson(jsonDecode(sessionJson));
+      return Session.fromMap(jsonDecode(sessionJson));
     } catch (e) {
       return null;
     }
@@ -96,7 +96,7 @@ class StorageService {
   Future<bool> isLoggedIn() async {
     final accessToken = await getAccessToken();
     final user = await getUser();
-    
+
     return accessToken != null && user != null;
   }
 

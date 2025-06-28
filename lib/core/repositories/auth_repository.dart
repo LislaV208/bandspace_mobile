@@ -22,27 +22,15 @@ class AuthRepository extends BaseRepository {
     try {
       final response = await apiClient.post('api/auth/login', data: {'email': email, 'password': password});
 
-      final responseData = response.data;
+      final session = Session.fromMap(response.data);
 
-      if (responseData['success'] == true) {
-        final session = Session.fromJson(responseData['session']);
+      // Ustawienie tokenu autoryzacji w ApiClient
+      apiClient.setAuthToken(session.accessToken);
 
-        // Ustawienie tokenu autoryzacji w ApiClient
-        apiClient.setAuthToken(session.accessToken);
+      // Zapisanie danych sesji w lokalnym magazynie
+      await _storageService.saveSession(session);
 
-        // Zapisanie danych sesji w lokalnym magazynie
-        await _storageService.saveSession(session);
-
-        return session;
-      } else {
-        throw ApiException(
-          message: responseData['error'] ?? 'Nieznany błąd podczas logowania',
-          statusCode: response.statusCode,
-          data: responseData,
-        );
-      }
-    } on ApiException {
-      rethrow;
+      return session;
     } catch (e) {
       throw UnknownException('Wystąpił nieoczekiwany błąd podczas logowania: $e');
     }
@@ -54,15 +42,12 @@ class AuthRepository extends BaseRepository {
   /// W przypadku niepowodzenia rzuca wyjątek.
   Future<Session> register({required String email, required String password, required String confirmPassword}) async {
     try {
-      final response = await apiClient.post(
-        'api/auth/register',
-        data: {'email': email, 'password': password, 'confirmPassword': confirmPassword},
-      );
+      final response = await apiClient.post('api/auth/register', data: {'email': email, 'password': password});
 
       final responseData = response.data;
 
       if (responseData['success'] == true) {
-        final session = Session.fromJson(responseData['session']);
+        final session = Session.fromMap(responseData['session']);
 
         // Ustawienie tokenu autoryzacji w ApiClient
         apiClient.setAuthToken(session.accessToken);
@@ -91,17 +76,7 @@ class AuthRepository extends BaseRepository {
   Future<void> logout() async {
     try {
       // Wywołanie endpointu wylogowania
-      final response = await apiClient.post('api/auth/logout');
-
-      final responseData = response.data;
-
-      if (responseData['success'] != true) {
-        throw ApiException(
-          message: responseData['error'] ?? 'Nieznany błąd podczas wylogowywania',
-          statusCode: response.statusCode,
-          data: responseData,
-        );
-      }
+      await apiClient.post('api/auth/logout');
 
       // Czyszczenie tokenu autoryzacji
       apiClient.clearAuthToken();
