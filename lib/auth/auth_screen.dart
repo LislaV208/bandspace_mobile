@@ -68,7 +68,6 @@ class _AuthScreenContent extends StatelessWidget {
       listener: (context, state) {
         // Obsługa nawigacji po udanym logowaniu/rejestracji
         if (state.user != null) {
-          print(state);
           // Nawigacja do DashboardScreen
           Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const DashboardScreen()));
         }

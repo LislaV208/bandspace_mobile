@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/auth/auth_screen.dart';
-import 'package:bandspace_mobile/core/components/user_avatar.dart';
+import 'package:bandspace_mobile/core/components/member_avatar.dart';
 import 'package:bandspace_mobile/core/components/user_drawer.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/cubit/auth_state.dart';
@@ -82,25 +82,23 @@ class DashboardScreen extends StatelessWidget {
         return Builder(
           builder: (context) {
             if (user != null) {
-              return UserAvatar(
-                // avatarUrl: user.avatarUrl,
-                avatarUrl: null,
-                name: user.name,
-                email: user.email ?? '',
-                size: 40,
-                borderWidth: 2,
-                borderColor: AppColors.primary,
-                backgroundColor: AppColors.primary,
+              return GestureDetector(
                 onTap: () => _openUserDrawer(context),
+                child: MemberAvatar(user: user, size: 40, borderWidth: 2),
               );
             } else {
-              return UserAvatar(
-                email: 'user',
-                size: 40,
-                borderWidth: 2,
-                borderColor: AppColors.primary,
-                backgroundColor: AppColors.primary,
+              return GestureDetector(
                 onTap: () => _openUserDrawer(context),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primary,
+                    border: Border.all(color: AppColors.primary, width: 2),
+                  ),
+                  child: const Icon(Icons.person, color: Colors.white, size: 24),
+                ),
               );
             }
           },

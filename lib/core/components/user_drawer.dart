@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/auth/auth_screen.dart';
-import 'package:bandspace_mobile/core/components/user_avatar.dart';
+import 'package:bandspace_mobile/core/components/member_avatar.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/models/user.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
@@ -53,7 +53,7 @@ class UserDrawer extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  user.name ?? user.email ?? 'Użytkownik',
+                  user.name ?? user.email,
                   style: AppTextStyles.titleMedium.copyWith(
                     color: AppColors.textPrimary,
                   ), // Lekko mniejszy niż titleLarge
@@ -62,7 +62,7 @@ class UserDrawer extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  user.email ?? 'Brak adresu email',
+                  user.email,
                   style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
@@ -77,16 +77,7 @@ class UserDrawer extends StatelessWidget {
 
   /// Buduje avatar użytkownika.
   Widget _buildAvatar() {
-    return UserAvatar(
-      // avatarUrl: user.avatarUrl,
-      avatarUrl: null,
-      name: user.name,
-      email: user.email ?? '',
-      size: 64,
-      borderWidth: 1.5,
-      borderColor: AppColors.primary.withAlpha(204),
-      textStyle: AppTextStyles.titleLarge.copyWith(color: AppColors.onPrimary.withAlpha(204)),
-    );
+    return MemberAvatar(user: user, size: 64, borderWidth: 1.5);
   }
 
   /// Buduje listę opcji menu.

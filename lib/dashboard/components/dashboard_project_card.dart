@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:bandspace_mobile/core/components/member_avatar.dart';
 import 'package:bandspace_mobile/core/models/project.dart';
 
 /// Komponent karty projektu dla ekranu dashboardu.
@@ -88,7 +89,7 @@ class DashboardProjectCard extends StatelessWidget {
     );
   }
 
-  /// Buduje badge z informacją o projekcie
+  /// Buduje badge z liczbą członków projektu
   Widget _buildMemberCountBadge() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -97,7 +98,7 @@ class DashboardProjectCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Text(
-        project.slug,
+        '${project.membersCount} ${_getMemberCountText(project.membersCount)}',
         style: const TextStyle(
           fontSize: 12,
           color: Color(0xFF60A5FA), // text-blue-400
@@ -106,15 +107,78 @@ class DashboardProjectCard extends StatelessWidget {
     );
   }
 
-  /// Buduje informacje o utworzeniu projektu
+  /// Buduje awatary członków projektu
   Widget _buildMemberAvatars() {
-    return Text(
-      'Slug: ${project.slug}',
-      style: const TextStyle(
-        fontSize: 14,
-        color: Color(0xFF9CA3AF), // text-gray-400
+    const maxVisibleAvatars = 5;
+    final members = project.members;
+    final visibleMembers = members.length > maxVisibleAvatars 
+        ? members.sublist(0, maxVisibleAvatars) 
+        : members;
+
+    if (members.isEmpty) {
+      return const Text(
+        'Brak członków',
+        style: TextStyle(
+          fontSize: 14,
+          color: Color(0xFF9CA3AF), // text-gray-400
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 32,
+      child: Stack(
+        children: [
+          ...List.generate(
+            visibleMembers.length,
+            (index) => Positioned(
+              left: index * 24.0,
+              child: MemberAvatar(
+                user: visibleMembers[index],
+                size: 32,
+                borderWidth: 2,
+                borderColor: const Color(0xFF1F2937), // border-gray-800
+              ),
+            ),
+          ),
+          if (members.length > maxVisibleAvatars)
+            Positioned(
+              left: maxVisibleAvatars * 24.0,
+              child: Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF374151), // bg-gray-700
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFF1F2937), // border-gray-800
+                    width: 2,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    '+${members.length - maxVisibleAvatars}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
+  }
+
+  /// Zwraca prawidłową odmianę słowa "członek" w zależności od liczby
+  String _getMemberCountText(int count) {
+    if (count == 1) {
+      return 'członek';
+    } else {
+      return 'członków';
+    }
   }
 
 }
