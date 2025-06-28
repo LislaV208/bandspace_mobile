@@ -25,6 +25,11 @@ class ApiClient {
     _dio.options.connectTimeout = const Duration(seconds: 10);
     _dio.options.receiveTimeout = const Duration(seconds: 10);
     _dio.options.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'};
+    
+    // Upewnij się, że kody 2xx (200-299) są traktowane jako sukces
+    _dio.options.validateStatus = (status) {
+      return status != null && status >= 200 && status < 300;
+    };
 
     // Dodanie interceptorów dla logowania, obsługi błędów, itp.
     _dio.interceptors.add(LogInterceptor(requestBody: true, responseBody: true, error: true));

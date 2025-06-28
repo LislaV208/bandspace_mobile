@@ -1,5 +1,6 @@
 import 'package:bandspace_mobile/core/api/api_client.dart';
 import 'package:bandspace_mobile/core/models/session.dart';
+import 'package:bandspace_mobile/core/models/user.dart';
 import 'package:bandspace_mobile/core/repositories/base_repository.dart';
 import 'package:bandspace_mobile/core/services/storage_service.dart';
 
@@ -46,8 +47,14 @@ class AuthRepository extends BaseRepository {
 
       final responseData = response.data;
 
-      if (responseData['success'] == true) {
-        final session = Session.fromMap(responseData['session']);
+      // Nowy backend zwraca bezpośrednio accessToken i user, nie ma wrapper 'success'
+      if (responseData['accessToken'] != null && responseData['user'] != null) {
+        // Tworzymy sesję z danych odpowiedzi
+        final session = Session(
+          accessToken: responseData['accessToken'],
+          refreshToken: '', // Backend nie zwraca refreshToken przy rejestracji
+          user: User.fromMap(responseData['user']),
+        );
 
         // Ustawienie tokenu autoryzacji w ApiClient
         apiClient.setAuthToken(session.accessToken);
@@ -58,7 +65,7 @@ class AuthRepository extends BaseRepository {
         return session;
       } else {
         throw ApiException(
-          message: responseData['error'] ?? 'Nieznany błąd podczas rejestracji',
+          message: responseData['message'] ?? 'Nieznany błąd podczas rejestracji',
           statusCode: response.statusCode,
           data: responseData,
         );

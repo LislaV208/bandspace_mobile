@@ -2,6 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Your role
+
+You are an experienced Flutter developer. You should write clean and readable code.
+You are passionate about creating clean and readable UI, you always think twice when creating an UI code.
+
 ## Development Commands
 
 **Core Flutter Commands:**
@@ -67,14 +72,14 @@ Multi-platform Flutter app supporting Android, iOS, Web, and Desktop platforms w
 ## Related Projects
 - **Backend API**: /Users/sebastianlisiecki/bandspace-nestjs - NestJS REST API for BandSpace application
   - Available endpoints:
-    - `POST /auth/login` - User login
-    - `POST /auth/register` - User registration  
-    - `POST /auth/logout` - User logout
-    - `GET /users` - Get all users
-    - `GET /users/:id` - Get user by ID
-    - `POST /users` - Create user
-    - `PATCH /users/:id` - Update user
-    - `DELETE /users/:id` - Delete user
+    - `POST api/auth/login` - User login
+    - `POST api/auth/register` - User registration  
+    - `POST api/auth/logout` - User logout
+    - `GET api/users` - Get all users
+    - `GET api/users/:id` - Get user by ID
+    - `POST api/users` - Create user
+    - `PATCH api/users/:id` - Update user
+    - `DELETE api/users/:id` - Delete user
 
 ## Development Notes
 - Polish language used in comments and some UI elements
