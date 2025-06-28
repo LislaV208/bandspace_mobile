@@ -15,20 +15,17 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('SplashScreen build');
     return BlocListener<AuthCubit, AuthState>(
       listener: (context, state) {
         // Gdy stan autentykacji zostanie ustalony, przekieruj do odpowiedniego ekranu
         if (state.isAuthStateInitialized) {
           if (state.user != null) {
             // Użytkownik jest zalogowany, przekieruj do DashboardScreen
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const DashboardScreen()),
-            );
+            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const DashboardScreen()));
           } else {
             // Użytkownik nie jest zalogowany, przekieruj do AuthScreen
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const AuthScreen()),
-            );
+            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const AuthScreen()));
           }
         }
       },
@@ -39,23 +36,12 @@ class SplashScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Logo aplikacji
-              const Icon(
-                LucideIcons.music,
-                color: AppColors.primary,
-                size: 64,
-              ),
+              const Icon(LucideIcons.music, color: AppColors.primary, size: 64),
               const SizedBox(height: 16),
-              Text(
-                'BandSpace',
-                style: AppTextStyles.headlineLarge.copyWith(
-                  color: AppColors.primary,
-                ),
-              ),
+              Text('BandSpace', style: AppTextStyles.headlineLarge.copyWith(color: AppColors.primary)),
               const SizedBox(height: 32),
               // Wskaźnik ładowania
-              const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-              ),
+              const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)),
             ],
           ),
         ),

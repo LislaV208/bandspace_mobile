@@ -92,4 +92,9 @@ class DashboardCubit extends Cubit<DashboardState> {
       emit(state.copyWith(errorMessage: null));
     }
   }
+
+  /// Czyści stan dashboardu (np. po wylogowaniu)
+  void clearProjects() {
+    emit(const DashboardState());
+  }
 }

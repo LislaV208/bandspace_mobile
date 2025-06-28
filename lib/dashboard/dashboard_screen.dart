@@ -9,7 +9,6 @@ import 'package:bandspace_mobile/core/components/user_drawer.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/cubit/auth_state.dart';
 import 'package:bandspace_mobile/core/models/user.dart';
-import 'package:bandspace_mobile/core/repositories/project_repository.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/dashboard/components/create_project_bottom_sheet.dart';
 import 'package:bandspace_mobile/dashboard/components/dashboard_project_card.dart';
@@ -21,6 +20,7 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('DashboardScreen build');
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, authState) {
         // Pobierz dane użytkownika z AuthState
@@ -38,20 +38,14 @@ class DashboardScreen extends StatelessWidget {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
 
-        // Utwórz DashboardCubit, jeśli jeszcze nie istnieje
-        if (context.read<DashboardCubit?>() == null) {
-          return BlocProvider(
-            create: (context) => DashboardCubit(projectRepository: ProjectRepository())..loadProjects(),
-            child: _buildDashboardContent(context, user),
-          );
-        }
-
+        // Użyj globalnego DashboardCubit z main.dart
         return _buildDashboardContent(context, user);
       },
     );
   }
 
   Widget _buildDashboardContent(BuildContext context, User user) {
+    print('_buildDashboardContent');
     return Scaffold(
       backgroundColor: AppColors.background,
       endDrawer: UserDrawer(user: user),
@@ -113,6 +107,7 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildProjectsList(BuildContext context) {
+    print('_buildProjectsList');
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (context, state) {
         return SingleChildScrollView(

@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/config/env_config.dart';
+import 'package:bandspace_mobile/core/cubit/app_cubit.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/repositories/auth_repository.dart';
 import 'package:bandspace_mobile/core/repositories/project_repository.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/dashboard/cubit/dashboard_cubit.dart';
 import 'package:bandspace_mobile/splash/splash_screen.dart';
 
 /// Główna funkcja uruchamiająca aplikację.
@@ -35,16 +37,26 @@ class MainApp extends StatelessWidget {
         RepositoryProvider(create: (_) => AuthRepository()),
         RepositoryProvider(create: (_) => ProjectRepository()),
       ],
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider<AuthCubit>(create: (context) => AuthCubit(authRepository: context.read<AuthRepository>())),
-        ],
-        child: MaterialApp(
-          title: 'BandSpace',
-          theme: AppTheme.darkTheme,
-          home: const SplashScreen(),
-          debugShowCheckedModeBanner: false,
-        ),
+      child: Builder(
+        builder: (context) {
+          final authCubit = AuthCubit(authRepository: context.read<AuthRepository>());
+          final dashboardCubit = DashboardCubit(projectRepository: context.read<ProjectRepository>());
+          final appCubit = AppCubit(authCubit: authCubit, dashboardCubit: dashboardCubit);
+          
+          return MultiBlocProvider(
+            providers: [
+              BlocProvider<AuthCubit>.value(value: authCubit),
+              BlocProvider<DashboardCubit>.value(value: dashboardCubit),
+              BlocProvider<AppCubit>.value(value: appCubit),
+            ],
+            child: MaterialApp(
+              title: 'BandSpace',
+              theme: AppTheme.darkTheme,
+              home: const SplashScreen(),
+              debugShowCheckedModeBanner: false,
+            ),
+          );
+        },
       ),
     );
   }
