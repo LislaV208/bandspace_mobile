@@ -1,4 +1,3 @@
-
 import 'package:bandspace_mobile/core/models/project_user.dart';
 import 'package:bandspace_mobile/core/models/user.dart';
 
@@ -7,9 +6,9 @@ class Project {
   final int id;
   final String name;
   final String slug;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final List<ProjectUser> projectUsers;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final List<ProjectUser>? projectUsers;
 
   Project({
     required this.id,
@@ -21,20 +20,25 @@ class Project {
   });
 
   factory Project.fromJson(Map<String, dynamic> json) {
-    final projectUsers = <ProjectUser>[];
-    if (json['projectUsers'] != null && json['projectUsers'] is List) {
-      for (final projectUserJson in json['projectUsers']) {
-        projectUsers.add(ProjectUser.fromJson(projectUserJson));
-      }
-    }
+    // final projectUsers = <ProjectUser>[];
+    // if (json['projectUsers'] != null && json['projectUsers'] is List) {
+    //   for (final projectUserJson in json['projectUsers']) {
+    //     projectUsers.add(ProjectUser.fromJson(projectUserJson));
+    //   }
+    // }
 
     return Project(
       id: json['id'],
       name: json['name'] ?? '',
       slug: json['slug'] ?? '',
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
-      projectUsers: projectUsers,
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
+      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : null,
+      projectUsers:
+          json['projectUsers'] != null
+              ? (json['projectUsers'] as List<dynamic>)
+                  .map((e) => ProjectUser.fromJson(e as Map<String, dynamic>))
+                  .toList()
+              : null,
     );
   }
 
@@ -43,9 +47,9 @@ class Project {
       'id': id,
       'name': name,
       'slug': slug,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
-      'projectUsers': projectUsers.map((pu) => pu.toJson()).toList(),
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+      'projectUsers': projectUsers?.map((pu) => pu.toJson()).toList(),
     };
   }
 
@@ -58,23 +62,23 @@ class Project {
         other.slug == slug &&
         other.createdAt == createdAt &&
         other.updatedAt == updatedAt &&
-        other.projectUsers.length == projectUsers.length;
+        other.projectUsers?.length == projectUsers?.length;
   }
 
   @override
   int get hashCode {
-    return Object.hash(id, name, slug, createdAt, updatedAt, projectUsers.length);
+    return Object.hash(id, name, slug, createdAt, updatedAt, projectUsers?.length);
   }
 
   /// Pobiera liczbę członków projektu
-  int get membersCount => projectUsers.length;
+  int get membersCount => projectUsers?.length ?? 0;
 
   /// Pobiera listę użytkowników należących do projektu
-  List<User> get members => projectUsers.map((pu) => pu.user).toList();
+  List<User> get members => projectUsers?.map((pu) => pu.user).toList() ?? [];
 
   /// Sprawdza czy użytkownik jest członkiem projektu
   bool isMember(int userId) {
-    return projectUsers.any((pu) => pu.userId == userId);
+    return projectUsers?.any((pu) => pu.userId == userId) ?? false;
   }
 }
 

@@ -78,7 +78,9 @@ class ProjectHeader extends StatelessWidget {
   }
 
   /// Formatuje datę do czytelnej formy
-  String _formatDate(DateTime date) {
+  String _formatDate(DateTime? date) {
+    if (date == null) return '-';
+
     final now = DateTime.now();
     final difference = now.difference(date);
 
