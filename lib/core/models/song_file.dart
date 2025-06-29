@@ -23,7 +23,7 @@ class SongFile {
       fileId: json['file_id'],
       duration: json['duration'],
       createdAt: DateTime.parse(json['created_at']),
-      fileInfo: AudioFileInfo.fromJson(json['file']),
+      fileInfo: AudioFileInfo.fromJson(json['file'] ?? {}),
     );
   }
 
@@ -100,15 +100,15 @@ class AudioFileInfo {
 
   factory AudioFileInfo.fromJson(Map<String, dynamic> json) {
     return AudioFileInfo(
-      id: json['id'],
+      id: json['id'] ?? 0,
       filename: json['filename'] ?? '',
       fileKey: json['file_key'] ?? '',
       mimeType: json['mime_type'] ?? '',
-      size: json['size'] != null ? int.tryParse(json['size']) ?? 0 : 0,
+      size: json['size'] is int ? json['size'] : (json['size'] != null ? int.tryParse(json['size'].toString()) ?? 0 : 0),
       description: json['description'],
-      uploadedBy: json['uploaded_by'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      uploadedBy: json['uploaded_by'] ?? 0,
+      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
     );
   }
 

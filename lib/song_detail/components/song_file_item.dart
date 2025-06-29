@@ -72,7 +72,7 @@ class SongFileItem extends StatelessWidget {
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: AppColors.onPrimary,
+                color: AppColors.textPrimary,
               ),
             )
           : Icon(

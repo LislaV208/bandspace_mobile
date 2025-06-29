@@ -101,6 +101,8 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
         fileId: state.currentFile!.fileId,
       );
 
+      print('AudioPlayer: Trying to play URL: $streamUrl');
+
       // Załaduj i odtwórz plik
       await _audioPlayer.play(UrlSource(streamUrl));
     } catch (e) {

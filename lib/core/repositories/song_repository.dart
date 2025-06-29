@@ -1,5 +1,7 @@
 import 'dart:io';
+
 import 'package:dio/dio.dart';
+
 import 'package:bandspace_mobile/core/api/api_client.dart';
 import 'package:bandspace_mobile/core/models/song_detail.dart';
 import 'package:bandspace_mobile/core/models/song_file.dart';
@@ -16,10 +18,7 @@ class SongRepository extends BaseRepository {
   /// Pobiera szczegóły utworu.
   ///
   /// Zwraca szczegółowe informacje o utworze wraz z metadanymi.
-  Future<SongDetail> getSongDetails({
-    required int projectId,
-    required int songId,
-  }) async {
+  Future<SongDetail> getSongDetails({required int projectId, required int songId}) async {
     try {
       final response = await apiClient.get('api/projects/$projectId/songs/$songId');
 
@@ -62,14 +61,12 @@ class SongRepository extends BaseRepository {
   /// Pobiera URL do pobierania/streamowania pliku.
   ///
   /// Zwraca presigned URL do bezpiecznego dostępu do pliku.
-  Future<String> getFileDownloadUrl({
-    required int songId,
-    required int fileId,
-  }) async {
+  Future<String> getFileDownloadUrl({required int songId, required int fileId}) async {
     try {
       final response = await apiClient.get('api/songs/$songId/files/$fileId/download');
+      final url = response.data?['url'];
 
-      if (response.data == null || response.data['download_url'] == null) {
+      if (url == null) {
         throw ApiException(
           message: 'Brak URL do pobierania w odpowiedzi serwera',
           statusCode: response.statusCode,
@@ -77,7 +74,7 @@ class SongRepository extends BaseRepository {
         );
       }
 
-      return response.data['download_url'];
+      return url;
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -88,10 +85,7 @@ class SongRepository extends BaseRepository {
   /// Usuwa plik z utworu.
   ///
   /// Usuwa plik audio z utworu i z systemu plików.
-  Future<void> deleteSongFile({
-    required int songId,
-    required int fileId,
-  }) async {
+  Future<void> deleteSongFile({required int songId, required int fileId}) async {
     try {
       await apiClient.delete('api/songs/$songId/files/$fileId');
     } on ApiException {
@@ -114,10 +108,7 @@ class SongRepository extends BaseRepository {
     try {
       // Przygotowanie FormData
       final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(
-          file.path,
-          filename: file.path.split('/').last,
-        ),
+        'file': await MultipartFile.fromFile(file.path, filename: file.path.split('/').last),
         if (description != null) 'description': description,
         if (duration != null) 'duration': duration,
       });
@@ -125,13 +116,14 @@ class SongRepository extends BaseRepository {
       final response = await apiClient.post(
         'api/songs/$songId/files',
         data: formData,
-        onSendProgress: onProgress != null
-            ? (sent, total) {
-                if (total > 0) {
-                  onProgress(sent / total);
+        onSendProgress:
+            onProgress != null
+                ? (sent, total) {
+                  if (total > 0) {
+                    onProgress(sent / total);
+                  }
                 }
-              }
-            : null,
+                : null,
       );
 
       if (response.data == null) {
@@ -164,17 +156,14 @@ class SongRepository extends BaseRepository {
   }) async {
     try {
       final updateData = <String, dynamic>{};
-      
+
       if (title != null) updateData['title'] = title;
       if (notes != null) updateData['notes'] = notes;
       if (bpm != null) updateData['bpm'] = bpm;
       if (key != null) updateData['key'] = key;
       if (lyrics != null) updateData['lyrics'] = lyrics;
 
-      final response = await apiClient.put(
-        'api/projects/$projectId/songs/$songId',
-        data: updateData,
-      );
+      final response = await apiClient.put('api/projects/$projectId/songs/$songId', data: updateData);
 
       if (response.data == null) {
         throw ApiException(

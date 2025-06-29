@@ -31,11 +31,20 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
     return BlocConsumer<SongDetailCubit, SongDetailState>(
       listener: (context, state) {
         if (state.uploadStatus == FileUploadStatus.success) {
-          Navigator.pop(context);
+          // Zresetuj stan uploadu
+          context.read<SongDetailCubit>().resetUploadStatus();
+          
+          // Zamknij modal jeśli widget jest nadal mounted
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+          
+          // Pokaż komunikat sukcesu
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Plik został pomyślnie dodany'),
               backgroundColor: AppColors.success,
+              duration: Duration(seconds: 2),
             ),
           );
         }
@@ -218,7 +227,10 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
       children: [
         Expanded(
           child: TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              context.read<SongDetailCubit>().resetUploadStatus();
+              Navigator.pop(context);
+            },
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
@@ -316,7 +328,10 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
         ],
         const Gap(24),
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            context.read<SongDetailCubit>().resetUploadStatus();
+            Navigator.pop(context);
+          },
           child: Text(
             'Anuluj',
             style: AppTextStyles.bodyMedium.copyWith(

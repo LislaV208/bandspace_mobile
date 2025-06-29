@@ -259,16 +259,6 @@ class SongDetailCubit extends Cubit<SongDetailState> {
         files: updatedFiles,
         uploadProgress: 1.0,
       ));
-
-      // Zresetuj status po chwili
-      Future.delayed(const Duration(seconds: 2), () {
-        if (!isClosed) {
-          emit(state.copyWith(
-            uploadStatus: FileUploadStatus.idle,
-            uploadProgress: 0.0,
-          ));
-        }
-      });
     } on ApiException catch (e) {
       emit(state.copyWith(
         uploadStatus: FileUploadStatus.error,
@@ -294,6 +284,15 @@ class SongDetailCubit extends Cubit<SongDetailState> {
     if (state.uploadError != null) {
       emit(state.copyWith(uploadError: null));
     }
+  }
+
+  /// Resetuje stan uploadu do idle
+  void resetUploadStatus() {
+    emit(state.copyWith(
+      uploadStatus: FileUploadStatus.idle,
+      uploadProgress: 0.0,
+      uploadError: null,
+    ));
   }
 
 }

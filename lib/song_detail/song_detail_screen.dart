@@ -79,7 +79,7 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
             }
 
             // Aktualizuj playlistę w audio playerze gdy pliki się zmienią
-            if (state.isLoaded && state.hasAudioFiles) {
+            if (state.hasAudioFiles) {
               context.read<AudioPlayerCubit>().setPlaylist(state.files);
             }
           },
@@ -210,7 +210,7 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
                 return SongFileItem(
                   songFile: file,
                   isPlaying: playerState.currentFile?.id == file.id && playerState.isPlaying,
-                  isLoading: playerState.currentFile?.id == file.id && playerState.isLoading,
+                  isLoading: playerState.currentFile?.id == file.id && playerState.isLoading && !playerState.isPlaying,
                   onPlay: () => context.read<AudioPlayerCubit>().playFile(file),
                   onDownload: () => _downloadFile(file),
                   onDelete: () => _deleteFile(file),

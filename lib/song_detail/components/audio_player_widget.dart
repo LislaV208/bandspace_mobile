@@ -185,22 +185,31 @@ class AudioPlayerWidget extends StatelessWidget {
             color: AppColors.primary,
             borderRadius: BorderRadius.circular(28),
           ),
-          child: IconButton(
-            onPressed: isLoading ? null : onPlayPause,
-            icon: isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.onPrimary,
-                    ),
-                  )
-                : Icon(
-                    isPlaying ? LucideIcons.pause : LucideIcons.play,
-                    color: AppColors.onPrimary,
-                    size: 28,
-                  ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(28),
+              onTap: isLoading ? null : onPlayPause,
+              child: Container(
+                width: 56,
+                height: 56,
+                alignment: Alignment.center,
+                child: isLoading
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.onPrimary,
+                        ),
+                      )
+                    : Icon(
+                        isPlaying ? LucideIcons.pause : LucideIcons.play,
+                        color: AppColors.onPrimary,
+                        size: 28,
+                      ),
+              ),
+            ),
           ),
         ),
         const Gap(16),
