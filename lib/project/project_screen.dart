@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/models/project.dart';
 import 'package:bandspace_mobile/core/models/song.dart';
+import 'package:bandspace_mobile/core/repositories/project_repository.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/project/components/create_song_bottom_sheet.dart';
 import 'package:bandspace_mobile/project/components/song_list_item.dart';
+import 'package:bandspace_mobile/project/cubit/project_songs_cubit.dart';
+import 'package:bandspace_mobile/project/cubit/project_songs_state.dart';
 
 /// Ekran szczegółów projektu z listą utworów
 class ProjectScreen extends StatefulWidget {
@@ -16,18 +20,31 @@ class ProjectScreen extends StatefulWidget {
 
   @override
   State<ProjectScreen> createState() => _ProjectScreenState();
+
+  /// Statyczna metoda do tworzenia ekranu z odpowiednim providerem
+  static Widget create(Project project) {
+    return BlocProvider(
+      create: (context) => ProjectSongsCubit(
+        projectRepository: ProjectRepository(),
+        projectId: project.id,
+      )..loadSongs(),
+      child: ProjectScreen(project: project),
+    );
+  }
 }
 
 class _ProjectScreenState extends State<ProjectScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<Song> _filteredSongs = [];
-  List<Song> _allSongs = [];
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _loadMockSongs();
-    _searchController.addListener(_filterSongs);
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
+    });
   }
 
   @override
@@ -36,71 +53,31 @@ class _ProjectScreenState extends State<ProjectScreen> {
     super.dispose();
   }
 
-  /// Ładuje przykładowe dane utworów
-  void _loadMockSongs() {
-    _allSongs = [
-      Song(id: 1, title: 'velow park', createdAt: DateTime.now().subtract(const Duration(days: 60)), fileCount: 1),
-      Song(
-        id: 2,
-        title: 'Velow - Czekając aż przestaniesz istnieć',
-        createdAt: DateTime.now().subtract(const Duration(days: 60)),
-        fileCount: 1,
-      ),
-      Song(
-        id: 3,
-        title: 'Velow - Między wierszami',
-        createdAt: DateTime.now().subtract(const Duration(days: 60)),
-        fileCount: 1,
-      ),
-      Song(
-        id: 4,
-        title: 'mimo zysków (new velow)',
-        createdAt: DateTime.now().subtract(const Duration(days: 60)),
-        fileCount: 1,
-      ),
-      Song(
-        id: 5,
-        title: 'imagine być gitem',
-        createdAt: DateTime.now().subtract(const Duration(days: 90)),
-        fileCount: 1,
-      ),
-      Song(id: 6, title: 'SKACZ', createdAt: DateTime.now().subtract(const Duration(days: 90)), fileCount: 1),
-      Song(
-        id: 7,
-        title: 'TUTAJ TYLKO ZWROTKA, RESZTĘ JEBAĆ',
-        createdAt: DateTime.now().subtract(const Duration(days: 90)),
-        fileCount: 1,
-      ),
-      Song(id: 8, title: 'Oh My Me (God)', createdAt: DateTime.now().subtract(const Duration(days: 90)), fileCount: 1),
-    ];
-    _filteredSongs = List.from(_allSongs);
-  }
-
-  /// Filtruje utwory na podstawie wyszukiwanej frazy
-  void _filterSongs() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      if (query.isEmpty) {
-        _filteredSongs = List.from(_allSongs);
-      } else {
-        _filteredSongs = _allSongs.where((song) => song.title.toLowerCase().contains(query)).toList();
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          _buildSearchBar(),
-          //  ProjectHeader(project: widget.project),
-          _buildSongsList(),
-        ],
+    return BlocListener<ProjectSongsCubit, ProjectSongsState>(
+      listener: (context, state) {
+        if (state.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage!),
+              backgroundColor: AppColors.error,
+            ),
+          );
+          context.read<ProjectSongsCubit>().clearError();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: _buildAppBar(),
+        body: Column(
+          children: [
+            _buildSearchBar(),
+            _buildSongsList(),
+          ],
+        ),
+        floatingActionButton: _buildCreateSongFab(),
       ),
-      floatingActionButton: _buildCreateSongFab(),
     );
   }
 
@@ -146,20 +123,42 @@ class _ProjectScreenState extends State<ProjectScreen> {
   /// Buduje listę utworów
   Widget _buildSongsList() {
     return Expanded(
-      child:
-          _filteredSongs.isEmpty
-              ? _buildEmptyState()
-              : ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                itemCount: _filteredSongs.length,
-                itemBuilder: (context, index) {
-                  final song = _filteredSongs[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: SongListItem(song: song, onTap: () => _openSong(song), onDelete: () => _deleteSong(song)),
-                  );
-                },
-              ),
+      child: BlocBuilder<ProjectSongsCubit, ProjectSongsState>(
+        builder: (context, state) {
+          if (state.status == ProjectSongsStatus.loading) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            );
+          }
+
+          if (state.status == ProjectSongsStatus.error) {
+            return _buildErrorState();
+          }
+
+          final cubit = context.read<ProjectSongsCubit>();
+          final filteredSongs = cubit.getFilteredSongs(_searchQuery);
+
+          if (filteredSongs.isEmpty) {
+            return _buildEmptyState();
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            itemCount: filteredSongs.length,
+            itemBuilder: (context, index) {
+              final song = filteredSongs[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: SongListItem(
+                  song: song,
+                  onTap: () => _openSong(song),
+                  onDelete: () => _deleteSong(song),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
@@ -189,14 +188,54 @@ class _ProjectScreenState extends State<ProjectScreen> {
     );
   }
 
+  /// Buduje stan błędu
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(LucideIcons.x, size: 64, color: AppColors.error),
+          const SizedBox(height: 16),
+          Text(
+            'Wystąpił błąd podczas ładowania utworów',
+            style: AppTextStyles.titleMedium.copyWith(color: AppColors.textSecondary),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => context.read<ProjectSongsCubit>().loadSongs(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
+            ),
+            child: const Text('Spróbuj ponownie'),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Buduje przycisk dodawania nowego utworu
   Widget _buildCreateSongFab() {
-    return FloatingActionButton.extended(
-      onPressed: _showCreateSongSheet,
-      backgroundColor: AppColors.primary,
-      foregroundColor: AppColors.onPrimary,
-      icon: const Icon(LucideIcons.plus),
-      label: const Text('Nowy utwór'),
+    return BlocBuilder<ProjectSongsCubit, ProjectSongsState>(
+      builder: (context, state) {
+        return FloatingActionButton.extended(
+          onPressed: state.isCreatingSong ? null : _showCreateSongSheet,
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.onPrimary,
+          icon: state.isCreatingSong
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.onPrimary,
+                  ),
+                )
+              : const Icon(LucideIcons.plus),
+          label: const Text('Nowy utwór'),
+        );
+      },
     );
   }
 
@@ -285,14 +324,15 @@ class _ProjectScreenState extends State<ProjectScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder:
-          (context) => CreateSongBottomSheet(
-            projectId: widget.project.id,
-            onSongCreated: (songTitle) {
-              // TODO: Implement song creation
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Utworzono utwór: $songTitle')));
-            },
-          ),
+      builder: (context) => BlocProvider.value(
+        value: this.context.read<ProjectSongsCubit>(),
+        child: CreateSongBottomSheet(
+          projectId: widget.project.id,
+          onSongCreated: (songTitle) {
+            this.context.read<ProjectSongsCubit>().createSong(songTitle);
+          },
+        ),
+      ),
     );
   }
 
@@ -306,32 +346,27 @@ class _ProjectScreenState extends State<ProjectScreen> {
   void _deleteSong(Song song) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: AppColors.surface,
-            title: Text('Usuń utwór', style: AppTextStyles.titleMedium.copyWith(color: AppColors.textPrimary)),
-            content: Text(
-              'Czy na pewno chcesz usunąć utwór "${song.title}"? Ta operacja jest nieodwracalna.',
-              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Anuluj', style: TextStyle(color: AppColors.textSecondary)),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  setState(() {
-                    _allSongs.remove(song);
-                    _filteredSongs.remove(song);
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Usunięto utwór: ${song.title}')));
-                },
-                child: Text('Usuń', style: TextStyle(color: AppColors.error)),
-              ),
-            ],
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text('Usuń utwór', style: AppTextStyles.titleMedium.copyWith(color: AppColors.textPrimary)),
+        content: Text(
+          'Czy na pewno chcesz usunąć utwór "${song.title}"? Ta operacja jest nieodwracalna.',
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text('Anuluj', style: TextStyle(color: AppColors.textSecondary)),
           ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              context.read<ProjectSongsCubit>().deleteSong(song);
+            },
+            child: Text('Usuń', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
     );
   }
 }

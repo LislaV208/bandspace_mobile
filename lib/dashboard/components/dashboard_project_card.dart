@@ -179,7 +179,6 @@ class DashboardProjectCard extends StatelessWidget {
 
   /// Nawiguje do ekranu szczegółów projektu
   void _navigateToProject(BuildContext context) {
-    print('_navigateToProject');
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProjectScreen(project: project)));
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProjectScreen.create(project)));
   }
 }

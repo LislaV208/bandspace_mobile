@@ -1,5 +1,6 @@
 import 'package:bandspace_mobile/core/api/api_client.dart';
 import 'package:bandspace_mobile/core/models/project.dart';
+import 'package:bandspace_mobile/core/models/song.dart';
 import 'package:bandspace_mobile/core/repositories/base_repository.dart';
 
 /// Repozytorium odpowiedzialne za operacje związane z projektami.
@@ -60,6 +61,65 @@ class ProjectRepository extends BaseRepository {
       rethrow;
     } catch (e) {
       throw UnknownException('Wystąpił nieoczekiwany błąd podczas tworzenia projektu: $e');
+    }
+  }
+
+  /// Pobiera listę utworów dla danego projektu.
+  ///
+  /// Zwraca listę utworów posortowanych według daty utworzenia (najnowsze pierwsze).
+  Future<List<Song>> getProjectSongs(int projectId) async {
+    try {
+      final response = await apiClient.get('api/projects/$projectId/songs');
+
+      if (response.data == null) {
+        return [];
+      }
+
+      final List<dynamic> songsData = response.data;
+      return songsData.map((songData) => Song.fromJson(songData)).toList();
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw UnknownException('Wystąpił nieoczekiwany błąd podczas pobierania utworów: $e');
+    }
+  }
+
+  /// Tworzy nowy utwór w projekcie.
+  ///
+  /// Przyjmuje ID projektu i tytuł utworu.
+  /// Zwraca utworzony utwór.
+  Future<Song> createSong({required int projectId, required String title}) async {
+    try {
+      final songData = {'title': title};
+
+      final response = await apiClient.post('api/projects/$projectId/songs', data: songData);
+
+      if (response.data == null) {
+        throw ApiException(
+          message: 'Brak danych w odpowiedzi podczas tworzenia utworu',
+          statusCode: response.statusCode,
+          data: response.data,
+        );
+      }
+
+      return Song.fromJson(response.data);
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw UnknownException('Wystąpił nieoczekiwany błąd podczas tworzenia utworu: $e');
+    }
+  }
+
+  /// Usuwa utwór z projektu.
+  ///
+  /// Przyjmuje ID projektu i ID utworu.
+  Future<void> deleteSong({required int projectId, required int songId}) async {
+    try {
+      await apiClient.delete('api/projects/$projectId/songs/$songId');
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw UnknownException('Wystąpił nieoczekiwany błąd podczas usuwania utworu: $e');
     }
   }
 }
