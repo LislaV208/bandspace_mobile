@@ -11,6 +11,7 @@ import 'package:bandspace_mobile/project/components/create_song_bottom_sheet.dar
 import 'package:bandspace_mobile/project/components/song_list_item.dart';
 import 'package:bandspace_mobile/project/cubit/project_songs_cubit.dart';
 import 'package:bandspace_mobile/project/cubit/project_songs_state.dart';
+import 'package:bandspace_mobile/song_detail/song_detail_screen.dart';
 
 /// Ekran szczegółów projektu z listą utworów
 class ProjectScreen extends StatefulWidget {
@@ -318,8 +319,15 @@ class _ProjectScreenState extends State<ProjectScreen> {
 
   /// Otwiera szczegóły utworu
   void _openSong(Song song) {
-    // TODO: Navigate to song detail screen
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Otwieranie utworu: ${song.title}')));
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SongDetailScreen.fromSong(
+          projectId: widget.project.id,
+          song: song,
+        ),
+      ),
+    );
   }
 
   /// Usuwa utwór

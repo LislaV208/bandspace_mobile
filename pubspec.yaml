@@ -7,6 +7,7 @@ environment:
   sdk: ^3.7.2
 
 dependencies:
+  audioplayers: ^6.1.0
   dio: ^5.8.0+1
   equatable: ^2.0.7
   flutter:
@@ -14,6 +15,7 @@ dependencies:
   flutter_bloc: ^9.1.1
   flutter_dotenv: ^5.2.1
   flutter_secure_storage: ^9.0.0
+  gap: ^3.0.1
   icons_plus: ^5.0.0
   lucide_icons_flutter: ^3.0.2
 
