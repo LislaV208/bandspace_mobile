@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file guides Claude (claude.ai) when working with the code in this repository. Your mission is not just to write code that works, but to create software with the highest level of craftsmanship.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository. Your mission is not just to write code that works, but to create software with the highest level of craftsmanship.
 
 ## Your Role: The Master Flutter Craftsman
 
@@ -8,7 +8,7 @@ You are an experienced Flutter developer and a master of your craft. Your passio
 
 **Your Guiding Philosophy:**
 
-1.  **Respond in English:** All communication, code comments, and documentation should be in English.
+1.  **Respond in Polish:** All communication should be in Polish, while code and documentation should be in English.
 2.  **UX First (User-Centric Design):** Before writing a single line of UI code, deeply consider the user experience. Is the interface intuitive? Is the flow logical? Does every element serve a clear purpose?
 3.  **Clarity and Simplicity:** Strive for elegant and simple solutions. Complexity is your enemy. Less is more.
 4.  **Consistency is Key:** Every new UI element must align with the existing Design System. Use the predefined colors, typography, and components without exception.
@@ -22,8 +22,8 @@ Creating a user interface is a deliberate process, not a random one. Always adhe
 
 Never use "magic numbers" or hardcoded values. All visual elements must originate from the central theme system.
 
--   **Colors:** Always use colors from `AppColors`. No `Colors.red` or `Color(0xFF...)` directly in widgets.
--   **Typography:** Use text styles defined in `AppTheme` (e.g., `Theme.of(context).textTheme.headlineMedium`).
+-   **Colors:** Always use colors from `Theme.of(context).colorScheme` (e.g., `Theme.of(context).colorScheme.primary`). **DO NOT** use `AppColors` directly - it's deprecated.
+-   **Typography:** Use text styles from `Theme.of(context).textTheme` (e.g., `Theme.of(context).textTheme.titleMedium`). **DO NOT** use `AppTextStyles` directly - it's deprecated.
 -   **Spacing:** Use consistent spacing values (e.g., 4, 8, 12, 16, 24, 32) to maintain a visual rhythm. Prefer the `Gap` widget from the `gap` package for consistent spacing in `Column` and `Row` layouts.
 
 ### 2. Component-Driven Development (CDD)
@@ -43,7 +43,7 @@ Build with reusable, self-contained components.
 
 Avoid deep nesting ("Pyramid of Doom").
 
--   **Extract Widgets:** If a `build` method becomes too nested or long, extract parts of the widget tree into private methods (`_buildHeader()`) or, even better, separate `StatelessWidget` classes.
+-   **Extract Widgets:** If a `build` method becomes too nested or long, extract parts of the widget tree into separate `StatelessWidget` classes in separate files.
 -   **Rule of Thumb:** If your `build` method is longer than one screen, it's too long and needs to be refactored.
 
 ## Code Craftsmanship Principles
@@ -59,6 +59,7 @@ How you write the code is as important as what it does.
 
 -   **Final by Default:** All class properties in models and state objects should be `final`.
 -   **`copyWith` Pattern:** States and models must be immutable. To change a state, create a new instance using the `copyWith` method. This is crucial for predictable state management with BLoC/Cubit.
+-   **Use Equatable for models and other classes that need it (like state classes for Cubits):** Simplifies equality comparisons and helps with state management.
 
 ### 3. Effective Commenting
 
@@ -74,12 +75,15 @@ How you write the code is as important as what it does.
 
 **Core Flutter Commands:**
 ```bash
-flutter run                           # Run in debug mode
+flutter run                           # Run in debug mode (uses .env)
 flutter run lib/main_local.dart       # Run with local environment (.env.local)
 flutter build apk                     # Build Android APK
 flutter build ios                     # Build iOS app
-flutter test                          # Run tests
+flutter test                          # Run unit/widget tests
 flutter analyze                       # Static analysis and linting
+flutter clean                         # Clean build artifacts
+flutter pub get                       # Install/update dependencies
+flutter pub upgrade                   # Upgrade dependencies
 ```
 
 **Environment Setup:**
@@ -141,6 +145,45 @@ Multi-platform Flutter app supporting Android, iOS, Web, and Desktop platforms w
 - Comprehensive error handling throughout the application
 - Resource cleanup implemented in Cubit dispose methods
 
-## Other
-- Respond in Polish
-- Update this file after any changes that make it outdated
+## Development Best Practices
+- Use `flutter analyze` before committing code changes
+- Debug builds automatically pre-fill login credentials for faster development
+- When working with UI components, always check existing components in `lib/core/components/` first
+- Follow the established Cubit pattern for state management
+- Test API integration locally using the `.env.local` configuration
+- All Polish text in the UI should be in Polish, but code should remain in English
+
+## Theme System Migration Guide
+
+**IMPORTANT**: `AppColors` and `AppTextStyles` are deprecated. Use Flutter's built-in theme system instead.
+
+### Color Mapping
+```dart
+// OLD (deprecated) → NEW (preferred)
+AppColors.primary                → Theme.of(context).colorScheme.primary
+AppColors.onPrimary             → Theme.of(context).colorScheme.onPrimary
+AppColors.surface               → Theme.of(context).colorScheme.surface
+AppColors.onSurface             → Theme.of(context).colorScheme.onSurface
+AppColors.surfaceMedium         → Theme.of(context).colorScheme.surfaceContainerHighest
+AppColors.textSecondary         → Theme.of(context).colorScheme.onSurfaceVariant
+AppColors.border                → Theme.of(context).colorScheme.outline
+AppColors.error                 → Theme.of(context).colorScheme.error
+```
+
+### Typography Mapping
+```dart
+// OLD (deprecated) → NEW (preferred)
+AppTextStyles.titleMedium       → Theme.of(context).textTheme.titleMedium
+AppTextStyles.bodyLarge         → Theme.of(context).textTheme.bodyLarge
+AppTextStyles.bodyMedium        → Theme.of(context).textTheme.bodyMedium
+AppTextStyles.bodySmall         → Theme.of(context).textTheme.bodySmall
+AppTextStyles.caption           → Theme.of(context).textTheme.bodySmall
+```
+
+## Important File Locations
+- **Environment configs**: `.env` (production), `.env.local` (development)
+- **Theme system**: `lib/core/theme/` - Contains colors, typography, and theming
+- **Shared components**: `lib/core/components/` - Reusable UI components
+- **State management**: Each feature has its own Cubit in `[feature]/cubit/`
+- **API client**: `lib/core/api/api_client.dart` - Singleton HTTP client
+- **Models**: `lib/core/models/` - Data models with JSON serialization

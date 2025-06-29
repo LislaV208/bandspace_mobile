@@ -1,6 +1,19 @@
 import 'package:flutter/material.dart';
 
 /// Klasa zawierająca wszystkie kolory używane w aplikacji BandSpace
+/// 
+/// **DEPRECATED**: Ta klasa jest przestarzała. Używaj `Theme.of(context).colorScheme` 
+/// oraz `Theme.of(context).textTheme` zamiast bezpośredniego odwoływania się do AppColors.
+/// 
+/// Przykład migracji:
+/// ```dart
+/// // STARE (deprecated):
+/// color: AppColors.primary
+/// 
+/// // NOWE (zalecane):
+/// color: Theme.of(context).colorScheme.primary
+/// ```
+@Deprecated('Używaj Theme.of(context).colorScheme zamiast AppColors')
 class AppColors {
   // Kolory podstawowe
   static const Color primary = Color(0xFF273486); // BandSpace Blue

@@ -2,6 +2,19 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 /// Klasa zawierająca wszystkie style tekstu używane w aplikacji BandSpace
+/// 
+/// **DEPRECATED**: Ta klasa jest przestarzała. Używaj `Theme.of(context).textTheme` 
+/// zamiast bezpośredniego odwoływania się do AppTextStyles.
+/// 
+/// Przykład migracji:
+/// ```dart
+/// // STARE (deprecated):
+/// style: AppTextStyles.titleMedium
+/// 
+/// // NOWE (zalecane):
+/// style: Theme.of(context).textTheme.titleMedium
+/// ```
+@Deprecated('Używaj Theme.of(context).textTheme zamiast AppTextStyles')
 class AppTextStyles {
   // Nagłówki
   static TextStyle get headlineLarge => const TextStyle(
