@@ -8,7 +8,7 @@ import 'package:bandspace_mobile/core/models/song.dart';
 import 'package:bandspace_mobile/core/repositories/project_repository.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/project/components/create_song_bottom_sheet.dart';
-import 'package:bandspace_mobile/project/components/project_members_sheet.dart';
+import 'package:bandspace_mobile/project/screens/project_members_screen.dart';
 import 'package:bandspace_mobile/project/components/song_list_item.dart';
 import 'package:bandspace_mobile/project/cubit/project_songs_cubit.dart';
 import 'package:bandspace_mobile/project/cubit/project_songs_state.dart';
@@ -360,13 +360,13 @@ class _ProjectScreenState extends State<ProjectScreen> {
     );
   }
 
-  /// Pokazuje arkusz z członkami projektu
+  /// Pokazuje ekran z członkami projektu
   void _showProjectMembers() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => ProjectMembersSheet(project: widget.project),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProjectMembersScreen(project: widget.project),
+      ),
     );
   }
 }

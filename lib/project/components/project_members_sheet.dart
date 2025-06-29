@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/models/project.dart';
+import 'invite_user_sheet.dart';
 import 'widgets/empty_members_state.dart';
 import 'widgets/member_list_item.dart';
 import 'widgets/sheet_handle.dart';
@@ -25,6 +27,8 @@ class ProjectMembersSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildHeader(),
+            const Gap(16),
+            _buildInviteButton(context),
             const Gap(16),
             _buildMembersList(),
             const Gap(20),
@@ -74,5 +78,44 @@ class ProjectMembersSheet extends StatelessWidget {
   /// Buduje stan pustej listy
   Widget _buildEmptyState() {
     return const EmptyMembersState();
+  }
+
+  /// Buduje przycisk zapraszania użytkowników
+  Widget _buildInviteButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: () => _showInviteUserSheet(context),
+          icon: const Icon(LucideIcons.userPlus),
+          label: const Text('Zaproś użytkownika'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Pokazuje arkusz zapraszania użytkowników
+  void _showInviteUserSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: InviteUserSheet.create(project),
+      ),
+    );
   }
 }
