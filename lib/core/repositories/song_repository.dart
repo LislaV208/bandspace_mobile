@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:bandspace_mobile/core/api/api_client.dart';
 import 'package:bandspace_mobile/core/models/song_detail.dart';
 import 'package:bandspace_mobile/core/models/song_file.dart';
@@ -96,6 +98,55 @@ class SongRepository extends BaseRepository {
       rethrow;
     } catch (e) {
       throw UnknownException('Wystąpił nieoczekiwany błąd podczas usuwania pliku: $e');
+    }
+  }
+
+  /// Przesyła plik audio do utworu.
+  ///
+  /// Uploaduje plik audio do utworu z opcjonalnymi metadanymi.
+  Future<SongFile> uploadFile({
+    required int songId,
+    required File file,
+    String? description,
+    int? duration,
+    Function(double)? onProgress,
+  }) async {
+    try {
+      // Przygotowanie FormData
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          file.path,
+          filename: file.path.split('/').last,
+        ),
+        if (description != null) 'description': description,
+        if (duration != null) 'duration': duration,
+      });
+
+      final response = await apiClient.post(
+        'api/songs/$songId/files',
+        data: formData,
+        onSendProgress: onProgress != null
+            ? (sent, total) {
+                if (total > 0) {
+                  onProgress(sent / total);
+                }
+              }
+            : null,
+      );
+
+      if (response.data == null) {
+        throw ApiException(
+          message: 'Brak danych w odpowiedzi podczas przesyłania pliku',
+          statusCode: response.statusCode,
+          data: response.data,
+        );
+      }
+
+      return SongFile.fromJson(response.data);
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw UnknownException('Wystąpił nieoczekiwany błąd podczas przesyłania pliku: $e');
     }
   }
 

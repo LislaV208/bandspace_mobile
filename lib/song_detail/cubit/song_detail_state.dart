@@ -17,6 +17,15 @@ enum FileOperationStatus {
   error,
 }
 
+/// Status uploadu pliku
+enum FileUploadStatus {
+  idle,
+  picking,
+  uploading,
+  success,
+  error,
+}
+
 /// Stan ekranu szczegółów utworu
 class SongDetailState {
   final SongDetailStatus status;
@@ -26,6 +35,9 @@ class SongDetailState {
   final FileOperationStatus fileOperationStatus;
   final String? fileOperationError;
   final bool isUpdatingSong;
+  final FileUploadStatus uploadStatus;
+  final double uploadProgress;
+  final String? uploadError;
 
   const SongDetailState({
     this.status = SongDetailStatus.initial,
@@ -35,6 +47,9 @@ class SongDetailState {
     this.fileOperationStatus = FileOperationStatus.idle,
     this.fileOperationError,
     this.isUpdatingSong = false,
+    this.uploadStatus = FileUploadStatus.idle,
+    this.uploadProgress = 0.0,
+    this.uploadError,
   });
 
   SongDetailState copyWith({
@@ -45,6 +60,9 @@ class SongDetailState {
     FileOperationStatus? fileOperationStatus,
     String? fileOperationError,
     bool? isUpdatingSong,
+    FileUploadStatus? uploadStatus,
+    double? uploadProgress,
+    String? uploadError,
   }) {
     return SongDetailState(
       status: status ?? this.status,
@@ -54,6 +72,9 @@ class SongDetailState {
       fileOperationStatus: fileOperationStatus ?? this.fileOperationStatus,
       fileOperationError: fileOperationError,
       isUpdatingSong: isUpdatingSong ?? this.isUpdatingSong,
+      uploadStatus: uploadStatus ?? this.uploadStatus,
+      uploadProgress: uploadProgress ?? this.uploadProgress,
+      uploadError: uploadError,
     );
   }
 
@@ -67,7 +88,10 @@ class SongDetailState {
         other.errorMessage == errorMessage &&
         other.fileOperationStatus == fileOperationStatus &&
         other.fileOperationError == fileOperationError &&
-        other.isUpdatingSong == isUpdatingSong;
+        other.isUpdatingSong == isUpdatingSong &&
+        other.uploadStatus == uploadStatus &&
+        other.uploadProgress == uploadProgress &&
+        other.uploadError == uploadError;
   }
 
   @override
@@ -80,6 +104,9 @@ class SongDetailState {
       fileOperationStatus,
       fileOperationError,
       isUpdatingSong,
+      uploadStatus,
+      uploadProgress,
+      uploadError,
     );
   }
 
@@ -97,4 +124,13 @@ class SongDetailState {
 
   /// Czy utwór ma pliki audio
   bool get hasAudioFiles => files.isNotEmpty;
+
+  /// Czy upload jest w trakcie
+  bool get isUploading => uploadStatus == FileUploadStatus.uploading;
+
+  /// Czy wybieranie pliku jest w trakcie
+  bool get isPicking => uploadStatus == FileUploadStatus.picking;
+
+  /// Czy wystąpił błąd uploadu
+  bool get hasUploadError => uploadStatus == FileUploadStatus.error;
 }

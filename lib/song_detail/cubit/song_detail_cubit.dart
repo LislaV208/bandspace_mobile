@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:file_picker/file_picker.dart';
 
 import 'package:bandspace_mobile/core/api/api_client.dart';
 import 'package:bandspace_mobile/core/models/song_detail.dart';
@@ -185,10 +187,112 @@ class SongDetailCubit extends Cubit<SongDetailState> {
     }
   }
 
+  /// Wybiera i przesyła plik do utworu
+  Future<void> pickAndUploadFile({
+    String? description,
+    int? duration,
+  }) async {
+    if (state.isUploading || state.isPicking) return;
+
+    emit(state.copyWith(
+      uploadStatus: FileUploadStatus.picking,
+      uploadError: null,
+    ));
+
+    try {
+      // Wybieranie pliku
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.audio,
+        allowMultiple: false,
+      );
+
+      if (result == null || result.files.isEmpty) {
+        // Użytkownik anulował wybieranie pliku
+        emit(state.copyWith(uploadStatus: FileUploadStatus.idle));
+        return;
+      }
+
+      final file = File(result.files.first.path!);
+      await uploadFile(
+        file: file,
+        description: description,
+        duration: duration,
+      );
+    } catch (e) {
+      emit(state.copyWith(
+        uploadStatus: FileUploadStatus.error,
+        uploadError: 'Błąd podczas wybierania pliku: $e',
+      ));
+    }
+  }
+
+  /// Przesyła wybrany plik do utworu
+  Future<void> uploadFile({
+    required File file,
+    String? description,
+    int? duration,
+  }) async {
+    if (state.isUploading) return;
+
+    emit(state.copyWith(
+      uploadStatus: FileUploadStatus.uploading,
+      uploadProgress: 0.0,
+      uploadError: null,
+    ));
+
+    try {
+      final uploadedFile = await songRepository.uploadFile(
+        songId: songId,
+        file: file,
+        description: description,
+        duration: duration,
+        onProgress: (progress) {
+          emit(state.copyWith(uploadProgress: progress));
+        },
+      );
+
+      // Dodaj nowy plik do listy
+      final updatedFiles = [uploadedFile, ...state.files];
+
+      emit(state.copyWith(
+        uploadStatus: FileUploadStatus.success,
+        files: updatedFiles,
+        uploadProgress: 1.0,
+      ));
+
+      // Zresetuj status po chwili
+      Future.delayed(const Duration(seconds: 2), () {
+        if (!isClosed) {
+          emit(state.copyWith(
+            uploadStatus: FileUploadStatus.idle,
+            uploadProgress: 0.0,
+          ));
+        }
+      });
+    } on ApiException catch (e) {
+      emit(state.copyWith(
+        uploadStatus: FileUploadStatus.error,
+        uploadError: 'Błąd podczas przesyłania pliku: ${e.message}',
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        uploadStatus: FileUploadStatus.error,
+        uploadError: 'Wystąpił nieoczekiwany błąd podczas przesyłania pliku: $e',
+      ));
+    }
+  }
+
   /// Czyści komunikat błędu operacji na plikach
   void clearFileOperationError() {
     if (state.fileOperationError != null) {
       emit(state.copyWith(fileOperationError: null));
+    }
+  }
+
+  /// Czyści komunikat błędu uploadu
+  void clearUploadError() {
+    if (state.uploadError != null) {
+      emit(state.copyWith(uploadError: null));
     }
   }
 

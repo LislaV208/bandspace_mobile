@@ -104,7 +104,7 @@ class AudioFileInfo {
       filename: json['filename'] ?? '',
       fileKey: json['file_key'] ?? '',
       mimeType: json['mime_type'] ?? '',
-      size: json['size'] ?? 0,
+      size: json['size'] != null ? int.tryParse(json['size']) ?? 0 : 0,
       description: json['description'],
       uploadedBy: json['uploaded_by'],
       createdAt: DateTime.parse(json['created_at']),
@@ -143,32 +143,22 @@ class AudioFileInfo {
 
   @override
   int get hashCode {
-    return Object.hash(
-      id,
-      filename,
-      fileKey,
-      mimeType,
-      size,
-      description,
-      uploadedBy,
-      createdAt,
-      updatedAt,
-    );
+    return Object.hash(id, filename, fileKey, mimeType, size, description, uploadedBy, createdAt, updatedAt);
   }
 
   /// Zwraca sformatowany rozmiar pliku
   String get formattedSize {
     if (size == 0) return '0 B';
-    
+
     const suffixes = ['B', 'KB', 'MB', 'GB'];
     var i = 0;
     double sizeInBytes = size.toDouble();
-    
+
     while (sizeInBytes >= 1024 && i < suffixes.length - 1) {
       sizeInBytes /= 1024;
       i++;
     }
-    
+
     return '${sizeInBytes.toStringAsFixed(i == 0 ? 0 : 1)} ${suffixes[i]}';
   }
 

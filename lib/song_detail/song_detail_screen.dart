@@ -8,6 +8,7 @@ import 'package:bandspace_mobile/core/models/song.dart';
 import 'package:bandspace_mobile/core/models/song_file.dart';
 import 'package:bandspace_mobile/core/repositories/song_repository.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/song_detail/components/add_file_bottom_sheet.dart';
 import 'package:bandspace_mobile/song_detail/components/audio_player_widget.dart';
 import 'package:bandspace_mobile/song_detail/components/song_file_item.dart';
 import 'package:bandspace_mobile/song_detail/components/song_info_card.dart';
@@ -68,6 +69,13 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
                 context,
               ).showSnackBar(SnackBar(content: Text(state.fileOperationError!), backgroundColor: AppColors.error));
               context.read<SongDetailCubit>().clearFileOperationError();
+            }
+
+            if (state.uploadError != null) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(state.uploadError!), backgroundColor: AppColors.error));
+              context.read<SongDetailCubit>().clearUploadError();
             }
 
             // Aktualizuj playlistę w audio playerze gdy pliki się zmienią
@@ -239,12 +247,29 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
 
   /// Buduje przycisk dodawania pliku
   Widget _buildAddFileFab() {
-    return FloatingActionButton.extended(
-      onPressed: _showAddFileDialog,
-      backgroundColor: AppColors.primary,
-      foregroundColor: AppColors.onPrimary,
-      icon: const Icon(LucideIcons.plus),
-      label: const Text('Dodaj plik'),
+    return BlocBuilder<SongDetailCubit, SongDetailState>(
+      builder: (context, state) {
+        return FloatingActionButton.extended(
+          onPressed: state.isUploading || state.isPicking ? null : _showAddFileDialog,
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.onPrimary,
+          icon:
+              state.isUploading || state.isPicking
+                  ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onPrimary),
+                  )
+                  : const Icon(LucideIcons.plus),
+          label: Text(
+            state.isUploading
+                ? 'Przesyłanie...'
+                : state.isPicking
+                ? 'Wybieranie...'
+                : 'Dodaj plik',
+          ),
+        );
+      },
     );
   }
 
@@ -299,8 +324,15 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
     // TODO: Implementacja edycji utworu
   }
 
-  /// Pokazuje dialog dodawania pliku
+  /// Pokazuje bottom sheet dodawania pliku
   void _showAddFileDialog() {
-    // TODO: Implementacja dodawania pliku
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder:
+          (context) =>
+              BlocProvider.value(value: this.context.read<SongDetailCubit>(), child: const AddFileBottomSheet()),
+    );
   }
 }
