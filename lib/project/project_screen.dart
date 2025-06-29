@@ -24,10 +24,8 @@ class ProjectScreen extends StatefulWidget {
   /// Statyczna metoda do tworzenia ekranu z odpowiednim providerem
   static Widget create(Project project) {
     return BlocProvider(
-      create: (context) => ProjectSongsCubit(
-        projectRepository: ProjectRepository(),
-        projectId: project.id,
-      )..loadSongs(),
+      create:
+          (context) => ProjectSongsCubit(projectRepository: ProjectRepository(), projectId: project.id)..loadSongs(),
       child: ProjectScreen(project: project),
     );
   }
@@ -58,24 +56,16 @@ class _ProjectScreenState extends State<ProjectScreen> {
     return BlocListener<ProjectSongsCubit, ProjectSongsState>(
       listener: (context, state) {
         if (state.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage!),
-              backgroundColor: AppColors.error,
-            ),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.errorMessage!), backgroundColor: AppColors.error));
           context.read<ProjectSongsCubit>().clearError();
         }
       },
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: _buildAppBar(),
-        body: Column(
-          children: [
-            _buildSearchBar(),
-            _buildSongsList(),
-          ],
-        ),
+        body: Column(children: [_buildSearchBar(), const SizedBox(height: 16), _buildSongsList()]),
         floatingActionButton: _buildCreateSongFab(),
       ),
     );
@@ -126,9 +116,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
       child: BlocBuilder<ProjectSongsCubit, ProjectSongsState>(
         builder: (context, state) {
           if (state.status == ProjectSongsStatus.loading) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            );
+            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
           }
 
           if (state.status == ProjectSongsStatus.error) {
@@ -148,12 +136,8 @@ class _ProjectScreenState extends State<ProjectScreen> {
             itemBuilder: (context, index) {
               final song = filteredSongs[index];
               return Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: SongListItem(
-                  song: song,
-                  onTap: () => _openSong(song),
-                  onDelete: () => _deleteSong(song),
-                ),
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: SongListItem(song: song, onTap: () => _openSong(song), onDelete: () => _deleteSong(song)),
               );
             },
           );
@@ -204,10 +188,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => context.read<ProjectSongsCubit>().loadSongs(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.onPrimary,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: AppColors.onPrimary),
             child: const Text('Spróbuj ponownie'),
           ),
         ],
@@ -223,16 +204,14 @@ class _ProjectScreenState extends State<ProjectScreen> {
           onPressed: state.isCreatingSong ? null : _showCreateSongSheet,
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.onPrimary,
-          icon: state.isCreatingSong
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: AppColors.onPrimary,
-                  ),
-                )
-              : const Icon(LucideIcons.plus),
+          icon:
+              state.isCreatingSong
+                  ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onPrimary),
+                  )
+                  : const Icon(LucideIcons.plus),
           label: const Text('Nowy utwór'),
         );
       },
@@ -324,15 +303,16 @@ class _ProjectScreenState extends State<ProjectScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => BlocProvider.value(
-        value: this.context.read<ProjectSongsCubit>(),
-        child: CreateSongBottomSheet(
-          projectId: widget.project.id,
-          onSongCreated: (songTitle) {
-            this.context.read<ProjectSongsCubit>().createSong(songTitle);
-          },
-        ),
-      ),
+      builder:
+          (context) => BlocProvider.value(
+            value: this.context.read<ProjectSongsCubit>(),
+            child: CreateSongBottomSheet(
+              projectId: widget.project.id,
+              onSongCreated: (songTitle) {
+                this.context.read<ProjectSongsCubit>().createSong(songTitle);
+              },
+            ),
+          ),
     );
   }
 
@@ -346,27 +326,28 @@ class _ProjectScreenState extends State<ProjectScreen> {
   void _deleteSong(Song song) {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: Text('Usuń utwór', style: AppTextStyles.titleMedium.copyWith(color: AppColors.textPrimary)),
-        content: Text(
-          'Czy na pewno chcesz usunąć utwór "${song.title}"? Ta operacja jest nieodwracalna.',
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text('Anuluj', style: TextStyle(color: AppColors.textSecondary)),
+      builder:
+          (dialogContext) => AlertDialog(
+            backgroundColor: AppColors.surface,
+            title: Text('Usuń utwór', style: AppTextStyles.titleMedium.copyWith(color: AppColors.textPrimary)),
+            content: Text(
+              'Czy na pewno chcesz usunąć utwór "${song.title}"? Ta operacja jest nieodwracalna.',
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text('Anuluj', style: TextStyle(color: AppColors.textSecondary)),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  context.read<ProjectSongsCubit>().deleteSong(song);
+                },
+                child: Text('Usuń', style: TextStyle(color: AppColors.error)),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              context.read<ProjectSongsCubit>().deleteSong(song);
-            },
-            child: Text('Usuń', style: TextStyle(color: AppColors.error)),
-          ),
-        ],
-      ),
     );
   }
 }

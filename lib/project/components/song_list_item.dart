@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/models/song.dart';
@@ -10,12 +11,7 @@ class SongListItem extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
 
-  const SongListItem({
-    super.key,
-    required this.song,
-    this.onTap,
-    this.onDelete,
-  });
+  const SongListItem({super.key, required this.song, this.onTap, this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -27,20 +23,15 @@ class SongListItem extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surfaceDark,
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppColors.divider,
-              width: 1,
-            ),
+            // border: Border.all(color: AppColors.divider, width: 1),
           ),
           child: Row(
             children: [
               _buildSongIcon(),
               const SizedBox(width: 12),
-              Expanded(
-                child: _buildSongInfo(),
-              ),
+              Expanded(child: _buildSongInfo()),
               const SizedBox(width: 12),
               _buildFileCount(),
               const SizedBox(width: 8),
@@ -58,14 +49,10 @@ class SongListItem extends StatelessWidget {
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
+        color: AppColors.accent.withAlpha((255 * 0.15).toInt()),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Icon(
-        song.isPrivate ? LucideIcons.lock : LucideIcons.music,
-        size: 20,
-        color: AppColors.primary,
-      ),
+      child: Icon(song.isPrivate ? LucideIcons.lock : LucideIcons.music, size: 20, color: AppColors.accent),
     );
   }
 
@@ -76,20 +63,12 @@ class SongListItem extends StatelessWidget {
       children: [
         Text(
           song.title,
-          style: AppTextStyles.bodyLarge.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w500,
-          ),
+          style: AppTextStyles.bodyLarge.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w500),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 4),
-        Text(
-          song.timeAgo,
-          style: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.textSecondary,
-          ),
-        ),
+        Text(song.timeAgo, style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
       ],
     );
   }
@@ -98,16 +77,10 @@ class SongListItem extends StatelessWidget {
   Widget _buildFileCount() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
       child: Text(
         '${song.fileCount}',
-        style: AppTextStyles.bodySmall.copyWith(
-          color: AppColors.textSecondary,
-          fontWeight: FontWeight.w500,
-        ),
+        style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w500),
       ),
     );
   }
@@ -119,15 +92,8 @@ class SongListItem extends StatelessWidget {
       child: Container(
         width: 32,
         height: 32,
-        decoration: BoxDecoration(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Icon(
-          LucideIcons.ellipsisVertical,
-          size: 16,
-          color: AppColors.textSecondary,
-        ),
+        decoration: BoxDecoration(color: Colors.transparent, borderRadius: BorderRadius.circular(8)),
+        child: const Icon(LucideIcons.ellipsisVertical, size: 16, color: AppColors.textSecondary),
       ),
     );
   }
@@ -137,9 +103,7 @@ class SongListItem extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (context) => _buildSongOptionsSheet(context),
     );
   }
@@ -154,10 +118,7 @@ class SongListItem extends StatelessWidget {
           Container(
             width: 40,
             height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.textSecondary,
-              borderRadius: BorderRadius.circular(2),
-            ),
+            decoration: BoxDecoration(color: AppColors.textSecondary, borderRadius: BorderRadius.circular(2)),
           ),
           const SizedBox(height: 20),
           Padding(
@@ -172,18 +133,14 @@ class SongListItem extends StatelessWidget {
                     children: [
                       Text(
                         song.title,
-                        style: AppTextStyles.titleMedium.copyWith(
-                          color: AppColors.textPrimary,
-                        ),
+                        style: AppTextStyles.titleMedium.copyWith(color: AppColors.textPrimary),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '${song.fileCount} ${_getFileText(song.fileCount)} • ${song.timeAgo}',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
                       ),
                     ],
                   ),
@@ -254,15 +211,10 @@ class SongListItem extends StatelessWidget {
     bool isDestructive = false,
   }) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: isDestructive ? AppColors.error : AppColors.textPrimary,
-      ),
+      leading: Icon(icon, color: isDestructive ? AppColors.error : AppColors.textPrimary),
       title: Text(
         title,
-        style: AppTextStyles.bodyLarge.copyWith(
-          color: isDestructive ? AppColors.error : AppColors.textPrimary,
-        ),
+        style: AppTextStyles.bodyLarge.copyWith(color: isDestructive ? AppColors.error : AppColors.textPrimary),
       ),
       onTap: onTap,
     );
