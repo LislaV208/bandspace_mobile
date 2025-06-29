@@ -39,19 +39,9 @@ class AudioPlayerWidget extends StatelessWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withAlpha(51),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Column(
         children: [
@@ -218,13 +208,6 @@ class AudioPlayerWidget extends StatelessWidget {
           icon: const Icon(LucideIcons.skipForward),
           color: AppColors.textSecondary,
           iconSize: 24,
-        ),
-        const Gap(24),
-        IconButton(
-          onPressed: onStop,
-          icon: const Icon(LucideIcons.square),
-          color: AppColors.textSecondary,
-          iconSize: 20,
         ),
       ],
     );

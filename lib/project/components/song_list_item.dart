@@ -33,8 +33,8 @@ class SongListItem extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(child: _buildSongInfo()),
               const SizedBox(width: 12),
-              _buildFileCount(),
-              const SizedBox(width: 8),
+              // _buildFileCount(),
+              // const SizedBox(width: 8),
               _buildOptionsButton(context),
             ],
           ),
@@ -74,16 +74,16 @@ class SongListItem extends StatelessWidget {
   }
 
   /// Buduje badge z liczbą plików
-  Widget _buildFileCount() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
-      child: Text(
-        '${song.fileCount}',
-        style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w500),
-      ),
-    );
-  }
+  // Widget _buildFileCount() {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+  //     decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
+  //     child: Text(
+  //       '${song.fileCount}',
+  //       style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+  //     ),
+  //   );
+  // }
 
   /// Buduje przycisk opcji
   Widget _buildOptionsButton(BuildContext context) {

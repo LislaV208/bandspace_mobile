@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -33,29 +34,17 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
         if (state.uploadStatus == FileUploadStatus.success) {
           // Zresetuj stan uploadu
           context.read<SongDetailCubit>().resetUploadStatus();
-          
+
           // Zamknij modal jeśli widget jest nadal mounted
           if (Navigator.canPop(context)) {
             Navigator.pop(context);
           }
-          
-          // Pokaż komunikat sukcesu
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Plik został pomyślnie dodany'),
-              backgroundColor: AppColors.success,
-              duration: Duration(seconds: 2),
-            ),
-          );
         }
 
         if (state.uploadError != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.uploadError!),
-              backgroundColor: AppColors.error,
-            ),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.uploadError!), backgroundColor: AppColors.error));
           context.read<SongDetailCubit>().clearUploadError();
         }
       },
@@ -78,10 +67,7 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
                 children: [
                   _buildHeader(),
                   const Gap(24),
-                  if (state.isPicking || state.isUploading)
-                    _buildUploadProgress(state)
-                  else
-                    _buildForm(),
+                  if (state.isPicking || state.isUploading) _buildUploadProgress(state) else _buildForm(),
                 ],
               ),
             ),
@@ -98,26 +84,14 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
         Container(
           width: 40,
           height: 4,
-          decoration: BoxDecoration(
-            color: AppColors.textSecondary,
-            borderRadius: BorderRadius.circular(2),
-          ),
+          decoration: BoxDecoration(color: AppColors.textSecondary, borderRadius: BorderRadius.circular(2)),
         ),
         const Gap(16),
         Row(
           children: [
-            Icon(
-              LucideIcons.upload,
-              color: AppColors.textPrimary,
-              size: 24,
-            ),
+            Icon(LucideIcons.upload, color: AppColors.textPrimary, size: 24),
             const Gap(12),
-            Text(
-              'Dodaj plik audio',
-              style: AppTextStyles.titleLarge.copyWith(
-                color: AppColors.textPrimary,
-              ),
-            ),
+            Text('Dodaj plik audio', style: AppTextStyles.titleLarge.copyWith(color: AppColors.textPrimary)),
           ],
         ),
       ],
@@ -131,9 +105,7 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
       children: [
         Text(
           'Wybierz plik audio z urządzenia i opcjonalnie dodaj dodatkowe informacje.',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
-          ),
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
         ),
         const Gap(24),
         _buildDescriptionField(),
@@ -152,10 +124,7 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
       children: [
         Text(
           'Opis pliku (opcjonalnie)',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w500,
-          ),
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w500),
         ),
         const Gap(8),
         TextField(
@@ -163,19 +132,11 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
           style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
           decoration: InputDecoration(
             hintText: 'np. Demo nagranie, Wersja finalna...',
-            hintStyle: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-            ),
+            hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
             filled: true,
             fillColor: AppColors.surfaceDark,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 12,
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           ),
           maxLines: 2,
         ),
@@ -190,10 +151,7 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
       children: [
         Text(
           'Czas trwania w sekundach (opcjonalnie)',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w500,
-          ),
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w500),
         ),
         const Gap(8),
         TextField(
@@ -202,19 +160,11 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
             hintText: 'np. 180 (3 minuty)',
-            hintStyle: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-            ),
+            hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
             filled: true,
             fillColor: AppColors.surfaceDark,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 12,
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           ),
         ),
       ],
@@ -233,16 +183,9 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
             },
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: Text(
-              'Anuluj',
-              style: AppTextStyles.bodyLarge.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
+            child: Text('Anuluj', style: AppTextStyles.bodyLarge.copyWith(color: AppColors.textSecondary)),
           ),
         ),
         const Gap(16),
@@ -253,21 +196,14 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
               backgroundColor: AppColors.primary,
               foregroundColor: AppColors.onPrimary,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(LucideIcons.upload, size: 18),
                 const Gap(8),
-                Text(
-                  'Wybierz plik',
-                  style: AppTextStyles.bodyLarge.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                Text('Wybierz plik', style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.w500)),
               ],
             ),
           ),
@@ -283,12 +219,7 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
         if (state.isPicking) ...[
           const CircularProgressIndicator(color: AppColors.primary),
           const Gap(16),
-          Text(
-            'Wybieranie pliku...',
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.textPrimary,
-            ),
-          ),
+          Text('Wybieranie pliku...', style: AppTextStyles.bodyLarge.copyWith(color: AppColors.textPrimary)),
         ] else if (state.isUploading) ...[
           Stack(
             alignment: Alignment.center,
@@ -305,20 +236,12 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
               ),
               Text(
                 '${(state.uploadProgress * 100).round()}%',
-                style: AppTextStyles.titleMedium.copyWith(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppTextStyles.titleMedium.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const Gap(16),
-          Text(
-            'Przesyłanie pliku...',
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.textPrimary,
-            ),
-          ),
+          Text('Przesyłanie pliku...', style: AppTextStyles.bodyLarge.copyWith(color: AppColors.textPrimary)),
           const Gap(8),
           LinearProgressIndicator(
             value: state.uploadProgress,
@@ -332,12 +255,7 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
             context.read<SongDetailCubit>().resetUploadStatus();
             Navigator.pop(context);
           },
-          child: Text(
-            'Anuluj',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
+          child: Text('Anuluj', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
         ),
       ],
     );
@@ -347,7 +265,7 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
   void _handleUpload() {
     final description = _descriptionController.text.trim();
     final durationText = _durationController.text.trim();
-    
+
     int? duration;
     if (durationText.isNotEmpty) {
       duration = int.tryParse(durationText);
@@ -363,8 +281,8 @@ class _AddFileBottomSheetState extends State<AddFileBottomSheet> {
     }
 
     context.read<SongDetailCubit>().pickAndUploadFile(
-          description: description.isEmpty ? null : description,
-          duration: duration,
-        );
+      description: description.isEmpty ? null : description,
+      duration: duration,
+    );
   }
 }

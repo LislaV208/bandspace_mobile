@@ -64,8 +64,8 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     ));
   }
 
-  /// Odtwarza wybrany plik
-  Future<void> playFile(SongFile file) async {
+  /// Wybiera plik bez odtwarzania
+  void selectFile(SongFile file) {
     final fileIndex = state.playlist.indexWhere((f) => f.id == file.id);
     if (fileIndex == -1) {
       // Plik nie jest w playliście, dodaj go
@@ -81,7 +81,11 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
         currentFile: file,
       ));
     }
+  }
 
+  /// Odtwarza wybrany plik
+  Future<void> playFile(SongFile file) async {
+    selectFile(file);
     await _loadAndPlayCurrentFile();
   }
 

@@ -13,6 +13,7 @@ class SongFileItem extends StatelessWidget {
   final VoidCallback? onDelete;
   final bool isPlaying;
   final bool isLoading;
+  final bool isSelected;
 
   const SongFileItem({
     super.key,
@@ -22,6 +23,7 @@ class SongFileItem extends StatelessWidget {
     this.onDelete,
     this.isPlaying = false,
     this.isLoading = false,
+    this.isSelected = false,
   });
 
   @override
@@ -32,8 +34,8 @@ class SongFileItem extends StatelessWidget {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isPlaying ? AppColors.primary : AppColors.border,
-          width: isPlaying ? 2 : 1,
+          color: isSelected ? AppColors.primary : AppColors.border,
+          width: isSelected ? 2 : 1,
         ),
       ),
       child: Material(
@@ -57,29 +59,20 @@ class SongFileItem extends StatelessWidget {
     );
   }
 
-  /// Buduje przycisk play/pause
+  /// Buduje ikonę muzyki
   Widget _buildPlayButton() {
     return Container(
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: isPlaying ? AppColors.primary : AppColors.surfaceMedium,
+        color: AppColors.surfaceMedium,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: isLoading
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: AppColors.textPrimary,
-              ),
-            )
-          : Icon(
-              isPlaying ? LucideIcons.pause : LucideIcons.play,
-              color: isPlaying ? AppColors.onPrimary : AppColors.textPrimary,
-              size: 20,
-            ),
+      child: const Icon(
+        LucideIcons.music,
+        color: AppColors.textPrimary,
+        size: 20,
+      ),
     );
   }
 

@@ -11,7 +11,6 @@ import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/song_detail/components/add_file_bottom_sheet.dart';
 import 'package:bandspace_mobile/song_detail/components/audio_player_widget.dart';
 import 'package:bandspace_mobile/song_detail/components/song_file_item.dart';
-import 'package:bandspace_mobile/song_detail/components/song_info_card.dart';
 import 'package:bandspace_mobile/song_detail/cubit/audio_player_cubit.dart';
 import 'package:bandspace_mobile/song_detail/cubit/audio_player_state.dart';
 import 'package:bandspace_mobile/song_detail/cubit/song_detail_cubit.dart';
@@ -81,6 +80,11 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
             // Aktualizuj playlistę w audio playerze gdy pliki się zmienią
             if (state.hasAudioFiles) {
               context.read<AudioPlayerCubit>().setPlaylist(state.files);
+              // Auto-wybierz pierwszy plik (bez odtwarzania)
+              final playerState = context.read<AudioPlayerCubit>().state;
+              if (playerState.currentFile == null && state.files.isNotEmpty) {
+                context.read<AudioPlayerCubit>().selectFile(state.files.first);
+              }
             }
           },
         ),
@@ -112,42 +116,44 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
               return const SizedBox.shrink();
             }
 
+            if (!state.hasAudioFiles) {
+              return _buildEmptyFilesState();
+            }
+
             return Column(
               children: [
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        SongInfoCard(songDetail: state.songDetail!, onEdit: () => _showEditDialog(state.songDetail!)),
-                        if (state.hasAudioFiles) ...[
-                          BlocBuilder<AudioPlayerCubit, AudioPlayerState>(
-                            builder: (context, playerState) {
-                              return AudioPlayerWidget(
-                                currentFile: playerState.currentFile,
-                                isPlaying: playerState.isPlaying,
-                                isLoading: playerState.isLoading,
-                                currentPosition: playerState.currentPosition,
-                                totalDuration: playerState.totalDuration,
-                                onPlayPause: () => context.read<AudioPlayerCubit>().playPause(),
-                                onStop: () => context.read<AudioPlayerCubit>().stop(),
-                                onNext: () => context.read<AudioPlayerCubit>().next(),
-                                onPrevious: () => context.read<AudioPlayerCubit>().previous(),
-                                onSeek: (position) => context.read<AudioPlayerCubit>().seek(position),
-                              );
-                            },
-                          ),
-                          _buildFilesList(state.files),
-                        ] else
-                          _buildEmptyFilesState(),
+                        _buildFilesList(state.files),
+                        // Add bottom padding for player
+                        const Gap(16),
                       ],
                     ),
                   ),
+                ),
+                // Audio player at the bottom
+                BlocBuilder<AudioPlayerCubit, AudioPlayerState>(
+                  builder: (context, playerState) {
+                    return AudioPlayerWidget(
+                      currentFile: playerState.currentFile,
+                      isPlaying: playerState.isPlaying,
+                      isLoading: playerState.isLoading,
+                      currentPosition: playerState.currentPosition,
+                      totalDuration: playerState.totalDuration,
+                      onPlayPause: () => context.read<AudioPlayerCubit>().playPause(),
+                      onStop: () => context.read<AudioPlayerCubit>().stop(),
+                      onNext: () => context.read<AudioPlayerCubit>().next(),
+                      onPrevious: () => context.read<AudioPlayerCubit>().previous(),
+                      onSeek: (position) => context.read<AudioPlayerCubit>().seek(position),
+                    );
+                  },
                 ),
               ],
             );
           },
         ),
-        floatingActionButton: _buildAddFileFab(),
       ),
     );
   }
@@ -201,6 +207,48 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
                 'Pliki audio (${files.length})',
                 style: AppTextStyles.titleMedium.copyWith(color: AppColors.textPrimary),
               ),
+              const Spacer(),
+              BlocBuilder<SongDetailCubit, SongDetailState>(
+                builder: (context, state) {
+                  return Container(
+                    decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(20)),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: state.isUploading || state.isPicking ? null : _showAddFileDialog,
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              state.isUploading || state.isPicking
+                                  ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onPrimary),
+                                  )
+                                  : const Icon(LucideIcons.plus, size: 16, color: AppColors.onPrimary),
+                              const Gap(6),
+                              Text(
+                                state.isUploading
+                                    ? 'Dodawanie...'
+                                    : state.isPicking
+                                    ? 'Wybieranie...'
+                                    : 'Dodaj',
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: AppColors.onPrimary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
             ],
           ),
           const Gap(16),
@@ -209,9 +257,8 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
               builder: (context, playerState) {
                 return SongFileItem(
                   songFile: file,
-                  isPlaying: playerState.currentFile?.id == file.id && playerState.isPlaying,
-                  isLoading: playerState.currentFile?.id == file.id && playerState.isLoading && !playerState.isPlaying,
-                  onPlay: () => context.read<AudioPlayerCubit>().playFile(file),
+                  isSelected: playerState.currentFile?.id == file.id,
+                  onPlay: () => context.read<AudioPlayerCubit>().selectFile(file),
                   onDownload: () => _downloadFile(file),
                   onDelete: () => _deleteFile(file),
                 );
@@ -229,6 +276,7 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
       padding: const EdgeInsets.all(32),
       child: Center(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(LucideIcons.fileAudio, size: 64, color: AppColors.textSecondary),
             const Gap(16),
@@ -239,37 +287,37 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
               style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
+            const Gap(24),
+            BlocBuilder<SongDetailCubit, SongDetailState>(
+              builder: (context, state) {
+                return ElevatedButton.icon(
+                  onPressed: state.isUploading || state.isPicking ? null : _showAddFileDialog,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.onPrimary,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                  icon:
+                      state.isUploading || state.isPicking
+                          ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onPrimary),
+                          )
+                          : const Icon(LucideIcons.plus),
+                  label: Text(
+                    state.isUploading
+                        ? 'Przesyłanie...'
+                        : state.isPicking
+                        ? 'Wybieranie...'
+                        : 'Dodaj plik',
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
-    );
-  }
-
-  /// Buduje przycisk dodawania pliku
-  Widget _buildAddFileFab() {
-    return BlocBuilder<SongDetailCubit, SongDetailState>(
-      builder: (context, state) {
-        return FloatingActionButton.extended(
-          onPressed: state.isUploading || state.isPicking ? null : _showAddFileDialog,
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.onPrimary,
-          icon:
-              state.isUploading || state.isPicking
-                  ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onPrimary),
-                  )
-                  : const Icon(LucideIcons.plus),
-          label: Text(
-            state.isUploading
-                ? 'Przesyłanie...'
-                : state.isPicking
-                ? 'Wybieranie...'
-                : 'Dodaj plik',
-          ),
-        );
-      },
     );
   }
 
@@ -317,11 +365,6 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
   /// Pokazuje opcje utworu
   void _showSongOptions() {
     // TODO: Implementacja opcji utworu
-  }
-
-  /// Pokazuje dialog edycji utworu
-  void _showEditDialog(songDetail) {
-    // TODO: Implementacja edycji utworu
   }
 
   /// Pokazuje bottom sheet dodawania pliku
