@@ -137,12 +137,7 @@ class DashboardScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
-            _buildInvitationsSection(context),
-            _buildProjectsSection(context),
-            const SizedBox(height: 16),
-          ],
+          children: [const SizedBox(height: 16), _buildProjectsSection(context), const SizedBox(height: 16)],
         ),
       ),
     );
@@ -158,21 +153,10 @@ class DashboardScreen extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const Icon(LucideIcons.mail, color: Colors.orange, size: 20),
-                const SizedBox(width: 8),
-                Text('Zaproszenia (${state.invitations.length})', style: AppTextStyles.headlineLarge),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text('Otrzymałeś zaproszenia do projektów', style: AppTextStyles.bodyMedium),
-            const SizedBox(height: 16),
             ...state.invitations.map(
               (invitation) =>
                   InvitationItem(invitation: invitation, onTap: () => _showInvitationDetails(context, invitation)),
             ),
-            const SizedBox(height: 24),
           ],
         );
       },
@@ -188,13 +172,14 @@ class DashboardScreen extends StatelessWidget {
         const SizedBox(height: 16),
         _buildNewProjectButton(context),
         const SizedBox(height: 16),
+        _buildInvitationsSection(context),
+        const SizedBox(height: 16),
         _buildProjectsList(context),
       ],
     );
   }
 
   Widget _buildProjectsList(BuildContext context) {
-    print('_buildProjectsList');
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (context, state) {
         return Column(
