@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 
@@ -12,9 +13,7 @@ class ResetPasswordScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ResetPasswordCubit(
-        authRepository: context.read<AuthRepository>(),
-      ),
+      create: (context) => ResetPasswordCubit(authRepository: context.read<AuthRepository>()),
       child: const _ResetPasswordContent(),
     );
   }
@@ -26,13 +25,7 @@ class _ResetPasswordContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: const Text('Resetowanie hasła'),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-      ),
+      appBar: AppBar(title: const Text('Resetowanie hasła'), elevation: 0, surfaceTintColor: Colors.transparent),
       body: BlocBuilder<ResetPasswordCubit, ResetPasswordState>(
         builder: (context, state) {
           return SingleChildScrollView(
@@ -43,12 +36,9 @@ class _ResetPasswordContent extends StatelessWidget {
                 // Progress indicator
                 _buildProgressIndicator(context, state.step),
                 const Gap(32),
-                
+
                 // Content based on current step
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: _buildStepContent(context, state),
-                ),
+                AnimatedSwitcher(duration: const Duration(milliseconds: 300), child: _buildStepContent(context, state)),
               ],
             ),
           );
@@ -70,9 +60,10 @@ class _ResetPasswordContent extends StatelessWidget {
         Expanded(
           child: Container(
             height: 2,
-            color: step.index > ResetPasswordStep.enterEmail.index
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.outline,
+            color:
+                step.index > ResetPasswordStep.enterEmail.index
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.outline,
           ),
         ),
         _buildProgressStep(
@@ -93,9 +84,10 @@ class _ResetPasswordContent extends StatelessWidget {
     required bool isActive,
     required bool isCompleted,
   }) {
-    final color = isCompleted || isActive
-        ? Theme.of(context).colorScheme.primary
-        : Theme.of(context).colorScheme.outline;
+    final color =
+        isCompleted || isActive
+            ? Theme.of(context).colorScheme.onSecondaryContainer
+            : Theme.of(context).colorScheme.outline;
 
     return Column(
       children: [
@@ -104,36 +96,29 @@ class _ResetPasswordContent extends StatelessWidget {
           height: 32,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isCompleted || isActive
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.surface,
+            color:
+                isCompleted || isActive ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surface,
             border: Border.all(color: color, width: 2),
           ),
           child: Center(
-            child: isCompleted
-                ? Icon(
-                    Icons.check,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  )
-                : Text(
-                    stepNumber.toString(),
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: isActive
-                          ? Theme.of(context).colorScheme.onPrimary
-                          : color,
-                      fontWeight: FontWeight.bold,
+            child:
+                isCompleted
+                    ? Icon(Icons.check, size: 16, color: Theme.of(context).colorScheme.onPrimary)
+                    : Text(
+                      stepNumber.toString(),
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: isActive ? Theme.of(context).colorScheme.onPrimary : color,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
           ),
         ),
         const Gap(8),
         Text(
           title,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: color,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: color, fontWeight: isActive ? FontWeight.w600 : FontWeight.normal),
         ),
       ],
     );
@@ -159,16 +144,14 @@ class _ResetPasswordContent extends StatelessWidget {
       children: [
         Text(
           'Wprowadź adres email',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
         const Gap(8),
         Text(
           'Wyślemy Ci link do resetowania hasła na podany adres email.',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
         const Gap(32),
 
@@ -183,18 +166,12 @@ class _ResetPasswordContent extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.error_outline,
-                  color: Theme.of(context).colorScheme.error,
-                  size: 20,
-                ),
+                Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error, size: 20),
                 const Gap(12),
                 Expanded(
                   child: Text(
                     state.errorMessage!,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.error),
                   ),
                 ),
               ],
@@ -205,12 +182,7 @@ class _ResetPasswordContent extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Adres email',
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            Text('Adres email', style: Theme.of(context).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600)),
             const Gap(8),
             TextFormField(
               controller: cubit.emailController,
@@ -218,13 +190,8 @@ class _ResetPasswordContent extends StatelessWidget {
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
                 hintText: 'nazwa@przykład.pl',
-                prefixIcon: Icon(
-                  Icons.email_outlined,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                prefixIcon: Icon(Icons.email_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
               ),
@@ -236,25 +203,14 @@ class _ResetPasswordContent extends StatelessWidget {
         // Send Button
         FilledButton(
           onPressed: state.isLoading ? null : cubit.requestPasswordReset,
-          style: FilledButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-          child: state.isLoading
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
+          style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+          child:
+              state.isLoading
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [Icon(Icons.send, size: 20), Gap(8), Text('Wyślij link')],
                   ),
-                )
-              : const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.send, size: 20),
-                    Gap(8),
-                    Text('Wyślij link'),
-                  ],
-                ),
         ),
       ],
     );
@@ -269,16 +225,11 @@ class _ResetPasswordContent extends StatelessWidget {
       children: [
         Row(
           children: [
-            IconButton(
-              onPressed: cubit.goBack,
-              icon: const Icon(Icons.arrow_back),
-            ),
+            IconButton(onPressed: cubit.goBack, icon: const Icon(Icons.arrow_back)),
             Expanded(
               child: Text(
                 'Nowe hasło',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -296,18 +247,14 @@ class _ResetPasswordContent extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.check_circle_outline,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 20,
-                ),
+                Icon(Icons.check_circle_outline, color: Theme.of(context).colorScheme.primary, size: 20),
                 const Gap(12),
                 Expanded(
                   child: Text(
                     state.successMessage!,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
                   ),
                 ),
               ],
@@ -316,9 +263,9 @@ class _ResetPasswordContent extends StatelessWidget {
 
         Text(
           'Wprowadź token resetowania oraz nowe hasło.',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
         const Gap(24),
 
@@ -333,18 +280,12 @@ class _ResetPasswordContent extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.error_outline,
-                  color: Theme.of(context).colorScheme.error,
-                  size: 20,
-                ),
+                Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error, size: 20),
                 const Gap(12),
                 Expanded(
                   child: Text(
                     state.errorMessage!,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.error),
                   ),
                 ),
               ],
@@ -357,9 +298,7 @@ class _ResetPasswordContent extends StatelessWidget {
           children: [
             Text(
               'Token resetowania',
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const Gap(8),
             TextFormField(
@@ -367,13 +306,8 @@ class _ResetPasswordContent extends StatelessWidget {
               focusNode: cubit.tokenFocus,
               decoration: InputDecoration(
                 hintText: 'Wprowadź token z emaila',
-                prefixIcon: Icon(
-                  Icons.key_outlined,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                prefixIcon: Icon(Icons.key_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
               ),
@@ -409,25 +343,14 @@ class _ResetPasswordContent extends StatelessWidget {
         // Reset Password Button
         FilledButton(
           onPressed: state.isLoading ? null : cubit.resetPassword,
-          style: FilledButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-          child: state.isLoading
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
+          style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+          child:
+              state.isLoading
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [Icon(Icons.lock_reset, size: 20), Gap(8), Text('Resetuj hasło')],
                   ),
-                )
-              : const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.lock_reset, size: 20),
-                    Gap(8),
-                    Text('Resetuj hasło'),
-                  ],
-                ),
         ),
       ],
     );
@@ -449,15 +372,8 @@ class _ResetPasswordContent extends StatelessWidget {
               Container(
                 width: 64,
                 height: 64,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.check,
-                  size: 32,
-                  color: Theme.of(context).colorScheme.onPrimary,
-                ),
+                decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, shape: BoxShape.circle),
+                child: Icon(Icons.check, size: 32, color: Theme.of(context).colorScheme.onPrimary),
               ),
               const Gap(16),
               Text(
@@ -472,28 +388,20 @@ class _ResetPasswordContent extends StatelessWidget {
               if (state.successMessage != null)
                 Text(
                   state.successMessage!,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
                   textAlign: TextAlign.center,
                 ),
             ],
           ),
         ),
         const Gap(32),
-        
+
         FilledButton(
           onPressed: () => Navigator.of(context).pop(),
-          style: FilledButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
+          style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.login, size: 20),
-              Gap(8),
-              Text('Przejdź do logowania'),
-            ],
+            children: [Icon(Icons.login, size: 20), Gap(8), Text('Przejdź do logowania')],
           ),
         ),
       ],
@@ -512,12 +420,7 @@ class _ResetPasswordContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          labelText,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        Text(labelText, style: Theme.of(context).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600)),
         const Gap(8),
         TextFormField(
           controller: controller,
@@ -525,10 +428,7 @@ class _ResetPasswordContent extends StatelessWidget {
           obscureText: obscureText,
           decoration: InputDecoration(
             hintText: hintText,
-            prefixIcon: Icon(
-              Icons.lock_outline,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+            prefixIcon: Icon(Icons.lock_outline, color: Theme.of(context).colorScheme.onSurfaceVariant),
             suffixIcon: IconButton(
               icon: Icon(
                 obscureText ? Icons.visibility : Icons.visibility_off,
@@ -536,9 +436,7 @@ class _ResetPasswordContent extends StatelessWidget {
               ),
               onPressed: onToggleVisibility,
             ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             filled: true,
             fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
           ),

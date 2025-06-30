@@ -28,11 +28,7 @@ class _AuthScreenContent extends StatelessWidget {
   const _AuthScreenContent();
 
   void _openResetPasswordModal(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const ResetPasswordScreen(),
-      ),
-    );
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ResetPasswordScreen()));
   }
 
   @override
@@ -52,12 +48,12 @@ class _AuthScreenContent extends StatelessWidget {
         final isLoginView = state.view == AuthView.login;
 
         return Scaffold(
-          backgroundColor: AppColors.background,
+          // backgroundColor: Theme.of(context).colorScheme.surface,
           body: Column(
             children: [
               // Mobile Header (equivalent to Svelte's md:hidden block)
               Container(
-                color: AppColors.primary,
+                color: Theme.of(context).colorScheme.primary,
                 padding: EdgeInsets.only(
                   top: MediaQuery.of(context).padding.top + 16.0, // Status bar
                   bottom: 16.0,
@@ -66,9 +62,14 @@ class _AuthScreenContent extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    const Icon(LucideIcons.music, color: Colors.white, size: 28),
+                    Icon(LucideIcons.music, color: Theme.of(context).colorScheme.onPrimary, size: 28),
                     const SizedBox(width: 8),
-                    Text("BandSpace", style: AppTextStyles.headlineSmall),
+                    Text(
+                      "BandSpace",
+                      style: Theme.of(
+                        context,
+                      ).textTheme.headlineSmall?.copyWith(color: Theme.of(context).colorScheme.onPrimary),
+                    ),
                   ],
                 ),
               ),
@@ -106,14 +107,14 @@ class _AuthScreenContent extends StatelessWidget {
                             children: [
                               Text(
                                 isLoginView ? "Witaj z powrotem!" : "Dołącz do BandSpace",
-                                style: AppTextStyles.headlineMedium,
+                                style: Theme.of(context).textTheme.headlineMedium,
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 isLoginView
                                     ? "Zaloguj się, aby kontynuować pracę nad swoimi projektami."
                                     : "Utwórz konto, aby rozpocząć współpracę muzyczną.",
-                                style: AppTextStyles.bodyMedium,
+                                style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
                           ),
@@ -126,11 +127,17 @@ class _AuthScreenContent extends StatelessWidget {
                             padding: const EdgeInsets.all(12),
                             margin: const EdgeInsets.only(bottom: 20),
                             decoration: BoxDecoration(
-                              color: AppColors.errorBackground,
-                              border: Border.all(color: AppColors.errorBorder),
+                              color: Theme.of(context).colorScheme.errorContainer,
+                              border: Border.all(color: Theme.of(context).colorScheme.error),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Text(state.errorMessage!, style: AppTextStyles.error, textAlign: TextAlign.center),
+                            child: Text(
+                              state.errorMessage!,
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onErrorContainer),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
 
                         // Email Field
@@ -138,7 +145,7 @@ class _AuthScreenContent extends StatelessWidget {
                           controller: authCubit.emailController,
                           focusNode: authCubit.emailFocus,
                           hintText: "Wprowadź swój email",
-                          prefixIcon: const Icon(Icons.mail_outline, color: AppColors.iconSecondary),
+                          prefixIcon: Icon(Icons.mail_outline, color: Theme.of(context).colorScheme.onSurfaceVariant),
                           keyboardType: TextInputType.emailAddress,
                         ),
                         const SizedBox(height: 16),
@@ -148,12 +155,12 @@ class _AuthScreenContent extends StatelessWidget {
                           controller: authCubit.passwordController,
                           focusNode: authCubit.passwordFocus,
                           hintText: "Wprowadź swoje hasło",
-                          prefixIcon: const Icon(Icons.lock_outline, color: AppColors.iconSecondary),
+                          prefixIcon: Icon(Icons.lock_outline, color: Theme.of(context).colorScheme.onSurfaceVariant),
                           obscureText: !state.showPassword,
                           suffixIcon: IconButton(
                             icon: Icon(
                               state.showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                              color: AppColors.iconSecondary,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                             onPressed: () => authCubit.togglePasswordVisibility(),
                           ),
@@ -166,7 +173,12 @@ class _AuthScreenContent extends StatelessWidget {
                             alignment: Alignment.centerRight,
                             child: TextButton(
                               onPressed: () => _openResetPasswordModal(context),
-                              child: Text("Zapomniałeś hasła?", style: AppTextStyles.link),
+                              child: Text(
+                                "Zapomniałeś hasła?",
+                                // style: Theme.of(
+                                //   context,
+                                // ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
+                              ),
                             ),
                           ),
                         if (isLoginView) const SizedBox(height: 8),
@@ -190,7 +202,10 @@ class _AuthScreenContent extends StatelessWidget {
                                   controller: authCubit.confirmPasswordController,
                                   focusNode: authCubit.confirmPasswordFocus,
                                   hintText: "Potwierdź hasło",
-                                  prefixIcon: const Icon(Icons.lock_outline, color: AppColors.iconSecondary),
+                                  prefixIcon: Icon(
+                                    Icons.lock_outline,
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
                                   obscureText: !state.showConfirmPassword,
                                   enabled: !isLoginView,
                                   suffixIcon: IconButton(
@@ -198,7 +213,7 @@ class _AuthScreenContent extends StatelessWidget {
                                       state.showConfirmPassword
                                           ? Icons.visibility_off_outlined
                                           : Icons.visibility_outlined,
-                                      color: AppColors.iconSecondary,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
                                     onPressed: () => authCubit.toggleConfirmPasswordVisibility(),
                                   ),
@@ -213,10 +228,11 @@ class _AuthScreenContent extends StatelessWidget {
                         // Submit Button
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2563EB), // bg-blue-600
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            disabledBackgroundColor: const Color(0xFF2563EB).withAlpha(128), // 0.5 * 255 = 127.5 ≈ 128
+                            disabledBackgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
                           ),
                           onPressed: state.isLoading ? null : (isLoginView ? authCubit.login : authCubit.register),
                           child:

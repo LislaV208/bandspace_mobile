@@ -5,6 +5,8 @@ import 'package:bandspace_mobile/core/models/change_password_request.dart';
 import 'package:bandspace_mobile/core/models/forgot_password_request.dart';
 import 'package:bandspace_mobile/core/repositories/base_repository.dart';
 import 'package:bandspace_mobile/core/services/storage_service.dart';
+import 'package:bandspace_mobile/core/services/google_sign_in_service.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 /// Repozytorium odpowiedzialne za operacje związane z autoryzacją.
 ///
@@ -12,10 +14,12 @@ import 'package:bandspace_mobile/core/services/storage_service.dart';
 /// związane z autoryzacją użytkownika.
 class AuthRepository extends BaseRepository {
   final StorageService _storageService;
+  final GoogleSignInService _googleSignInService;
 
   /// Konstruktor przyjmujący opcjonalną instancję ApiClient i StorageService
-  AuthRepository({super.apiClient, StorageService? storageService})
-    : _storageService = storageService ?? StorageService();
+  AuthRepository({super.apiClient, StorageService? storageService, GoogleSignInService? googleSignInService})
+    : _storageService = storageService ?? StorageService(),
+      _googleSignInService = googleSignInService ?? GoogleSignInService();
 
   /// Loguje użytkownika przy użyciu emaila i hasła.
   ///
@@ -36,6 +40,64 @@ class AuthRepository extends BaseRepository {
       return session;
     } catch (e) {
       throw UnknownException('Wystąpił nieoczekiwany błąd podczas logowania: $e');
+    }
+  }
+
+  /// Loguje użytkownika za pomocą Google Sign-In.
+  ///
+  /// Wykorzystuje Google OAuth do autoryzacji i wymienia token Google na JWT token aplikacji.
+  /// Zwraca sesję użytkownika w przypadku powodzenia.
+  /// W przypadku niepowodzenia rzuca wyjątek.
+  Future<Session> loginWithGoogle() async {
+    try {
+      // Krok 1: Logowanie przez Google
+      final GoogleSignInAccount? googleAccount = await _googleSignInService.signIn();
+      
+      if (googleAccount == null) {
+        throw ApiException(
+          message: 'Anulowano logowanie przez Google',
+          statusCode: 401,
+          data: null,
+        );
+      }
+
+      // Krok 2: Pobranie tokenów autoryzacji Google
+      final GoogleSignInAuthentication googleAuth = await googleAccount.authentication;
+      
+      if (googleAuth.idToken == null) {
+        throw ApiException(
+          message: 'Nie udało się pobrać tokenu ID Google',
+          statusCode: 401,
+          data: null,
+        );
+      }
+
+      // Krok 3: Wysłanie ID tokenu Google do backendu w celu wymiany na JWT
+      // Backend zweryfikuje token Google i zwróci sesję aplikacji
+      final response = await apiClient.post(
+        'api/auth/google/mobile', 
+        data: {
+          'token': googleAuth.idToken,
+        }
+      );
+
+      final session = Session.fromMap(response.data);
+
+      // Krok 4: Ustawienie tokenu autoryzacji w ApiClient
+      apiClient.setAuthToken(session.accessToken);
+
+      // Krok 5: Zapisanie danych sesji w lokalnym magazynie
+      await _storageService.saveSession(session);
+
+      return session;
+    } on ApiException {
+      // Wyloguj z Google w przypadku błędu autoryzacji w backendzie
+      await _googleSignInService.signOut();
+      rethrow;
+    } catch (e) {
+      // Wyloguj z Google w przypadku innych błędów
+      await _googleSignInService.signOut();
+      throw UnknownException('Wystąpił nieoczekiwany błąd podczas logowania przez Google: $e');
     }
   }
 
@@ -82,6 +144,7 @@ class AuthRepository extends BaseRepository {
   /// Wylogowuje użytkownika.
   ///
   /// Wywołuje endpoint wylogowania i czyści token autoryzacji w ApiClient.
+  /// Również wylogowuje z Google Sign-In jeśli użytkownik był zalogowany przez Google.
   Future<void> logout() async {
     try {
       // Wywołanie endpointu wylogowania
@@ -89,6 +152,11 @@ class AuthRepository extends BaseRepository {
 
       // Czyszczenie tokenu autoryzacji
       apiClient.clearAuthToken();
+
+      // Wylogowanie z Google Sign-In
+      if (await _googleSignInService.isSignedIn()) {
+        await _googleSignInService.signOut();
+      }
 
       // Usunięcie danych sesji z lokalnego magazynu
       await _storageService.clearSession();

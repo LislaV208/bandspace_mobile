@@ -159,11 +159,38 @@ class AuthCubit extends Cubit<AuthState> {
 
   /// Obsługuje logowanie przez Google
   Future<void> loginWithGoogle() async {
-    // Tutaj dodaj rzeczywistą logikę logowania przez Google
-    // np. Firebase Auth, Google Sign-In, itp.
-    debugPrint("Próba logowania przez Google");
+    // Ustaw stan ładowania
+    emit(state.copyWith(isLoading: true, errorMessage: Value(null)));
 
-    // W rzeczywistej implementacji, tutaj byłaby logika logowania przez Google
+    try {
+      // Wywołanie metody logowania przez Google z repozytorium
+      final session = await authRepository.loginWithGoogle();
+
+      // Wyczyść stan ładowania
+      emit(state.copyWith(isLoading: false));
+
+      // Nawigacja do ekranu głównego po udanym logowaniu
+      debugPrint("Zalogowano przez Google pomyślnie: ${session.user.email}");
+
+      // Emitujemy stan z danymi użytkownika, co oznacza że jest zalogowany
+      emit(state.copyWith(user: Value(session.user)));
+    } catch (e) {
+      // Obsługa błędów
+      String errorMessage = "Błąd logowania przez Google: ${e.toString()}";
+
+      // Sprawdzamy typ wyjątku i dostosowujemy komunikat
+      if (e.toString().contains("ApiException")) {
+        errorMessage = e.toString().replaceAll("ApiException: ", "");
+      } else if (e.toString().contains("NetworkException")) {
+        errorMessage = "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
+      } else if (e.toString().contains("TimeoutException")) {
+        errorMessage = "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
+      } else if (e.toString().contains("Anulowano logowanie przez Google")) {
+        errorMessage = "Logowanie przez Google zostało anulowane.";
+      }
+
+      emit(state.copyWith(isLoading: false, errorMessage: Value(errorMessage)));
+    }
   }
 
   /// Otwiera modal resetowania hasła

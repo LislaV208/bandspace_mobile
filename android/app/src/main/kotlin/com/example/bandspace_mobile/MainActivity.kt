@@ -1,4 +1,4 @@
-package com.example.bandspace_mobile
+package pl.bandspace.mobile
 
 import io.flutter.embedding.android.FlutterActivity
 
