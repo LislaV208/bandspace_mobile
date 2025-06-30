@@ -4,12 +4,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bandspace_mobile/core/cubit/user_profile_state.dart';
 import 'package:bandspace_mobile/core/repositories/user_repository.dart';
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
+import 'package:bandspace_mobile/core/models/user.dart';
 
 /// Cubit zarządzający stanem profilu użytkownika
 class UserProfileCubit extends Cubit<UserProfileState> {
   final UserRepository userRepository;
+  final Function(User)? onUserUpdated;
+  final VoidCallback? onAccountDeleted;
 
-  UserProfileCubit({required this.userRepository}) : super(const UserProfileState());
+  UserProfileCubit({
+    required this.userRepository,
+    this.onUserUpdated,
+    this.onAccountDeleted,
+  }) : super(const UserProfileState());
 
   // Kontrolery tekstowe
   final TextEditingController nameController = TextEditingController();
@@ -118,6 +125,11 @@ class UserProfileCubit extends Cubit<UserProfileState> {
         isEditing: false,
         successMessage: Value(response.message),
       ));
+
+      // Aktualizuj dane użytkownika w AuthCubit
+      if (onUserUpdated != null) {
+        onUserUpdated!(response.user);
+      }
     } catch (e) {
       // Obsługa błędów
       String errorMessage = "Błąd aktualizacji profilu: ${e.toString()}";
@@ -159,8 +171,10 @@ class UserProfileCubit extends Cubit<UserProfileState> {
         successMessage: Value(response.message),
       ));
 
-      // Konto zostało usunięte - aplikacja powinna przekierować do ekranu logowania
-      // To będzie obsłużone przez widok lub główny Cubit aplikacji
+      // Konto zostało usunięte - wywołaj callback do wylogowania
+      if (onAccountDeleted != null) {
+        onAccountDeleted!();
+      }
     } catch (e) {
       // Obsługa błędów
       String errorMessage = "Błąd usuwania konta: ${e.toString()}";

@@ -15,7 +15,17 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => UserProfileCubit(userRepository: context.read<UserRepository>())..loadProfile(),
+      create: (context) => UserProfileCubit(
+        userRepository: context.read<UserRepository>(),
+        onUserUpdated: (updatedUser) {
+          // Aktualizuj dane użytkownika w AuthCubit
+          context.read<AuthCubit>().updateUserData(updatedUser);
+        },
+        onAccountDeleted: () {
+          // Wyloguj użytkownika po usunięciu konta
+          context.read<AuthCubit>().logout();
+        },
+      )..loadProfile(),
       child: const _ProfileContent(),
     );
   }
@@ -84,6 +94,11 @@ class _ProfileContent extends StatelessWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.successMessage!), backgroundColor: Theme.of(context).colorScheme.primary),
             );
+            
+            // Jeśli konto zostało usunięte, zamknij ekran profilu
+            if (state.successMessage!.contains('usunięte')) {
+              Navigator.of(context).pop();
+            }
           }
         },
         child: BlocBuilder<UserProfileCubit, UserProfileState>(

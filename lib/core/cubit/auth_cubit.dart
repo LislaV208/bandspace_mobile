@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/cubit/auth_state.dart';
+import 'package:bandspace_mobile/core/models/user.dart';
 import 'package:bandspace_mobile/core/repositories/auth_repository.dart';
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 
@@ -229,6 +230,16 @@ class AuthCubit extends Cubit<AuthState> {
       }
 
       emit(state.copyWith(isLoading: false, errorMessage: Value(errorMessage)));
+    }
+  }
+
+  /// Aktualizuje dane użytkownika w stanie autoryzacji
+  ///
+  /// Używane po aktualizacji profilu użytkownika, aby zachować spójność danych
+  void updateUserData(User updatedUser) {
+    if (state.user != null) {
+      emit(state.copyWith(user: Value(updatedUser)));
+      debugPrint("Zaktualizowano dane użytkownika: ${updatedUser.email}");
     }
   }
 }
