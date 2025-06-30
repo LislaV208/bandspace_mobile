@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 
+import 'package:bandspace_mobile/auth/auth_screen.dart';
 import 'package:bandspace_mobile/auth/change_password_screen.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/cubit/user_profile_cubit.dart';
@@ -21,9 +22,17 @@ class ProfileScreen extends StatelessWidget {
           // Aktualizuj dane użytkownika w AuthCubit
           context.read<AuthCubit>().updateUserData(updatedUser);
         },
-        onAccountDeleted: () {
-          // Wyloguj użytkownika po usunięciu konta
-          context.read<AuthCubit>().logout();
+        onAccountDeleted: () async {
+          // Wyczyść lokalną sesję użytkownika po usunięciu konta (bez wywoływania API logout)
+          await context.read<AuthCubit>().clearUserSession();
+          
+          // Nawiguj bezpośrednio do ekranu logowania, usuwając wszystkie poprzednie ekrany
+          if (context.mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const AuthScreen()),
+              (route) => false,
+            );
+          }
         },
       )..loadProfile(),
       child: const _ProfileContent(),
@@ -94,11 +103,6 @@ class _ProfileContent extends StatelessWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.successMessage!), backgroundColor: Theme.of(context).colorScheme.primary),
             );
-            
-            // Jeśli konto zostało usunięte, zamknij ekran profilu
-            if (state.successMessage!.contains('usunięte')) {
-              Navigator.of(context).pop();
-            }
           }
         },
         child: BlocBuilder<UserProfileCubit, UserProfileState>(

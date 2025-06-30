@@ -121,6 +121,21 @@ class AuthRepository extends BaseRepository {
     return session;
   }
 
+  /// Czyści lokalny stan autoryzacji bez wywoływania API
+  ///
+  /// Używane po usunięciu konta, gdy użytkownik już nie istnieje w systemie
+  Future<void> clearLocalSession() async {
+    try {
+      // Czyszczenie tokenu autoryzacji
+      apiClient.clearAuthToken();
+
+      // Usunięcie danych sesji z lokalnego magazynu
+      await _storageService.clearSession();
+    } catch (e) {
+      throw UnknownException('Wystąpił błąd podczas czyszczenia lokalnej sesji: $e');
+    }
+  }
+
   /// Zmienia hasło użytkownika.
   ///
   /// Wymaga podania aktualnego hasła oraz nowego hasła.

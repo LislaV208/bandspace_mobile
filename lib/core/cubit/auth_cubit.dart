@@ -242,4 +242,30 @@ class AuthCubit extends Cubit<AuthState> {
       debugPrint("Zaktualizowano dane użytkownika: ${updatedUser.email}");
     }
   }
+
+  /// Czyści lokalny stan użytkownika bez wywoływania API logout
+  ///
+  /// Używane po usunięciu konta, gdy użytkownik już nie istnieje w systemie
+  Future<void> clearUserSession() async {
+    try {
+      // Wyczyść token i lokalną sesję
+      await authRepository.clearLocalSession();
+
+      // Wyczyść stan ładowania i dane użytkownika
+      emit(state.copyWith(isLoading: false, user: Value(null), errorMessage: Value(null)));
+
+      // Wyczyść pola formularza
+      if (!kDebugMode) {
+        emailController.clear();
+        passwordController.clear();
+      }
+      confirmPasswordController.clear();
+
+      debugPrint("Wyczyszczono sesję użytkownika po usunięciu konta");
+    } catch (e) {
+      debugPrint("Błąd podczas czyszczenia sesji: $e");
+      // Nawet jeśli wystąpi błąd, wyczyść lokalny stan UI
+      emit(state.copyWith(isLoading: false, user: Value(null), errorMessage: Value(null)));
+    }
+  }
 }
