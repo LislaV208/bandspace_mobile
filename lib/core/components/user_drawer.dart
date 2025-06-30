@@ -8,6 +8,7 @@ import 'package:bandspace_mobile/core/components/member_avatar.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/models/user.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/profile/profile_screen.dart';
 
 ///
 /// Zawiera informacje o użytkowniku oraz opcje nawigacji.
@@ -27,7 +28,7 @@ class UserDrawer extends StatelessWidget {
           children: [
             _buildHeader(),
             const Divider(color: AppColors.divider, height: 1, thickness: 1, indent: 16, endIndent: 16),
-            Expanded(child: _buildMenuItems()),
+            Expanded(child: _buildMenuItems(context)),
             const Divider(color: AppColors.divider, height: 1, thickness: 1, indent: 16, endIndent: 16),
             const SizedBox(height: 8.0), // Dodatkowy odstęp
             _buildLogoutButton(),
@@ -81,7 +82,7 @@ class UserDrawer extends StatelessWidget {
   }
 
   /// Buduje listę opcji menu.
-  Widget _buildMenuItems() {
+  Widget _buildMenuItems(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8.0), // Odstęp od Dividerów
       children: [
@@ -89,7 +90,11 @@ class UserDrawer extends StatelessWidget {
           icon: LucideIcons.user,
           title: 'Profil',
           onTap: () {
-            // Implementacja nawigacji do profilu
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const ProfileScreen(),
+              ),
+            );
           },
         ),
         _buildMenuItem(

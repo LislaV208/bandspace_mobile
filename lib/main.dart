@@ -7,6 +7,7 @@ import 'package:bandspace_mobile/core/cubit/app_cubit.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/repositories/auth_repository.dart';
 import 'package:bandspace_mobile/core/repositories/project_repository.dart';
+import 'package:bandspace_mobile/core/repositories/user_repository.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/dashboard/cubit/dashboard_cubit.dart';
 import 'package:bandspace_mobile/splash/splash_screen.dart';
@@ -36,6 +37,7 @@ class MainApp extends StatelessWidget {
       providers: [
         RepositoryProvider(create: (_) => AuthRepository()),
         RepositoryProvider(create: (_) => ProjectRepository()),
+        RepositoryProvider(create: (_) => UserRepository()),
       ],
       child: Builder(
         builder: (context) {

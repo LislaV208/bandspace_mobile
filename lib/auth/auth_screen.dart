@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:bandspace_mobile/auth/reset_password_screen.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/cubit/auth_state.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
@@ -27,35 +28,10 @@ class _AuthScreenContent extends StatelessWidget {
   const _AuthScreenContent();
 
   void _openResetPasswordModal(BuildContext context) {
-    // In Flutter, you'd typically use showDialog or showModalBottomSheet
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text("Reset Password"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  decoration: const InputDecoration(labelText: "Wprowadź swój email"),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Anuluj")),
-              ElevatedButton(
-                onPressed: () {
-                  // Add reset password logic
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(const SnackBar(content: Text("Link do resetowania hasła wysłany (symulacja).")));
-                },
-                child: const Text("Wyślij link"),
-              ),
-            ],
-          ),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const ResetPasswordScreen(),
+      ),
     );
   }
 
