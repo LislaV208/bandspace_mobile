@@ -1,12 +1,13 @@
+import 'package:google_sign_in/google_sign_in.dart';
+
 import 'package:bandspace_mobile/core/api/api_client.dart';
-import 'package:bandspace_mobile/core/models/session.dart';
-import 'package:bandspace_mobile/core/models/user.dart';
 import 'package:bandspace_mobile/core/models/change_password_request.dart';
 import 'package:bandspace_mobile/core/models/forgot_password_request.dart';
+import 'package:bandspace_mobile/core/models/session.dart';
+import 'package:bandspace_mobile/core/models/user.dart';
 import 'package:bandspace_mobile/core/repositories/base_repository.dart';
-import 'package:bandspace_mobile/core/services/storage_service.dart';
 import 'package:bandspace_mobile/core/services/google_sign_in_service.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:bandspace_mobile/core/services/storage_service.dart';
 
 /// Repozytorium odpowiedzialne za operacje związane z autoryzacją.
 ///
@@ -42,7 +43,7 @@ class AuthRepository extends BaseRepository {
 
       return session;
     } catch (e) {
-      throw UnknownException('Wystąpił nieoczekiwany błąd podczas logowania: $e');
+      rethrow;
     }
   }
 
@@ -55,34 +56,21 @@ class AuthRepository extends BaseRepository {
     try {
       // Krok 1: Logowanie przez Google
       final GoogleSignInAccount? googleAccount = await _googleSignInService.signIn();
-      
+
       if (googleAccount == null) {
-        throw ApiException(
-          message: 'Anulowano logowanie przez Google',
-          statusCode: 401,
-          data: null,
-        );
+        throw ApiException(message: 'Anulowano logowanie przez Google', statusCode: 401, data: null);
       }
 
       // Krok 2: Pobranie tokenów autoryzacji Google
       final GoogleSignInAuthentication googleAuth = googleAccount.authentication;
-      
+
       if (googleAuth.idToken == null) {
-        throw ApiException(
-          message: 'Nie udało się pobrać tokenu ID Google',
-          statusCode: 401,
-          data: null,
-        );
+        throw ApiException(message: 'Nie udało się pobrać tokenu ID Google', statusCode: 401, data: null);
       }
 
       // Krok 3: Wysłanie ID tokenu Google do backendu w celu wymiany na JWT
       // Backend zweryfikuje token Google i zwróci sesję aplikacji
-      final response = await apiClient.post(
-        'api/auth/google/mobile', 
-        data: {
-          'token': googleAuth.idToken,
-        }
-      );
+      final response = await apiClient.post('api/auth/google/mobile', data: {'token': googleAuth.idToken});
 
       final session = Session.fromMap(response.data);
 
@@ -211,20 +199,11 @@ class AuthRepository extends BaseRepository {
   ///
   /// Wymaga podania aktualnego hasła oraz nowego hasła.
   /// Zwraca odpowiedź z informacją o powodzeniu operacji.
-  Future<ChangePasswordResponse> changePassword({
-    required String currentPassword,
-    required String newPassword,
-  }) async {
+  Future<ChangePasswordResponse> changePassword({required String currentPassword, required String newPassword}) async {
     try {
-      final request = ChangePasswordRequest(
-        currentPassword: currentPassword,
-        newPassword: newPassword,
-      );
+      final request = ChangePasswordRequest(currentPassword: currentPassword, newPassword: newPassword);
 
-      final response = await apiClient.patch(
-        'api/auth/change-password',
-        data: request.toJson(),
-      );
+      final response = await apiClient.patch('api/auth/change-password', data: request.toJson());
 
       return ChangePasswordResponse.fromJson(response.data);
     } on ApiException {
@@ -237,16 +216,11 @@ class AuthRepository extends BaseRepository {
   /// Wysyła żądanie resetowania hasła na podany adres email.
   ///
   /// Zwraca odpowiedź z informacją o wysłaniu instrukcji resetowania.
-  Future<ForgotPasswordResponse> forgotPassword({
-    required String email,
-  }) async {
+  Future<ForgotPasswordResponse> forgotPassword({required String email}) async {
     try {
       final request = ForgotPasswordRequest(email: email);
 
-      final response = await apiClient.post(
-        'api/auth/forgot-password',
-        data: request.toJson(),
-      );
+      final response = await apiClient.post('api/auth/forgot-password', data: request.toJson());
 
       return ForgotPasswordResponse.fromJson(response.data);
     } on ApiException {
@@ -260,20 +234,11 @@ class AuthRepository extends BaseRepository {
   ///
   /// Wymaga podania tokenu resetowania oraz nowego hasła.
   /// Zwraca odpowiedź z informacją o powodzeniu operacji.
-  Future<ResetPasswordResponse> resetPassword({
-    required String token,
-    required String newPassword,
-  }) async {
+  Future<ResetPasswordResponse> resetPassword({required String token, required String newPassword}) async {
     try {
-      final request = ResetPasswordRequest(
-        token: token,
-        newPassword: newPassword,
-      );
+      final request = ResetPasswordRequest(token: token, newPassword: newPassword);
 
-      final response = await apiClient.post(
-        'api/auth/reset-password',
-        data: request.toJson(),
-      );
+      final response = await apiClient.post('api/auth/reset-password', data: request.toJson());
 
       return ResetPasswordResponse.fromJson(response.data);
     } on ApiException {

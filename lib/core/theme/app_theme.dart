@@ -1,8 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'app_colors.dart';
 import 'text_styles.dart';
+
+class _AppColors {
+  // Kolory podstawowe
+  static const Color primary = Color(0xFF273486); // BandSpace Blue
+  static const Color primaryLight = Color(0xFF3A4DB0); // Jaśniejsza wersja BandSpace Blue
+  static const Color primaryDark = Color(0xFF1A2360); // Ciemniejsza wersja BandSpace Blue
+
+  static const Color onPrimary = Colors.white;
+
+  static const Color accent = Color(0xFF2563EB); // Akcent - używany dla przycisków, linków itp.
+  static const Color accentLight = Color(0xFF60A5FA); // Jaśniejszy akcent - używany dla linków
+
+  // Kolory tła
+  static const Color background = Color(0xFF111827); // bg-gray-900
+  static const Color surface = Color(0xFF1F2937); // bg-gray-800
+  static const Color surfaceLight = Color(0xFF1F2937); // bg-gray-800
+  static const Color surfaceDark = Color(0xFF0F172A); // bg-slate-900
+  static const Color surfaceMedium = Color(0xFF374151); // bg-gray-700
+
+  // Kolory tekstu
+  static const Color textPrimary = Colors.white;
+  static const Color textSecondary = Color(0xFFD1D5DB); // text-gray-300
+  static const Color textHint = Color(0xFF6B7280); // placeholder-gray-500
+
+  // Kolory ikon
+  static const Color iconPrimary = Colors.white;
+  static const Color iconSecondary = Color(0xFF6B7280); // text-gray-500
+
+  // Kolory obramowań
+  static const Color border = Color(0xFF374151); // border-gray-700
+  static const Color borderFocused = Color(0xFF60A5FA); // Jaśniejszy niebieski dla zaznaczenia
+
+  // Kolory statusów
+  static const Color error = Colors.redAccent;
+  static const Color errorBackground = Color(0x33FF0000); // Czerwony z alpha 0.2
+  static const Color errorBorder = Color(0x80FF0000); // Czerwony z alpha 0.5
+  static const Color success = Color(0xFF10B981); // emerald-500
+  static const Color warning = Color(0xFFF59E0B); // amber-500
+
+  // Kolory przycisków
+  static const Color buttonPrimary = Color(0xFF2563EB); // bg-blue-600
+  static const Color buttonPrimaryDisabled = Color(0x802563EB); // bg-blue-600 z alpha 0.5
+
+  // Kolory dividerów
+  static const Color divider = Color(0xFF374151); // border-gray-700
+
+  // Pomocnicze metody do modyfikacji kolorów
+  static Color withAlpha(Color color, double opacity) {
+    return color.withAlpha((opacity * 255).round());
+  }
+}
 
 /// Klasa zawierająca konfigurację motywu aplikacji BandSpace
 class AppTheme {
@@ -12,7 +62,7 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: _darkColorScheme,
-      scaffoldBackgroundColor: AppColors.background,
+      scaffoldBackgroundColor: _AppColors.background,
 
       // Konfiguracja tekstu
       textTheme: _textTheme,
@@ -67,33 +117,33 @@ class AppTheme {
   static ColorScheme get _darkColorScheme {
     return const ColorScheme(
       brightness: Brightness.dark,
-      primary: AppColors.primary,
+      primary: _AppColors.primary,
       onPrimary: Colors.white,
-      primaryContainer: AppColors.primaryLight,
+      primaryContainer: _AppColors.primaryLight,
       onPrimaryContainer: Colors.white,
-      secondary: AppColors.accent,
+      secondary: _AppColors.accent,
       onSecondary: Colors.white,
-      secondaryContainer: AppColors.accentLight,
+      secondaryContainer: _AppColors.accentLight,
       onSecondaryContainer: Colors.white,
-      tertiary: AppColors.accentLight,
+      tertiary: _AppColors.accentLight,
       onTertiary: Colors.white,
-      tertiaryContainer: AppColors.accentLight,
+      tertiaryContainer: _AppColors.accentLight,
       onTertiaryContainer: Colors.white,
-      error: AppColors.error,
+      error: _AppColors.error,
       onError: Colors.white,
-      errorContainer: AppColors.errorBackground,
-      onErrorContainer: AppColors.error,
-      surface: AppColors.surfaceLight,
-      onSurface: AppColors.textPrimary,
-      surfaceContainerHighest: AppColors.surfaceMedium,
-      onSurfaceVariant: AppColors.textSecondary,
-      outline: AppColors.border,
-      outlineVariant: AppColors.divider,
+      errorContainer: _AppColors.errorBackground,
+      onErrorContainer: _AppColors.error,
+      surface: _AppColors.surfaceLight,
+      onSurface: _AppColors.textPrimary,
+      surfaceContainerHighest: _AppColors.surfaceMedium,
+      onSurfaceVariant: _AppColors.textSecondary,
+      outline: _AppColors.border,
+      outlineVariant: _AppColors.divider,
       shadow: Colors.black,
       scrim: Colors.black54,
       inverseSurface: Colors.white,
       onInverseSurface: Colors.black,
-      inversePrimary: AppColors.primaryLight,
+      inversePrimary: _AppColors.primaryLight,
     );
   }
 
@@ -122,9 +172,9 @@ class AppTheme {
   static ElevatedButtonThemeData get _elevatedButtonTheme {
     return ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.buttonPrimary,
+        backgroundColor: _AppColors.buttonPrimary,
         foregroundColor: Colors.white,
-        disabledBackgroundColor: AppColors.buttonPrimaryDisabled,
+        disabledBackgroundColor: _AppColors.buttonPrimaryDisabled,
         disabledForegroundColor: Colors.white70,
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -137,8 +187,8 @@ class AppTheme {
   static OutlinedButtonThemeData get _outlinedButtonTheme {
     return OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.textSecondary,
-        side: const BorderSide(color: AppColors.border),
+        foregroundColor: _AppColors.textSecondary,
+        side: const BorderSide(color: _AppColors.border),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         textStyle: AppTextStyles.buttonMedium,
@@ -150,7 +200,7 @@ class AppTheme {
   static TextButtonThemeData get _textButtonTheme {
     return TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: AppColors.accentLight,
+        foregroundColor: _AppColors.accentLight,
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         textStyle: AppTextStyles.link,
       ),
@@ -161,42 +211,42 @@ class AppTheme {
   static InputDecorationTheme get _inputDecorationTheme {
     return InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.surfaceLight,
-      hintStyle: TextStyle(color: AppColors.textHint),
+      fillColor: _AppColors.surfaceLight,
+      hintStyle: TextStyle(color: _AppColors.textHint),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: const BorderSide(color: _AppColors.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: const BorderSide(color: _AppColors.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: AppColors.borderFocused, width: 1.5),
+        borderSide: const BorderSide(color: _AppColors.borderFocused, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: AppColors.error),
+        borderSide: const BorderSide(color: _AppColors.error),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+        borderSide: const BorderSide(color: _AppColors.error, width: 1.5),
       ),
       disabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: AppColors.withAlpha(AppColors.border, 0.5)),
+        borderSide: BorderSide(color: _AppColors.withAlpha(_AppColors.border, 0.5)),
       ),
       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-      labelStyle: TextStyle(color: AppColors.textSecondary),
+      labelStyle: TextStyle(color: _AppColors.textSecondary),
     );
   }
 
   // Motyw AppBar
   static AppBarTheme get _appBarTheme {
     return const AppBarTheme(
-      backgroundColor: AppColors.background,
-      foregroundColor: AppColors.textPrimary,
+      backgroundColor: _AppColors.background,
+      foregroundColor: _AppColors.textPrimary,
       elevation: 0,
       centerTitle: false,
       titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
@@ -205,17 +255,17 @@ class AppTheme {
 
   // Motyw Divider
   static DividerThemeData get _dividerTheme {
-    return const DividerThemeData(color: AppColors.divider, thickness: 1, space: 1);
+    return const DividerThemeData(color: _AppColors.divider, thickness: 1, space: 1);
   }
 
   // Motyw Card
   static CardThemeData get _cardTheme {
     return CardThemeData(
-      color: AppColors.surfaceLight,
+      color: _AppColors.surfaceLight,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.border),
+        side: const BorderSide(color: _AppColors.border),
       ),
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
     );
@@ -224,7 +274,7 @@ class AppTheme {
   // Motyw Dialog
   static DialogThemeData get _dialogTheme {
     return DialogThemeData(
-      backgroundColor: AppColors.surfaceLight,
+      backgroundColor: _AppColors.surfaceLight,
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );
@@ -233,8 +283,8 @@ class AppTheme {
   // Motyw BottomSheet
   static BottomSheetThemeData get _bottomSheetTheme {
     return const BottomSheetThemeData(
-      backgroundColor: AppColors.surfaceLight,
-      modalBackgroundColor: AppColors.surfaceLight,
+      backgroundColor: _AppColors.surfaceLight,
+      modalBackgroundColor: _AppColors.surfaceLight,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
     );
   }
@@ -242,7 +292,7 @@ class AppTheme {
   // Motyw SnackBar
   static SnackBarThemeData get _snackBarTheme {
     return SnackBarThemeData(
-      backgroundColor: AppColors.surfaceMedium,
+      backgroundColor: _AppColors.surfaceMedium,
       contentTextStyle: AppTextStyles.bodyMedium,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       behavior: SnackBarBehavior.floating,
@@ -252,9 +302,9 @@ class AppTheme {
   // Motyw TabBar
   static TabBarThemeData get _tabBarTheme {
     return const TabBarThemeData(
-      labelColor: AppColors.textPrimary,
-      unselectedLabelColor: AppColors.textHint,
-      indicatorColor: AppColors.accent,
+      labelColor: _AppColors.textPrimary,
+      unselectedLabelColor: _AppColors.textHint,
+      indicatorColor: _AppColors.accent,
       labelStyle: TextStyle(fontWeight: FontWeight.w600),
       unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
     );
@@ -265,16 +315,16 @@ class AppTheme {
     return CheckboxThemeData(
       fillColor: WidgetStateProperty.resolveWith<Color>((states) {
         if (states.contains(WidgetState.disabled)) {
-          return AppColors.buttonPrimaryDisabled;
+          return _AppColors.buttonPrimaryDisabled;
         }
         if (states.contains(WidgetState.selected)) {
-          return AppColors.accent;
+          return _AppColors.accent;
         }
-        return AppColors.surfaceMedium;
+        return _AppColors.surfaceMedium;
       }),
       checkColor: WidgetStateProperty.all(Colors.white),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-      side: const BorderSide(color: AppColors.border),
+      side: const BorderSide(color: _AppColors.border),
     );
   }
 
@@ -283,12 +333,12 @@ class AppTheme {
     return RadioThemeData(
       fillColor: WidgetStateProperty.resolveWith<Color>((states) {
         if (states.contains(WidgetState.disabled)) {
-          return AppColors.buttonPrimaryDisabled;
+          return _AppColors.buttonPrimaryDisabled;
         }
         if (states.contains(WidgetState.selected)) {
-          return AppColors.accent;
+          return _AppColors.accent;
         }
-        return AppColors.surfaceMedium;
+        return _AppColors.surfaceMedium;
       }),
     );
   }
@@ -301,7 +351,7 @@ class AppTheme {
           return Colors.grey;
         }
         if (states.contains(WidgetState.selected)) {
-          return AppColors.accent;
+          return _AppColors.accent;
         }
         return Colors.white;
       }),
@@ -310,7 +360,7 @@ class AppTheme {
           return Colors.grey.withAlpha(100);
         }
         if (states.contains(WidgetState.selected)) {
-          return AppColors.accent.withAlpha(100);
+          return _AppColors.accent.withAlpha(100);
         }
         return Colors.grey.withAlpha(180);
       }),
@@ -320,11 +370,11 @@ class AppTheme {
   // Motyw Slider
   static SliderThemeData get _sliderTheme {
     return const SliderThemeData(
-      activeTrackColor: AppColors.accent,
-      inactiveTrackColor: AppColors.surfaceMedium,
-      thumbColor: AppColors.accent,
-      overlayColor: Color(0x292563EB), // AppColors.accent z alpha 0.16
-      valueIndicatorColor: AppColors.accent,
+      activeTrackColor: _AppColors.accent,
+      inactiveTrackColor: _AppColors.surfaceMedium,
+      thumbColor: _AppColors.accent,
+      overlayColor: Color(0x292563EB), // _AppColors.accent z alpha 0.16
+      valueIndicatorColor: _AppColors.accent,
       valueIndicatorTextStyle: TextStyle(color: Colors.white),
     );
   }
@@ -332,9 +382,9 @@ class AppTheme {
   // Motyw ProgressIndicator
   static ProgressIndicatorThemeData get _progressIndicatorTheme {
     return const ProgressIndicatorThemeData(
-      color: AppColors.accent,
-      circularTrackColor: AppColors.surfaceMedium,
-      linearTrackColor: AppColors.surfaceMedium,
+      color: _AppColors.accent,
+      circularTrackColor: _AppColors.surfaceMedium,
+      linearTrackColor: _AppColors.surfaceMedium,
     );
   }
 
@@ -344,7 +394,7 @@ class AppTheme {
       SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: darkMode ? Brightness.light : Brightness.dark,
-        systemNavigationBarColor: AppColors.background,
+        systemNavigationBarColor: _AppColors.background,
         systemNavigationBarIconBrightness: darkMode ? Brightness.light : Brightness.dark,
       ),
     );

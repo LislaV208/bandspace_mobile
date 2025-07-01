@@ -62,14 +62,9 @@ class _AuthScreenContent extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(LucideIcons.music, color: Theme.of(context).colorScheme.onPrimary, size: 28),
+                    Icon(LucideIcons.music, size: 28),
                     const SizedBox(width: 8),
-                    Text(
-                      "BandSpace",
-                      style: Theme.of(
-                        context,
-                      ).textTheme.headlineSmall?.copyWith(color: Theme.of(context).colorScheme.onPrimary),
-                    ),
+                    Text("BandSpace", style: Theme.of(context).textTheme.headlineSmall),
                   ],
                 ),
               ),
@@ -173,12 +168,7 @@ class _AuthScreenContent extends StatelessWidget {
                             alignment: Alignment.centerRight,
                             child: TextButton(
                               onPressed: () => _openResetPasswordModal(context),
-                              child: Text(
-                                "Zapomniałeś hasła?",
-                                // style: Theme.of(
-                                //   context,
-                                // ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
-                              ),
+                              child: Text("Zapomniałeś hasła?"),
                             ),
                           ),
                         if (isLoginView) const SizedBox(height: 8),
@@ -227,13 +217,6 @@ class _AuthScreenContent extends StatelessWidget {
 
                         // Submit Button
                         ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.primary,
-                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            disabledBackgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                          ),
                           onPressed: state.isLoading ? null : (isLoginView ? authCubit.login : authCubit.register),
                           child:
                               state.isLoading
@@ -313,7 +296,7 @@ class _AuthScreenContent extends StatelessWidget {
                               Text(isLoginView ? "Nie masz konta?" : "Masz już konto?", style: AppTextStyles.caption),
                               TextButton(
                                 onPressed: state.isLoading ? null : authCubit.toggleView,
-                                child: Text(isLoginView ? "Zarejestruj się" : "Zaloguj się", style: AppTextStyles.link),
+                                child: Text(isLoginView ? "Zarejestruj się" : "Zaloguj się"),
                               ),
                             ],
                           ),
