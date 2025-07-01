@@ -55,7 +55,6 @@ class DashboardScreen extends StatelessWidget {
   Widget _buildDashboardContent(BuildContext context, User user) {
     print('_buildDashboardContent');
     return Scaffold(
-      backgroundColor: AppColors.background,
       endDrawer: UserDrawer(user: user),
       body: SafeArea(
         child: Column(

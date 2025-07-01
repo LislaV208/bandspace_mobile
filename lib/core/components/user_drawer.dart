@@ -90,11 +90,7 @@ class UserDrawer extends StatelessWidget {
           icon: LucideIcons.user,
           title: 'Profil',
           onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const ProfileScreen(),
-              ),
-            );
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ProfileScreen()));
           },
         ),
         _buildMenuItem(
@@ -105,7 +101,7 @@ class UserDrawer extends StatelessWidget {
           },
         ),
         _buildMenuItem(
-          icon: LucideIcons.circleHelp,
+          icon: LucideIcons.messageCircleQuestionMark,
           title: 'Pomoc',
           onTap: () {
             // Implementacja nawigacji do pomocy
