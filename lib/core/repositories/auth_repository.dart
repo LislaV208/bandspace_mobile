@@ -19,7 +19,10 @@ class AuthRepository extends BaseRepository {
   /// Konstruktor przyjmujący opcjonalną instancję ApiClient i StorageService
   AuthRepository({super.apiClient, StorageService? storageService, GoogleSignInService? googleSignInService})
     : _storageService = storageService ?? StorageService(),
-      _googleSignInService = googleSignInService ?? GoogleSignInService();
+      _googleSignInService = googleSignInService ?? GoogleSignInService() {
+    // Inicjalizuj Google Sign-In przy tworzeniu repozytorium
+    _googleSignInService.initialize();
+  }
 
   /// Loguje użytkownika przy użyciu emaila i hasła.
   ///
@@ -62,7 +65,7 @@ class AuthRepository extends BaseRepository {
       }
 
       // Krok 2: Pobranie tokenów autoryzacji Google
-      final GoogleSignInAuthentication googleAuth = await googleAccount.authentication;
+      final GoogleSignInAuthentication googleAuth = googleAccount.authentication;
       
       if (googleAuth.idToken == null) {
         throw ApiException(

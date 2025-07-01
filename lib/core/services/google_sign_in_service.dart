@@ -1,125 +1,197 @@
-// import 'package:flutter/foundation.dart';
+import 'dart:async';
 
-// import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
 
+/// Serwis odpowiedzialny za obsługę Google Sign-In
+///
+/// Korzysta z najnowszej wersji google_sign_in (7.x) z singleton pattern
 class GoogleSignInService {
-  Future<GoogleSignInAccount> signIn() async {
-    throw UnimplementedError();
+  static final GoogleSignInService _instance = GoogleSignInService._internal();
+  GoogleSignInAccount? _currentUser;
+  StreamSubscription<GoogleSignInAuthenticationEvent>? _authSubscription;
+  bool _isInitialized = false;
+
+  late final GoogleSignIn _googleSignIn;
+
+  factory GoogleSignInService() {
+    return _instance;
   }
 
+  GoogleSignInService._internal() {
+    _googleSignIn = GoogleSignIn.instance;
+
+    // Nasłuchuj zmian stanu autentyfikacji z właściwym zarządzaniem subscription
+    _authSubscription = _googleSignIn.authenticationEvents.listen((event) {
+      if (event is GoogleSignInAuthenticationEventSignIn) {
+        _currentUser = event.user;
+        debugPrint('Google Sign-In: Użytkownik zalogowany: ${event.user.email}');
+      } else if (event is GoogleSignInAuthenticationEventSignOut) {
+        _currentUser = null;
+        debugPrint('Google Sign-In: Użytkownik wylogowany');
+      }
+    });
+  }
+
+  /// Czyści zasoby - wywołaj gdy serwis nie jest już potrzebny
+  void dispose() {
+    _authSubscription?.cancel();
+    _authSubscription = null;
+  }
+
+  /// Inicjalizuje Google Sign-In z właściwą konfiguracją
+  Future<void> initialize({String? clientId, List<String> scopes = const ['email', 'profile']}) async {
+    if (_isInitialized) return;
+
+    try {
+      await _googleSignIn.initialize(
+        clientId: '773891250246-lss86hbtjoe294tqnecr6270qtmtnkj6.apps.googleusercontent.com',
+        serverClientId: '773891250246-o4b9rrrbrped2joef6dpa4o7mv2blv8m.apps.googleusercontent.com',
+      );
+
+      // Spróbuj lekkiej autentyfikacji przy starcie
+      _currentUser = await _googleSignIn.attemptLightweightAuthentication();
+      _isInitialized = true;
+      debugPrint('Google Sign-In: Zainicjalizowano pomyślnie');
+    } catch (error) {
+      debugPrint('Google Sign-In: Błąd podczas inicjalizacji: $error');
+      _isInitialized = true; // Ustaw jako zainicjalizowany mimo błędu
+      // Nie rethrow - inicjalizacja może się nie powieść, ale serwis dalej może działać
+    }
+  }
+
+  /// Loguje użytkownika przez Google
+  ///
+  /// Zwraca GoogleSignInAccount w przypadku powodzenia, null jeśli użytkownik anulował
+  Future<GoogleSignInAccount?> signIn() async {
+    await _ensureInitialized();
+
+    try {
+      // Używamy authenticate() zgodnie z dokumentacją 7.x
+      final account = await _googleSignIn.authenticate();
+
+      _currentUser = account;
+      debugPrint('Google Sign-In: Pomyślnie zalogowano ${account.email}');
+      return account;
+    } on PlatformException catch (e) {
+      if (e.code == 'sign_in_canceled') {
+        debugPrint('Google Sign-In: Logowanie anulowane');
+        return null;
+      } else if (e.code == 'network_error') {
+        debugPrint('Google Sign-In: Błąd sieci');
+        throw Exception('Brak połączenia z internetem. Sprawdź połączenie i spróbuj ponownie.');
+      } else {
+        debugPrint('Google Sign-In: Platform error [${e.code}]: ${e.message}');
+        throw Exception('Błąd podczas logowania przez Google: ${e.message}');
+      }
+    } catch (error) {
+      debugPrint('Google Sign-In: Nieoczekiwany błąd podczas logowania: $error');
+      throw Exception('Wystąpił nieoczekiwany błąd podczas logowania przez Google');
+    }
+  }
+
+  /// Wylogowuje użytkownika z Google
   Future<void> signOut() async {
-    throw UnimplementedError();
+    await _ensureInitialized();
+
+    try {
+      await _googleSignIn.signOut();
+      _currentUser = null;
+      debugPrint('Google Sign-In: Pomyślnie wylogowano');
+    } on PlatformException catch (e) {
+      debugPrint('Google Sign-In: Platform error podczas wylogowywania [${e.code}]: ${e.message}');
+      // Mimo błędu, wyczyść lokalny stan
+      _currentUser = null;
+      rethrow;
+    } catch (error) {
+      debugPrint('Google Sign-In: Błąd podczas wylogowywania: $error');
+      // Mimo błędu, wyczyść lokalny stan
+      _currentUser = null;
+      rethrow;
+    }
   }
 
+  /// Rozłącza konto Google od aplikacji
+  ///
+  /// Różni się od signOut tym, że usuwa również uprawnienia aplikacji
+  Future<void> disconnect() async {
+    await _ensureInitialized();
+
+    try {
+      await _googleSignIn.disconnect();
+      _currentUser = null;
+      debugPrint('Google Sign-In: Pomyślnie rozłączono konto');
+    } on PlatformException catch (e) {
+      debugPrint('Google Sign-In: Platform error podczas rozłączania [${e.code}]: ${e.message}');
+      // Mimo błędu, wyczyść lokalny stan
+      _currentUser = null;
+      rethrow;
+    } catch (error) {
+      debugPrint('Google Sign-In: Błąd podczas rozłączania: $error');
+      // Mimo błędu, wyczyść lokalny stan
+      _currentUser = null;
+      rethrow;
+    }
+  }
+
+  /// Sprawdza, czy użytkownik jest aktualnie zalogowany przez Google
   Future<bool> isSignedIn() async {
-    throw UnimplementedError();
+    await _ensureInitialized();
+
+    try {
+      // Sprawdź aktualny stan
+      final user = await currentUser;
+      return user != null;
+    } catch (error) {
+      debugPrint('Google Sign-In: Błąd podczas sprawdzania stanu logowania: $error');
+      return false;
+    }
+  }
+
+  /// Pobiera aktualnie zalogowane konto Google
+  Future<GoogleSignInAccount?> get currentUser async {
+    await _ensureInitialized();
+
+    if (_currentUser == null) {
+      try {
+        _currentUser = await _googleSignIn.attemptLightweightAuthentication();
+      } catch (error) {
+        debugPrint('Google Sign-In: Błąd podczas pobierania aktualnego użytkownika: $error');
+        return null;
+      }
+    }
+    return _currentUser;
+  }
+
+  /// Zwraca ID token dla aktualnie zalogowanego użytkownika
+  ///
+  /// Zawiera informacje o użytkowniku, może być wykorzystany do weryfikacji tożsamości w backendzie
+  Future<String?> getIdToken() async {
+    final GoogleSignInAccount? account = await currentUser;
+    if (account != null) {
+      try {
+        final GoogleSignInAuthentication auth = account.authentication;
+        return auth.idToken;
+      } on PlatformException catch (e) {
+        debugPrint('Google Sign-In: Platform error podczas pobierania ID token [${e.code}]: ${e.message}');
+        return null;
+      } catch (error) {
+        debugPrint('Google Sign-In: Błąd podczas pobierania ID token: $error');
+        return null;
+      }
+    }
+    return null;
+  }
+
+  /// Stream dla zdarzeń autentyfikacji
+  Stream<GoogleSignInAuthenticationEvent> get authenticationEvents => _googleSignIn.authenticationEvents;
+
+  /// Sprawdza czy serwis jest zainicjalizowany, jeśli nie - inicjalizuje
+  Future<void> _ensureInitialized() async {
+    if (!_isInitialized) {
+      await initialize();
+    }
   }
 }
-
-// /// Serwis odpowiedzialny za obsługę Google Sign-In
-// ///
-// /// Korzysta z pakietu google_sign_in do autoryzacji użytkowników przez Google
-// class GoogleSignInService {
-//   static final GoogleSignInService _instance = GoogleSignInService._internal();
-//   late final GoogleSignIn _googleSignIn;
-
-//   factory GoogleSignInService() {
-//     return _instance;
-//   }
-
-//   GoogleSignInService._internal() {
-//     _googleSignIn = GoogleSignIn(
-//       scopes: ['email', 'profile'],
-//       // Konfiguracja dla różnych platform
-//       clientId: _getClientId(),
-//     );
-//   }
-
-//   /// Zwraca odpowiedni Client ID w zależności od platformy
-//   String? _getClientId() {
-//     // Na iOS i Android, Client ID jest konfigurowane w plikach konfiguracyjnych
-//     // Na web potrzebujemy podać Client ID bezpośrednio
-//     if (kIsWeb) {
-//       return '773891250246-o4b9rrrbrped2joef6dpa4o7mv2blv8m.apps.googleusercontent.com';
-//     }
-//     return null; // Dla iOS/Android używamy konfiguracji z plików
-//   }
-
-//   /// Loguje użytkownika przez Google
-//   ///
-//   /// Zwraca GoogleSignInAccount w przypadku powodzenia, null jeśli użytkownik anulował
-//   Future<GoogleSignInAccount?> signIn() async {
-//     try {
-//       final GoogleSignInAccount? account = await _googleSignIn.signIn();
-
-//       if (account != null) {
-//         debugPrint('Google Sign-In: Pomyślnie zalogowano ${account.email}');
-//       } else {
-//         debugPrint('Google Sign-In: Użytkownik anulował logowanie');
-//       }
-
-//       return account;
-//     } catch (error) {
-//       debugPrint('Google Sign-In: Błąd podczas logowania: $error');
-//       rethrow;
-//     }
-//   }
-
-//   /// Wylogowuje użytkownika z Google
-//   Future<void> signOut() async {
-//     try {
-//       await _googleSignIn.signOut();
-//       debugPrint('Google Sign-In: Pomyślnie wylogowano');
-//     } catch (error) {
-//       debugPrint('Google Sign-In: Błąd podczas wylogowywania: $error');
-//       rethrow;
-//     }
-//   }
-
-//   /// Rozłącza konto Google od aplikacji
-//   ///
-//   /// Różni się od signOut tym, że usuwa również uprawnienia aplikacji
-//   Future<void> disconnect() async {
-//     try {
-//       await _googleSignIn.disconnect();
-//       debugPrint('Google Sign-In: Pomyślnie rozłączono konto');
-//     } catch (error) {
-//       debugPrint('Google Sign-In: Błąd podczas rozłączania: $error');
-//       rethrow;
-//     }
-//   }
-
-//   /// Sprawdza, czy użytkownik jest aktualnie zalogowany przez Google
-//   Future<bool> isSignedIn() async {
-//     return await _googleSignIn.isSignedIn();
-//   }
-
-//   /// Pobiera aktualnie zalogowane konto Google
-//   GoogleSignInAccount? get currentUser => _googleSignIn.currentUser;
-
-//   /// Zwraca token autoryzacji dla aktualnie zalogowanego użytkownika
-//   ///
-//   /// Potrzebny do wysyłania requestów do backendu
-//   Future<String?> getAuthToken() async {
-//     final GoogleSignInAccount? account = _googleSignIn.currentUser;
-//     if (account != null) {
-//       final GoogleSignInAuthentication auth = account.authentication;
-//       return auth.accessToken;
-//     }
-//     return null;
-//   }
-
-//   /// Zwraca ID token dla aktualnie zalogowanego użytkownika
-//   ///
-//   /// Zawiera informacje o użytkowniku, może być wykorzystany do weryfikacji tożsamości
-//   Future<String?> getIdToken() async {
-//     final GoogleSignInAccount? account = _googleSignIn.currentUser;
-//     if (account != null) {
-//       final GoogleSignInAuthentication auth = account.authentication;
-//       return auth.idToken;
-//     }
-//     return null;
-//   }
-// }
