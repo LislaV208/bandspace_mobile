@@ -141,20 +141,18 @@ class AuthRepository extends BaseRepository {
       // Wywołanie endpointu wylogowania
       await apiClient.post('api/auth/logout');
 
-      // Czyszczenie tokenu autoryzacji
-      apiClient.clearAuthToken();
-
       // Wylogowanie z Google Sign-In
       if (await _googleSignInService.isSignedIn()) {
         await _googleSignInService.signOut();
       }
+    } catch (e) {
+      rethrow;
+    } finally {
+      // Czyszczenie tokenu autoryzacji
+      apiClient.clearAuthToken();
 
       // Usunięcie danych sesji z lokalnego magazynu
       await _storageService.clearSession();
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw UnknownException('Wystąpił błąd podczas wylogowywania: $e');
     }
   }
 
