@@ -45,13 +45,19 @@ class SongDetailCubit extends Cubit<SongDetailState> {
       final isOnline = _connectivityCubit.state.isOnline;
 
       if (isOnline) {
-        final cacheExpired = await _cacheStorage.isSongFilesCacheExpired(songId);
+        final filesExpired = await _cacheStorage.isSongFilesCacheExpired(songId);
+        final detailExpired = await _cacheStorage.isSongDetailCacheExpired(songId);
+        final cacheExpired = filesExpired || detailExpired;
+        
+        print('SongDetailCubit: Online mode, files expired: $filesExpired, detail expired: $detailExpired, files count: ${state.files.length}');
 
-        if (cacheExpired || state.files.isEmpty) {
+        if (cacheExpired || state.files.isEmpty || state.songDetail == null) {
           // Cache wygasł lub brak danych - pobierz z serwera
+          print('SongDetailCubit: Syncing with server');
           await _syncWithServer();
         } else {
           // Cache aktualny - ustaw jako loaded
+          print('SongDetailCubit: Using cached data, marking as online');
           emit(state.copyWith(status: SongDetailStatus.loaded, isOfflineMode: false));
         }
       } else {
@@ -84,17 +90,30 @@ class SongDetailCubit extends Cubit<SongDetailState> {
     }
   }
 
-  /// Ładuje pliki z lokalnego cache
+  /// Ładuje dane z lokalnego cache (song detail + pliki)
   Future<void> _loadCachedFiles() async {
+    print('SongDetailCubit: Loading cached data for song $songId');
+    
+    // Ładuj både song detail i pliki z cache
+    final cachedSongDetail = await _cacheStorage.getCachedSongDetail(songId);
     final cachedFiles = await _cacheStorage.getCachedSongFiles(songId);
-    if (cachedFiles != null && cachedFiles.isNotEmpty) {
+    
+    print('SongDetailCubit: Found cached song detail: ${cachedSongDetail != null}');
+    print('SongDetailCubit: Found ${cachedFiles?.length ?? 0} cached files');
+    
+    // Jeśli mamy jakiekolwiek dane w cache, użyj ich
+    if (cachedSongDetail != null || (cachedFiles != null && cachedFiles.isNotEmpty)) {
+      print('SongDetailCubit: Using cached data');
       emit(
         state.copyWith(
-          files: cachedFiles,
+          songDetail: cachedSongDetail,
+          files: cachedFiles ?? [],
           status: SongDetailStatus.loaded,
           isOfflineMode: true, // Tymczasowo offline, może się zmieni
         ),
       );
+    } else {
+      print('SongDetailCubit: No cached data found');
     }
   }
 
@@ -112,8 +131,10 @@ class SongDetailCubit extends Cubit<SongDetailState> {
       final songDetail = results[0] as SongDetail;
       final files = results[1] as List<SongFile>;
 
-      // Zapisz w cache
+      // Zapisz w cache (både song detail i pliki)
+      await _cacheStorage.cacheSongDetail(songId, songDetail);
       await _cacheStorage.cacheSongFiles(songId, files);
+      print('SongDetailCubit: Cached song detail and ${files.length} files for song $songId');
 
       // Aktualizuj stan
       emit(

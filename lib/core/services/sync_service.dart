@@ -187,6 +187,22 @@ class SyncService {
     }
   }
 
+  /// Synchronizacja szczegółów pojedynczego utworu
+  Future<SyncResult> syncSongDetail(int projectId, int songId) async {
+    try {
+      // Pobierz szczegóły utworu z API
+      final songDetail = await _songRepository.getSongDetails(projectId: projectId, songId: songId);
+      
+      // Cache szczegółów
+      await _cacheStorage.cacheSongDetail(songId, songDetail);
+      
+      return SyncResult.success(details: {'songId': songId});
+      
+    } catch (e) {
+      return SyncResult.failure('Błąd synchronizacji szczegółów utworu $songId: $e');
+    }
+  }
+
   /// Inteligentny sync - cache tylko dla odwiedzanych ekranów
   Future<SyncResult> smartSync() async {
     try {
