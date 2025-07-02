@@ -43,6 +43,7 @@ class MainApp extends StatelessWidget {
         BlocProvider(create: (context) => AuthCubit(authRepository: context.read<AuthRepository>())),
       ],
       child: ConnectivityBanner(
+        showWhenOnline: false, // Banner tylko offline - sync transparentny
         child: MaterialApp(
           title: 'BandSpace',
           theme: AppTheme.darkTheme,

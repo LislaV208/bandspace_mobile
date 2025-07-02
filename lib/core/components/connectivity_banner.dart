@@ -30,8 +30,8 @@ class ConnectivityBanner extends StatelessWidget {
 
   bool _shouldShowBanner(ConnectivityState state) {
     if (state.isUnknown) return false;
-    if (state.isOffline) return true;
-    if (state.isOnline && showWhenOnline) return true;
+    if (state.isOffline) return true; // Tylko offline mode
+    // Sync jest transparentny - nie pokazujemy bannera podczas sync
     return false;
   }
 
