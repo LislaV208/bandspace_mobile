@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/models/project_invitation.dart';
+import '../cubit/dashboard_cubit.dart';
 import '../cubit/user_invitations_cubit.dart';
 import '../cubit/user_invitations_state.dart';
 
@@ -38,6 +39,10 @@ class InvitationDetailsModal extends StatelessWidget {
             ),
           );
           context.read<UserInvitationsCubit>().clearSuccess();
+          
+          // Po udanej akceptacji zaproszenia odśwież listę projektów
+          context.read<DashboardCubit>().syncWithServer();
+          
           Navigator.pop(context);
         }
       },

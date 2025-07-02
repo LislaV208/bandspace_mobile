@@ -170,8 +170,8 @@ class DashboardCubit extends Cubit<DashboardState> {
       // Ustaw stan tworzenia projektu na false
       emit(state.copyWith(isCreatingProject: false));
 
-      // Załaduj projekty ponownie, aby uwzględnić nowy projekt
-      await loadProjects();
+      // Załaduj projekty ponownie z serwera, aby uwzględnić nowy projekt (wymuszamy sync)
+      await _syncWithServer();
     } on ApiException catch (e) {
       // Obsługa błędów API
       emit(state.copyWith(isCreatingProject: false, errorMessage: 'Błąd podczas tworzenia projektu: ${e.message}'));
