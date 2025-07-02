@@ -3,6 +3,7 @@ import 'package:gap/gap.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/models/song_file.dart';
+import 'package:bandspace_mobile/core/models/cached_audio_file.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 
 /// Widget odtwarzacza audio
@@ -17,6 +18,14 @@ class AudioPlayerWidget extends StatelessWidget {
   final VoidCallback? onNext;
   final VoidCallback? onPrevious;
   final Function(Duration)? onSeek;
+  
+  // Offline-related properties
+  final bool isPlayingOffline;
+  final CacheStatus? cacheStatus;
+  final DownloadProgress? downloadProgress;
+  final VoidCallback? onDownload;
+  final VoidCallback? onCancelDownload;
+  final VoidCallback? onRemoveFromCache;
 
   const AudioPlayerWidget({
     super.key,
@@ -30,6 +39,12 @@ class AudioPlayerWidget extends StatelessWidget {
     this.onNext,
     this.onPrevious,
     this.onSeek,
+    this.isPlayingOffline = false,
+    this.cacheStatus,
+    this.downloadProgress,
+    this.onDownload,
+    this.onCancelDownload,
+    this.onRemoveFromCache,
   });
 
   @override
@@ -77,25 +92,78 @@ class AudioPlayerWidget extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                currentFile!.fileInfo.filename,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w500,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      currentFile!.fileInfo.filename,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (isPlayingOffline) ...[
+                    const Gap(8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withAlpha(51),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: AppColors.primary, width: 1),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            LucideIcons.wifiOff,
+                            size: 12,
+                            color: AppColors.primary,
+                          ),
+                          const Gap(4),
+                          Text(
+                            'Offline',
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppColors.primary,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
               const Gap(4),
-              Text(
-                '${currentFile!.fileInfo.fileExtension.toUpperCase()} • ${currentFile!.formattedSize}',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+              Row(
+                children: [
+                  Text(
+                    '${currentFile!.fileInfo.fileExtension.toUpperCase()} • ${currentFile!.formattedSize}',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  if (cacheStatus != null) ...[
+                    Text(
+                      ' • ',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    _buildCacheStatusIndicator(),
+                  ],
+                ],
               ),
             ],
           ),
         ),
+        if (cacheStatus != null) ...[
+          const Gap(12),
+          _buildCacheActionButton(),
+        ],
       ],
     );
   }
@@ -218,5 +286,200 @@ class AudioPlayerWidget extends StatelessWidget {
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  // =============== OFFLINE INDICATORS ===============
+
+  /// Buduje wskaźnik statusu cache
+  Widget _buildCacheStatusIndicator() {
+    if (cacheStatus == null) return const SizedBox.shrink();
+
+    Color statusColor;
+    IconData statusIcon;
+    String statusText;
+
+    switch (cacheStatus!) {
+      case CacheStatus.cached:
+        statusColor = Colors.green;
+        statusIcon = LucideIcons.download;
+        statusText = 'Pobrano';
+        break;
+      case CacheStatus.downloading:
+        statusColor = AppColors.primary;
+        statusIcon = LucideIcons.cloud;
+        statusText = downloadProgress?.progressPercentage ?? 'Pobieranie...';
+        break;
+      case CacheStatus.error:
+        statusColor = AppColors.error;
+        statusIcon = LucideIcons.info;
+        statusText = 'Błąd';
+        break;
+      case CacheStatus.queued:
+        statusColor = AppColors.textSecondary;
+        statusIcon = LucideIcons.clock;
+        statusText = 'W kolejce';
+        break;
+      case CacheStatus.notCached:
+        statusColor = AppColors.textSecondary;
+        statusIcon = LucideIcons.cloud;
+        statusText = 'Online';
+        break;
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          statusIcon,
+          size: 12,
+          color: statusColor,
+        ),
+        const Gap(4),
+        Text(
+          statusText,
+          style: AppTextStyles.bodySmall.copyWith(
+            color: statusColor,
+            fontSize: 11,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Buduje przycisk akcji cache
+  Widget _buildCacheActionButton() {
+    if (cacheStatus == null) return const SizedBox.shrink();
+
+    switch (cacheStatus!) {
+      case CacheStatus.notCached:
+        return _buildActionButton(
+          icon: LucideIcons.download,
+          label: 'Pobierz',
+          onTap: onDownload,
+          color: AppColors.primary,
+        );
+      
+      case CacheStatus.downloading:
+        return _buildDownloadProgress();
+      
+      case CacheStatus.cached:
+        return _buildActionButton(
+          icon: LucideIcons.trash,
+          label: 'Usuń',
+          onTap: onRemoveFromCache,
+          color: AppColors.error,
+        );
+      
+      case CacheStatus.error:
+        return _buildActionButton(
+          icon: LucideIcons.rotateCcw,
+          label: 'Ponów',
+          onTap: onDownload,
+          color: AppColors.primary,
+        );
+      
+      case CacheStatus.queued:
+        return _buildActionButton(
+          icon: LucideIcons.x,
+          label: 'Anuluj',
+          onTap: onCancelDownload,
+          color: AppColors.error,
+        );
+    }
+  }
+
+  /// Buduje przycisk akcji
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback? onTap,
+    required Color color,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(4),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: onTap != null ? color : AppColors.textSecondary,
+              ),
+              const Gap(2),
+              Text(
+                label,
+                style: AppTextStyles.caption.copyWith(
+                  color: onTap != null ? color : AppColors.textSecondary,
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Buduje wskaźnik postępu pobierania
+  Widget _buildDownloadProgress() {
+    final progress = downloadProgress;
+    if (progress == null) {
+      return _buildActionButton(
+        icon: LucideIcons.loader,
+        label: 'Pobieranie...',
+        onTap: onCancelDownload,
+        color: AppColors.primary,
+      );
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onCancelDownload,
+        borderRadius: BorderRadius.circular(4),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: Stack(
+                  children: [
+                    CircularProgressIndicator(
+                      value: progress.progress,
+                      strokeWidth: 2,
+                      color: AppColors.primary,
+                      backgroundColor: AppColors.surfaceMedium,
+                    ),
+                    Center(
+                      child: Icon(
+                        LucideIcons.x,
+                        size: 12,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Gap(2),
+              Text(
+                progress.progressPercentage,
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.primary,
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

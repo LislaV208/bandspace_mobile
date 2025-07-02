@@ -4,23 +4,31 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/models/song_file.dart';
+import 'package:bandspace_mobile/core/models/cached_audio_file.dart';
 import 'package:bandspace_mobile/core/repositories/song_repository.dart';
+import 'package:bandspace_mobile/core/services/audio_cache_service.dart';
 import 'package:bandspace_mobile/song_detail/cubit/audio_player_state.dart';
 
 /// Cubit zarządzający odtwarzaczem audio
 class AudioPlayerCubit extends Cubit<AudioPlayerState> {
   final SongRepository songRepository;
+  final AudioCacheService _cacheService;
   final AudioPlayer _audioPlayer;
   final int songId;
   
   StreamSubscription<PlayerState>? _playerStateSubscription;
   StreamSubscription<Duration>? _positionSubscription;
   StreamSubscription<Duration>? _durationSubscription;
+  
+  // Subskrypcje dla offline cache
+  final Map<int, StreamSubscription<DownloadProgress>> _downloadSubscriptions = {};
 
   AudioPlayerCubit({
     required this.songRepository,
     required this.songId,
-  })  : _audioPlayer = AudioPlayer(),
+    AudioCacheService? cacheService,
+  })  : _cacheService = cacheService ?? AudioCacheService(),
+        _audioPlayer = AudioPlayer(),
         super(const AudioPlayerState()) {
     _initializePlayer();
   }
@@ -57,11 +65,14 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
   }
 
   /// Ustawia playlistę plików
-  void setPlaylist(List<SongFile> files) {
+  Future<void> setPlaylist(List<SongFile> files) async {
     emit(state.copyWith(
       playlist: files,
       currentIndex: 0,
     ));
+    
+    // Załaduj statusy cache dla wszystkich plików
+    await _loadCacheStatuses(files);
   }
 
   /// Wybiera plik bez odtwarzania
@@ -99,16 +110,25 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     ));
 
     try {
-      // Pobierz URL do streamowania
-      final streamUrl = await songRepository.getFileDownloadUrl(
-        songId: songId,
-        fileId: state.currentFile!.fileId,
-      );
+      // Sprawdź czy plik jest dostępny offline
+      final localPath = await _cacheService.getLocalPath(state.currentFile!.fileId);
+      
+      if (localPath != null) {
+        // Odtwórz z cache lokalnego
+        print('AudioPlayer: Playing from cache: $localPath');
+        await _audioPlayer.play(DeviceFileSource(localPath));
+        emit(state.copyWith(isPlayingOffline: true));
+      } else {
+        // Pobierz URL do streamowania
+        final streamUrl = await songRepository.getFileDownloadUrl(
+          songId: songId,
+          fileId: state.currentFile!.fileId,
+        );
 
-      print('AudioPlayer: Trying to play URL: $streamUrl');
-
-      // Załaduj i odtwórz plik
-      await _audioPlayer.play(UrlSource(streamUrl));
+        print('AudioPlayer: Streaming from URL: $streamUrl');
+        await _audioPlayer.play(UrlSource(streamUrl));
+        emit(state.copyWith(isPlayingOffline: false));
+      }
     } catch (e) {
       emit(state.copyWith(
         status: AudioPlayerStatus.error,
@@ -210,8 +230,176 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     }
   }
 
+  // =============== OFFLINE CACHE METHODS ===============
+
+  /// Ładuje statusy cache dla podanych plików
+  Future<void> _loadCacheStatuses(List<SongFile> files) async {
+    final Map<int, CacheStatus> newStatuses = {};
+    
+    for (final file in files) {
+      final cachedFile = await _cacheService.getCachedFile(file.fileId);
+      newStatuses[file.fileId] = cachedFile?.status ?? CacheStatus.notCached;
+    }
+    
+    emit(state.copyWith(cacheStatuses: newStatuses));
+  }
+
+  /// Sprawdza dostępność offline dla wszystkich plików w playliście
+  Future<void> checkOfflineAvailability() async {
+    await _loadCacheStatuses(state.playlist);
+  }
+
+  /// Pobiera plik dla offline
+  Future<void> downloadForOffline(SongFile file) async {
+    try {
+      // Aktualizuj status na downloading
+      final newStatuses = Map<int, CacheStatus>.from(state.cacheStatuses);
+      newStatuses[file.fileId] = CacheStatus.downloading;
+      emit(state.copyWith(cacheStatuses: newStatuses));
+
+      // Zasubskrybuj progress
+      _subscribeToDownloadProgress(file.fileId);
+
+      // Pobierz URL do pliku
+      final downloadUrl = await songRepository.getFileDownloadUrl(
+        songId: songId,
+        fileId: file.fileId,
+      );
+
+      // Rozpocznij pobieranie
+      await _cacheService.downloadFile(file, downloadUrl);
+
+      // Aktualizuj status na cached
+      newStatuses[file.fileId] = CacheStatus.cached;
+      emit(state.copyWith(cacheStatuses: newStatuses));
+
+    } catch (e) {
+      // Aktualizuj status na error
+      final newStatuses = Map<int, CacheStatus>.from(state.cacheStatuses);
+      newStatuses[file.fileId] = CacheStatus.error;
+      emit(state.copyWith(cacheStatuses: newStatuses));
+      
+      emit(state.copyWith(
+        errorMessage: 'Błąd podczas pobierania pliku: $e',
+      ));
+    } finally {
+      // Usuń subskrypcję progress
+      _unsubscribeFromDownloadProgress(file.fileId);
+    }
+  }
+
+  /// Odtwarza plik offline (tylko jeśli jest cache'owany)
+  Future<void> playOfflineFile(SongFile file) async {
+    final isAvailable = await _cacheService.isFileCached(file.fileId);
+    if (!isAvailable) {
+      emit(state.copyWith(
+        errorMessage: 'Plik nie jest dostępny offline',
+      ));
+      return;
+    }
+
+    selectFile(file);
+    await _loadAndPlayCurrentFile();
+  }
+
+  /// Usuwa plik z cache
+  Future<void> removeFromCache(SongFile file) async {
+    try {
+      await _cacheService.deleteFile(file.fileId);
+      
+      // Aktualizuj status
+      final newStatuses = Map<int, CacheStatus>.from(state.cacheStatuses);
+      newStatuses[file.fileId] = CacheStatus.notCached;
+      emit(state.copyWith(cacheStatuses: newStatuses));
+      
+    } catch (e) {
+      emit(state.copyWith(
+        errorMessage: 'Błąd podczas usuwania pliku z cache: $e',
+      ));
+    }
+  }
+
+  /// Anuluje pobieranie pliku
+  Future<void> cancelDownload(int fileId) async {
+    try {
+      await _cacheService.cancelDownload(fileId);
+      
+      // Aktualizuj status
+      final newStatuses = Map<int, CacheStatus>.from(state.cacheStatuses);
+      newStatuses[fileId] = CacheStatus.notCached;
+      emit(state.copyWith(cacheStatuses: newStatuses));
+      
+      // Usuń progress
+      final newProgresses = Map<int, DownloadProgress>.from(state.downloadProgresses);
+      newProgresses.remove(fileId);
+      emit(state.copyWith(downloadProgresses: newProgresses));
+      
+    } catch (e) {
+      emit(state.copyWith(
+        errorMessage: 'Błąd podczas anulowania pobierania: $e',
+      ));
+    }
+  }
+
+  /// Subskrybuje progress pobierania dla danego pliku
+  void _subscribeToDownloadProgress(int fileId) {
+    final progressStream = _cacheService.downloadProgress(fileId);
+    if (progressStream != null) {
+      _downloadSubscriptions[fileId] = progressStream.listen((progress) {
+        final newProgresses = Map<int, DownloadProgress>.from(state.downloadProgresses);
+        newProgresses[fileId] = progress;
+        emit(state.copyWith(downloadProgresses: newProgresses));
+      });
+    }
+  }
+
+  /// Usuwa subskrypcję progress pobierania
+  void _unsubscribeFromDownloadProgress(int fileId) {
+    _downloadSubscriptions[fileId]?.cancel();
+    _downloadSubscriptions.remove(fileId);
+    
+    // Usuń progress z state
+    final newProgresses = Map<int, DownloadProgress>.from(state.downloadProgresses);
+    newProgresses.remove(fileId);
+    emit(state.copyWith(downloadProgresses: newProgresses));
+  }
+
+  /// Pobiera statystyki cache
+  Future<Map<String, dynamic>> getCacheStats() async {
+    return await _cacheService.getCacheStats();
+  }
+
+  /// Czyści cały cache audio
+  Future<void> clearAllCache() async {
+    try {
+      await _cacheService.clearCache();
+      
+      // Zresetuj wszystkie statusy
+      final newStatuses = <int, CacheStatus>{};
+      for (final file in state.playlist) {
+        newStatuses[file.fileId] = CacheStatus.notCached;
+      }
+      
+      emit(state.copyWith(
+        cacheStatuses: newStatuses,
+        downloadProgresses: const {},
+      ));
+      
+    } catch (e) {
+      emit(state.copyWith(
+        errorMessage: 'Błąd podczas czyszczenia cache: $e',
+      ));
+    }
+  }
+
   @override
   Future<void> close() async {
+    // Anuluj wszystkie subskrypcje download progress
+    for (final subscription in _downloadSubscriptions.values) {
+      await subscription.cancel();
+    }
+    _downloadSubscriptions.clear();
+    
     await _playerStateSubscription?.cancel();
     await _positionSubscription?.cancel();
     await _durationSubscription?.cancel();

@@ -147,6 +147,19 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
                       onNext: () => context.read<AudioPlayerCubit>().next(),
                       onPrevious: () => context.read<AudioPlayerCubit>().previous(),
                       onSeek: (position) => context.read<AudioPlayerCubit>().seek(position),
+                      // Offline-related parameters
+                      isPlayingOffline: playerState.isPlayingOffline,
+                      cacheStatus: playerState.currentFileCacheStatus,
+                      downloadProgress: playerState.currentFileDownloadProgress,
+                      onDownload: playerState.currentFile != null 
+                          ? () => context.read<AudioPlayerCubit>().downloadForOffline(playerState.currentFile!)
+                          : null,
+                      onCancelDownload: playerState.currentFile != null 
+                          ? () => context.read<AudioPlayerCubit>().cancelDownload(playerState.currentFile!.fileId)
+                          : null,
+                      onRemoveFromCache: playerState.currentFile != null 
+                          ? () => context.read<AudioPlayerCubit>().removeFromCache(playerState.currentFile!)
+                          : null,
                     );
                   },
                 ),
