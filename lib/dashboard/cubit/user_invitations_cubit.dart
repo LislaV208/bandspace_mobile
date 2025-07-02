@@ -1,15 +1,18 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:bandspace_mobile/core/api/api_client.dart';
+
 import '../../core/api/invitation_api.dart';
 import '../../core/models/project_invitation.dart';
+
 import 'user_invitations_state.dart';
 
 class UserInvitationsCubit extends Cubit<UserInvitationsState> {
   final InvitationApi _invitationApi;
 
-  UserInvitationsCubit({
-    required InvitationApi invitationApi,
-  })  : _invitationApi = invitationApi,
-        super(const UserInvitationsState());
+  UserInvitationsCubit({required InvitationApi invitationApi})
+    : _invitationApi = invitationApi,
+      super(const UserInvitationsState());
 
   /// Ładuje zaproszenia użytkownika
   Future<void> loadUserInvitations() async {
@@ -18,15 +21,13 @@ class UserInvitationsCubit extends Cubit<UserInvitationsState> {
     try {
       final response = await _invitationApi.getUserInvitations();
 
-      emit(state.copyWith(
-        status: UserInvitationsStatus.loaded,
-        invitations: response.invitations,
-      ));
+      emit(state.copyWith(status: UserInvitationsStatus.loaded, invitations: response.invitations));
     } catch (e) {
-      emit(state.copyWith(
-        status: UserInvitationsStatus.error,
-        errorMessage: e.toString(),
-      ));
+      if (e is NetworkException) {
+        return;
+      }
+
+      emit(state.copyWith(status: UserInvitationsStatus.error, errorMessage: e.toString()));
     }
   }
 
@@ -38,20 +39,17 @@ class UserInvitationsCubit extends Cubit<UserInvitationsState> {
       final response = await _invitationApi.acceptInvitation(token: token);
 
       // Usuń zaproszenie z listy po akceptacji
-      final updatedInvitations = state.invitations
-          .where((invitation) => invitation.token != token)
-          .toList();
+      final updatedInvitations = state.invitations.where((invitation) => invitation.token != token).toList();
 
-      emit(state.copyWith(
-        isProcessingInvitation: false,
-        invitations: updatedInvitations,
-        successMessage: response.message,
-      ));
+      emit(
+        state.copyWith(
+          isProcessingInvitation: false,
+          invitations: updatedInvitations,
+          successMessage: response.message,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isProcessingInvitation: false,
-        errorMessage: e.toString(),
-      ));
+      emit(state.copyWith(isProcessingInvitation: false, errorMessage: e.toString()));
     }
   }
 
@@ -63,20 +61,17 @@ class UserInvitationsCubit extends Cubit<UserInvitationsState> {
       final response = await _invitationApi.rejectInvitation(token: token);
 
       // Usuń zaproszenie z listy po odrzuceniu
-      final updatedInvitations = state.invitations
-          .where((invitation) => invitation.token != token)
-          .toList();
+      final updatedInvitations = state.invitations.where((invitation) => invitation.token != token).toList();
 
-      emit(state.copyWith(
-        isProcessingInvitation: false,
-        invitations: updatedInvitations,
-        successMessage: response.message,
-      ));
+      emit(
+        state.copyWith(
+          isProcessingInvitation: false,
+          invitations: updatedInvitations,
+          successMessage: response.message,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isProcessingInvitation: false,
-        errorMessage: e.toString(),
-      ));
+      emit(state.copyWith(isProcessingInvitation: false, errorMessage: e.toString()));
     }
   }
 
