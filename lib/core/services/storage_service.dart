@@ -1,13 +1,21 @@
-import 'dart:convert';
-
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:bandspace_mobile/core/models/session.dart';
 import 'package:bandspace_mobile/core/models/user.dart';
 import 'package:bandspace_mobile/core/models/project.dart';
 import 'package:bandspace_mobile/core/models/song.dart';
+import 'package:bandspace_mobile/core/services/session_storage_service.dart';
+import 'package:bandspace_mobile/core/services/cache_storage_service.dart';
+import 'package:bandspace_mobile/core/services/connectivity_storage_service.dart';
 
 /// Klucze używane do przechowywania danych w lokalnym magazynie
+/// 
+/// UWAGA: Ta klasa zostanie usunięta w przyszłości.
+/// Należy używać kluczy z wyspecjalizowanych serwisów:
+/// - SessionStorageKeys dla sesji
+/// - CacheStorageKeys dla cache
+/// - ConnectivityStorageKeys dla connectivity
+@Deprecated('Użyj kluczy z wyspecjalizowanych serwisów')
 class StorageKeys {
   static const String accessToken = 'access_token';
   static const String refreshToken = 'refresh_token';
@@ -32,10 +40,18 @@ class StorageKeys {
 
 /// Serwis odpowiedzialny za zarządzanie lokalnym przechowywaniem danych.
 ///
-/// Używa flutter_secure_storage do bezpiecznego przechowywania wrażliwych danych,
-/// takich jak tokeny dostępu i dane użytkownika.
+/// UWAGA: Ta klasa została zrefaktoryzowana do Facade Pattern.
+/// Deleguje operacje do wyspecjalizowanych serwisów:
+/// - SessionStorageService - zarządzanie sesjami
+/// - CacheStorageService - cache'owanie danych
+/// - ConnectivityStorageService - dane połączenia internetowego
+///
+/// Zachowana została pełna backward compatibility.
 class StorageService {
   final FlutterSecureStorage _storage;
+  final SessionStorageService _sessionStorage;
+  final CacheStorageService _cacheStorage;
+  final ConnectivityStorageService _connectivityStorage;
 
   /// Singleton instance
   static final StorageService _instance = StorageService._internal();
@@ -45,84 +61,63 @@ class StorageService {
     return _instance;
   }
 
-  /// Konstruktor prywatny inicjalizujący FlutterSecureStorage
-  StorageService._internal() : _storage = const FlutterSecureStorage();
+  /// Konstruktor prywatny inicjalizujący składowe serwisy
+  StorageService._internal() 
+      : _storage = const FlutterSecureStorage(),
+        _sessionStorage = SessionStorageService(),
+        _cacheStorage = CacheStorageService(),
+        _connectivityStorage = ConnectivityStorageService();
+
+  // =============== SESSION METHODS (delegated to SessionStorageService) ===============
 
   /// Zapisuje token dostępu
   Future<void> saveAccessToken(String token) async {
-    await _storage.write(key: StorageKeys.accessToken, value: token);
+    return await _sessionStorage.saveAccessToken(token);
   }
 
   /// Odczytuje token dostępu
   Future<String?> getAccessToken() async {
-    return await _storage.read(key: StorageKeys.accessToken);
+    return await _sessionStorage.getAccessToken();
   }
 
   /// Zapisuje token odświeżania
   Future<void> saveRefreshToken(String? token) async {
-    await _storage.write(key: StorageKeys.refreshToken, value: token);
+    return await _sessionStorage.saveRefreshToken(token);
   }
 
   /// Odczytuje token odświeżania
   Future<String?> getRefreshToken() async {
-    return await _storage.read(key: StorageKeys.refreshToken);
+    return await _sessionStorage.getRefreshToken();
   }
 
   /// Zapisuje dane użytkownika
   Future<void> saveUser(User user) async {
-    final userJson = jsonEncode(user.toMap());
-    await _storage.write(key: StorageKeys.user, value: userJson);
+    return await _sessionStorage.saveUser(user);
   }
 
   /// Odczytuje dane użytkownika
   Future<User?> getUser() async {
-    final userJson = await _storage.read(key: StorageKeys.user);
-    if (userJson == null) return null;
-
-    try {
-      return User.fromMap(jsonDecode(userJson));
-    } catch (e) {
-      return null;
-    }
+    return await _sessionStorage.getUser();
   }
 
   /// Zapisuje dane sesji
   Future<void> saveSession(Session session) async {
-    final sessionJson = jsonEncode(session.toMap());
-    await _storage.write(key: StorageKeys.session, value: sessionJson);
-
-    // Zapisz również tokeny i dane użytkownika osobno dla łatwiejszego dostępu
-    await saveAccessToken(session.accessToken);
-    await saveRefreshToken(session.refreshToken);
-    await saveUser(session.user);
+    return await _sessionStorage.saveSession(session);
   }
 
   /// Odczytuje dane sesji
   Future<Session?> getSession() async {
-    final sessionJson = await _storage.read(key: StorageKeys.session);
-    if (sessionJson == null) return null;
-
-    try {
-      return Session.fromMap(jsonDecode(sessionJson));
-    } catch (e) {
-      return null;
-    }
+    return await _sessionStorage.getSession();
   }
 
   /// Sprawdza, czy użytkownik jest zalogowany
   Future<bool> isLoggedIn() async {
-    final accessToken = await getAccessToken();
-    final user = await getUser();
-
-    return accessToken != null && user != null;
+    return await _sessionStorage.isLoggedIn();
   }
 
   /// Usuwa wszystkie dane sesji
   Future<void> clearSession() async {
-    await _storage.delete(key: StorageKeys.accessToken);
-    await _storage.delete(key: StorageKeys.refreshToken);
-    await _storage.delete(key: StorageKeys.user);
-    await _storage.delete(key: StorageKeys.session);
+    return await _sessionStorage.clearSession();
   }
 
   /// Usuwa wszystkie dane z magazynu
@@ -130,151 +125,75 @@ class StorageService {
     await _storage.deleteAll();
   }
 
-  // =============== OFFLINE CACHE METHODS ===============
+  // =============== CACHE METHODS (delegated to CacheStorageService) ===============
 
   /// Cache configuration
   static const Duration defaultCacheTtl = Duration(hours: 24);
 
   /// Zapisuje listę projektów w cache
   Future<void> cacheProjects(List<Project> projects) async {
-    final projectsJson = jsonEncode(projects.map((p) => p.toJson()).toList());
-    await _storage.write(key: StorageKeys.cachedProjects, value: projectsJson);
-    await _setCacheTimestamp(StorageKeys.projectsTimestamp);
+    return await _cacheStorage.cacheProjects(projects);
   }
 
   /// Odczytuje projekty z cache
   Future<List<Project>?> getCachedProjects() async {
-    final projectsJson = await _storage.read(key: StorageKeys.cachedProjects);
-    if (projectsJson == null) return null;
-
-    try {
-      final List<dynamic> projectsList = jsonDecode(projectsJson);
-      return projectsList.map((json) => Project.fromJson(json)).toList();
-    } catch (e) {
-      return null;
-    }
+    return await _cacheStorage.getCachedProjects();
   }
 
   /// Usuwa cache projektów
   Future<void> clearProjectsCache() async {
-    await _storage.delete(key: StorageKeys.cachedProjects);
-    await _storage.delete(key: StorageKeys.projectsTimestamp);
+    return await _cacheStorage.clearProjectsCache();
   }
 
   /// Zapisuje utwory dla konkretnego projektu
   Future<void> cacheSongs(int projectId, List<Song> songs) async {
-    final songsJson = jsonEncode(songs.map((s) => s.toJson()).toList());
-    final cacheKey = StorageKeys.songsCacheKey(projectId);
-    final timestampKey = StorageKeys.songsTimestampKey(projectId);
-    
-    await _storage.write(key: cacheKey, value: songsJson);
-    await _setCacheTimestamp(timestampKey);
+    return await _cacheStorage.cacheSongs(projectId, songs);
   }
 
   /// Odczytuje utwory dla konkretnego projektu
   Future<List<Song>?> getCachedSongs(int projectId) async {
-    final cacheKey = StorageKeys.songsCacheKey(projectId);
-    final songsJson = await _storage.read(key: cacheKey);
-    if (songsJson == null) return null;
-
-    try {
-      final List<dynamic> songsList = jsonDecode(songsJson);
-      return songsList.map((json) => Song.fromJson(json)).toList();
-    } catch (e) {
-      return null;
-    }
+    return await _cacheStorage.getCachedSongs(projectId);
   }
 
   /// Usuwa cache utworów dla konkretnego projektu
   Future<void> clearSongsCache(int projectId) async {
-    final cacheKey = StorageKeys.songsCacheKey(projectId);
-    final timestampKey = StorageKeys.songsTimestampKey(projectId);
-    
-    await _storage.delete(key: cacheKey);
-    await _storage.delete(key: timestampKey);
-  }
-
-  // =============== CACHE TIMESTAMP MANAGEMENT ===============
-
-  /// Zapisuje timestamp cache'a
-  Future<void> _setCacheTimestamp(String key) async {
-    final timestamp = DateTime.now().toIso8601String();
-    await _storage.write(key: key, value: timestamp);
-  }
-
-  /// Odczytuje timestamp cache'a
-  Future<DateTime?> _getCacheTimestamp(String key) async {
-    final timestampStr = await _storage.read(key: key);
-    if (timestampStr == null) return null;
-
-    try {
-      return DateTime.parse(timestampStr);
-    } catch (e) {
-      return null;
-    }
+    return await _cacheStorage.clearSongsCache(projectId);
   }
 
   /// Sprawdza czy cache wygasł
   Future<bool> isCacheExpired(String timestampKey, {Duration? ttl}) async {
-    final timestamp = await _getCacheTimestamp(timestampKey);
-    if (timestamp == null) return true;
-
-    final cacheTtl = ttl ?? defaultCacheTtl;
-    final expirationTime = timestamp.add(cacheTtl);
-    
-    return DateTime.now().isAfter(expirationTime);
+    return await _cacheStorage.isCacheExpired(timestampKey, ttl: ttl);
   }
 
   /// Sprawdza czy cache projektów wygasł
   Future<bool> isProjectsCacheExpired({Duration? ttl}) async {
-    return await isCacheExpired(StorageKeys.projectsTimestamp, ttl: ttl);
+    return await _cacheStorage.isProjectsCacheExpired(ttl: ttl);
   }
 
   /// Sprawdza czy cache utworów wygasł
   Future<bool> isSongsCacheExpired(int projectId, {Duration? ttl}) async {
-    final timestampKey = StorageKeys.songsTimestampKey(projectId);
-    return await isCacheExpired(timestampKey, ttl: ttl);
+    return await _cacheStorage.isSongsCacheExpired(projectId, ttl: ttl);
   }
 
   /// Odczytuje wiek cache'a (w minutach)
   Future<int?> getCacheAgeInMinutes(String timestampKey) async {
-    final timestamp = await _getCacheTimestamp(timestampKey);
-    if (timestamp == null) return null;
-
-    final difference = DateTime.now().difference(timestamp);
-    return difference.inMinutes;
+    return await _cacheStorage.getCacheAgeInMinutes(timestampKey);
   }
 
   /// Usuwa wszystkie cache offline
   Future<void> clearAllOfflineCache() async {
-    // Clear projects cache
-    await clearProjectsCache();
-    
-    // Clear all songs cache (we'd need to track project IDs, but for now clear all cache keys)
-    final allKeys = await _storage.readAll();
-    for (final key in allKeys.keys) {
-      if (key.startsWith('songs_cache_') || key.startsWith('songs_timestamp_')) {
-        await _storage.delete(key: key);
-      }
-    }
+    return await _cacheStorage.clearAllCache();
   }
 
-  // =============== CONNECTIVITY METHODS ===============
+  // =============== CONNECTIVITY METHODS (delegated to ConnectivityStorageService) ===============
 
   /// Zapisuje czas ostatniego połączenia online
   Future<void> saveLastOnlineTime(DateTime timestamp) async {
-    await _storage.write(key: StorageKeys.lastOnlineTime, value: timestamp.toIso8601String());
+    return await _connectivityStorage.saveLastOnlineTime(timestamp);
   }
 
   /// Odczytuje czas ostatniego połączenia online
   Future<DateTime?> getLastOnlineTime() async {
-    final timestampStr = await _storage.read(key: StorageKeys.lastOnlineTime);
-    if (timestampStr == null) return null;
-
-    try {
-      return DateTime.parse(timestampStr);
-    } catch (e) {
-      return null;
-    }
+    return await _connectivityStorage.getLastOnlineTime();
   }
 }

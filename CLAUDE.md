@@ -180,6 +180,46 @@ AppTextStyles.bodySmall         → Theme.of(context).textTheme.bodySmall
 AppTextStyles.caption           → Theme.of(context).textTheme.bodySmall
 ```
 
+## Storage Services Architecture
+
+**IMPORTANT**: `StorageService` has been refactored following Single Responsibility Principle.
+
+### Current Implementation (Facade Pattern)
+- **`StorageService`**: Main facade that delegates to specialized services (backward compatible)
+- **`SessionStorageService`**: Manages user authentication data and tokens
+- **`CacheStorageService`**: Handles caching of projects and songs with TTL management
+- **`ConnectivityStorageService`**: Stores connectivity data (last online time, etc.)
+
+### Storage Migration Guidelines
+```dart
+// CURRENT (works everywhere - backward compatible)
+final storage = StorageService();
+await storage.saveSession(session);
+await storage.cacheProjects(projects);
+await storage.saveLastOnlineTime(DateTime.now());
+
+// OPTIONAL MIGRATION (for new code - more explicit)
+final sessionStorage = SessionStorageService();
+final cacheStorage = CacheStorageService();
+final connectivityStorage = ConnectivityStorageService();
+
+await sessionStorage.saveSession(session);
+await cacheStorage.cacheProjects(projects);
+await connectivityStorage.saveLastOnlineTime(DateTime.now());
+```
+
+**Migration Strategy:**
+- ✅ All existing code continues to work unchanged
+- 🔄 New features can optionally use specialized services directly
+- ⚠️ `StorageKeys` class is deprecated - use service-specific key classes instead
+- 📚 Full backward compatibility maintained through facade pattern
+
+### Service Locations
+- **`lib/core/services/storage_service.dart`** - Main facade (use for backward compatibility)
+- **`lib/core/services/session_storage_service.dart`** - Session management
+- **`lib/core/services/cache_storage_service.dart`** - Data caching
+- **`lib/core/services/connectivity_storage_service.dart`** - Connectivity data
+
 ## Important File Locations
 - **Environment configs**: `.env` (production), `.env.local` (development)
 - **Theme system**: `lib/core/theme/` - Contains colors, typography, and theming
@@ -187,6 +227,7 @@ AppTextStyles.caption           → Theme.of(context).textTheme.bodySmall
 - **State management**: Each feature has its own Cubit in `[feature]/cubit/`
 - **API client**: `lib/core/api/api_client.dart` - Singleton HTTP client
 - **Models**: `lib/core/models/` - Data models with JSON serialization
+- **Storage services**: `lib/core/services/` - Data persistence layer
 
 ---
 
