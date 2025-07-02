@@ -1,6 +1,8 @@
 import 'dart:async';
-import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../services/connectivity_service.dart';
 
 // Connectivity State
@@ -10,17 +12,10 @@ class ConnectivityState extends Equatable {
   final bool isRetrying;
   final String? errorMessage;
 
-  const ConnectivityState({
-    required this.status,
-    this.lastOnlineTime,
-    this.isRetrying = false,
-    this.errorMessage,
-  });
+  const ConnectivityState({required this.status, this.lastOnlineTime, this.isRetrying = false, this.errorMessage});
 
   factory ConnectivityState.initial() {
-    return const ConnectivityState(
-      status: ConnectionStatus.unknown,
-    );
+    return const ConnectivityState(status: ConnectionStatus.unknown);
   }
 
   ConnectivityState copyWith({
@@ -62,21 +57,18 @@ class ConnectivityCubit extends Cubit<ConnectivityState> {
   StreamSubscription<ConnectionStatus>? _connectivitySubscription;
 
   ConnectivityCubit({ConnectivityService? connectivityService})
-      : _connectivityService = connectivityService ?? ConnectivityService(),
-        super(ConnectivityState.initial());
+    : _connectivityService = connectivityService ?? ConnectivityService(),
+      super(ConnectivityState.initial());
 
   Future<void> initialize() async {
     try {
       await _connectivityService.initialize();
-      
+
       // Listen to connectivity changes
       _connectivitySubscription = _connectivityService.connectionStatusStream.listen(
         _onConnectivityChanged,
         onError: (error) {
-          emit(state.copyWith(
-            status: ConnectionStatus.offline,
-            errorMessage: 'Błąd połączenia: $error',
-          ));
+          emit(state.copyWith(status: ConnectionStatus.offline, errorMessage: 'Błąd połączenia: $error'));
         },
       );
 
@@ -84,37 +76,38 @@ class ConnectivityCubit extends Cubit<ConnectivityState> {
       final initialStatus = await _connectivityService.checkConnectivity();
       _onConnectivityChanged(initialStatus);
     } catch (error) {
-      emit(state.copyWith(
-        status: ConnectionStatus.offline,
-        errorMessage: 'Nie można zainicjalizować monitorowania połączenia',
-      ));
+      emit(
+        state.copyWith(
+          status: ConnectionStatus.offline,
+          errorMessage: 'Nie można zainicjalizować monitorowania połączenia',
+        ),
+      );
     }
   }
 
   void _onConnectivityChanged(ConnectionStatus status) {
     final DateTime now = DateTime.now();
-    
-    emit(state.copyWith(
-      status: status,
-      lastOnlineTime: status == ConnectionStatus.online ? now : state.lastOnlineTime,
-      isRetrying: false,
-      errorMessage: null,
-    ));
+
+    emit(
+      state.copyWith(
+        status: status,
+        lastOnlineTime: status == ConnectionStatus.online ? now : state.lastOnlineTime,
+        isRetrying: status == ConnectionStatus.online ? false : state.isRetrying,
+        errorMessage: null,
+      ),
+    );
   }
 
   Future<void> checkConnection() async {
     if (state.isRetrying) return;
 
     emit(state.copyWith(isRetrying: true));
-    
+
     try {
       final status = await _connectivityService.checkConnectivity();
       _onConnectivityChanged(status);
     } catch (error) {
-      emit(state.copyWith(
-        isRetrying: false,
-        errorMessage: 'Błąd sprawdzania połączenia',
-      ));
+      emit(state.copyWith(isRetrying: false, errorMessage: 'Błąd sprawdzania połączenia'));
     }
   }
 
@@ -122,32 +115,36 @@ class ConnectivityCubit extends Cubit<ConnectivityState> {
     if (state.isRetrying) return;
 
     emit(state.copyWith(isRetrying: true));
-    
+
     try {
       final hasConnection = await _connectivityService.retryConnection();
       if (hasConnection) {
         _onConnectivityChanged(ConnectionStatus.online);
       } else {
-        emit(state.copyWith(
-          status: ConnectionStatus.offline,
-          isRetrying: false,
-          errorMessage: 'Nie można nawiązać połączenia',
-        ));
+        emit(
+          state.copyWith(
+            status: ConnectionStatus.offline,
+            isRetrying: false,
+            errorMessage: 'Nie można nawiązać połączenia',
+          ),
+        );
       }
     } catch (error) {
-      emit(state.copyWith(
-        status: ConnectionStatus.offline,
-        isRetrying: false,
-        errorMessage: 'Błąd podczas ponownego łączenia',
-      ));
+      emit(
+        state.copyWith(
+          status: ConnectionStatus.offline,
+          isRetrying: false,
+          errorMessage: 'Błąd podczas ponownego łączenia',
+        ),
+      );
     }
   }
 
   String? getTimeSinceLastOnline() {
     if (state.lastOnlineTime == null) return null;
-    
+
     final difference = DateTime.now().difference(state.lastOnlineTime!);
-    
+
     if (difference.inMinutes < 1) {
       return 'przed chwilą';
     } else if (difference.inHours < 1) {

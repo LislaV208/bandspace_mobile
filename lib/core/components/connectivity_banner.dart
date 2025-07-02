@@ -17,11 +17,11 @@ class ConnectivityBanner extends StatelessWidget {
       builder: (context, state) {
         return Column(
           children: [
+            Expanded(child: child),
             AnimatedSize(
               duration: const Duration(milliseconds: 300),
               child: _shouldShowBanner(state) ? _buildBanner(context, state) : const SizedBox.shrink(),
             ),
-            Expanded(child: child),
           ],
         );
       },
@@ -51,68 +51,63 @@ class ConnectivityBanner extends StatelessWidget {
       icon = Icons.wifi;
     }
 
+    print('isOffline: ${state.isOffline}, isRetrying: ${state.isRetrying}');
+
     return Material(
       child: Directionality(
         textDirection: TextDirection.ltr,
         child: Container(
-      width: double.infinity,
-      color: backgroundColor,
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              Icon(icon, size: 16, color: textColor),
-              const Gap(8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      state.statusText,
-                      style: TextStyle(
-                        color: textColor, 
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
+          width: double.infinity,
+          color: backgroundColor,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Icon(icon, size: 16, color: textColor),
+                  const Gap(8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          state.statusText,
+                          style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontSize: 14),
+                        ),
+                        if (state.isOffline && context.read<ConnectivityCubit>().getTimeSinceLastOnline() != null)
+                          Text(
+                            'Ostatnie połączenie: ${context.read<ConnectivityCubit>().getTimeSinceLastOnline()}',
+                            style: TextStyle(color: textColor.withValues(alpha: 0.8), fontSize: 11),
+                          ),
+                      ],
                     ),
-                    if (state.isOffline && context.read<ConnectivityCubit>().getTimeSinceLastOnline() != null)
-                      Text(
-                        'Ostatnie połączenie: ${context.read<ConnectivityCubit>().getTimeSinceLastOnline()}',
-                        style: TextStyle(
-                          color: textColor.withValues(alpha: 0.8),
-                          fontSize: 11,
+                  ),
+                  if (state.isOffline) ...[
+                    if (state.isRetrying)
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(textColor),
+                        ),
+                      )
+                    else
+                      InkWell(
+                        onTap: () => context.read<ConnectivityCubit>().retryConnection(),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(Icons.refresh, size: 16, color: textColor),
                         ),
                       ),
                   ],
-                ),
+                ],
               ),
-              if (state.isOffline) ...[
-                if (state.isRetrying)
-                  SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(textColor),
-                    ),
-                  )
-                else
-                  InkWell(
-                    onTap: () => context.read<ConnectivityCubit>().retryConnection(),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: Icon(Icons.refresh, size: 16, color: textColor),
-                    ),
-                  ),
-              ],
-            ],
+            ),
           ),
-        ),
-      ),
         ),
       ),
     );
