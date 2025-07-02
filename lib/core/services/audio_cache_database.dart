@@ -181,15 +181,11 @@ class AudioCacheDatabase {
   /// Aktualizuje czas ostatniego dostępu i zwiększa licznik odtworzeń
   Future<void> updateLastAccessed(int fileId) async {
     final db = await database;
-    await db.update(
-      _tableName,
-      {
-        'last_accessed_at': DateTime.now().toIso8601String(),
-        'play_count': 'play_count + 1',
-        'updated_at': DateTime.now().toIso8601String(),
-      },
-      where: 'file_id = ?',
-      whereArgs: [fileId],
+    final now = DateTime.now().toIso8601String();
+    
+    await db.rawUpdate(
+      'UPDATE $_tableName SET last_accessed_at = ?, play_count = play_count + 1, updated_at = ? WHERE file_id = ?',
+      [now, now, fileId],
     );
   }
 

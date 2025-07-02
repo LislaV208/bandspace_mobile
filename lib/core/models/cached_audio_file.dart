@@ -129,12 +129,12 @@ class CachedAudioFile extends Equatable {
   /// Konwertuje z JSON
   factory CachedAudioFile.fromJson(Map<String, dynamic> json) {
     return CachedAudioFile(
-      fileId: json['file_id'] as int,
-      songId: json['song_id'] as int,
+      fileId: _parseInt(json['file_id']),
+      songId: _parseInt(json['song_id']),
       filename: json['filename'] as String,
       fileKey: json['file_key'] as String,
       mimeType: json['mime_type'] as String,
-      size: json['size'] as int,
+      size: _parseInt(json['size']),
       localPath: json['local_path'] as String?,
       status: CacheStatus.values.firstWhere(
         (e) => e.name == json['status'],
@@ -146,9 +146,23 @@ class CachedAudioFile extends Equatable {
       lastAccessedAt: json['last_accessed_at'] != null 
           ? DateTime.parse(json['last_accessed_at']) 
           : null,
-      playCount: json['play_count'] as int? ?? 0,
+      playCount: _parseInt(json['play_count'] ?? 0),
       checksum: json['checksum'] as String?,
     );
+  }
+
+  /// Helper method to safely parse int from dynamic (handles String from SQLite)
+  static int _parseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is String) {
+      try {
+        return int.parse(value);
+      } catch (e) {
+        return 0;
+      }
+    }
+    return 0;
   }
 
   /// Konwertuje do JSON
