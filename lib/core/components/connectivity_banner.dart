@@ -51,8 +51,6 @@ class ConnectivityBanner extends StatelessWidget {
       icon = Icons.wifi;
     }
 
-    print('isOffline: ${state.isOffline}, isRetrying: ${state.isRetrying}');
-
     return Material(
       child: Directionality(
         textDirection: TextDirection.ltr,

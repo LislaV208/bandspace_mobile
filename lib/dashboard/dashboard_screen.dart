@@ -9,6 +9,7 @@ import 'package:bandspace_mobile/core/components/member_avatar.dart';
 import 'package:bandspace_mobile/core/components/user_drawer.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/cubit/auth_state.dart';
+import 'package:bandspace_mobile/core/cubit/connectivity_cubit.dart';
 import 'package:bandspace_mobile/core/models/user.dart';
 import 'package:bandspace_mobile/core/repositories/project_repository.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
@@ -47,7 +48,10 @@ class DashboardScreen extends StatelessWidget {
         return MultiBlocProvider(
           providers: [
             BlocProvider(
-              create: (context) => DashboardCubit(projectRepository: context.read<ProjectRepository>())..loadProjects(),
+              create: (context) => DashboardCubit(
+                projectRepository: context.read<ProjectRepository>(),
+                connectivityCubit: context.read<ConnectivityCubit>(),
+              )..loadProjects(),
             ),
             BlocProvider(
               create: (context) => UserInvitationsCubit(invitationApi: InvitationApi())..loadUserInvitations(),
