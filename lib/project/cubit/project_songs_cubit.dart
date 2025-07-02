@@ -1,10 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/api/api_client.dart';
+import 'package:bandspace_mobile/core/cubit/connectivity_cubit.dart';
 import 'package:bandspace_mobile/core/models/song.dart';
 import 'package:bandspace_mobile/core/repositories/project_repository.dart';
 import 'package:bandspace_mobile/core/services/cache_storage_service.dart';
-import 'package:bandspace_mobile/core/cubit/connectivity_cubit.dart';
 import 'package:bandspace_mobile/project/cubit/project_songs_state.dart';
 
 /// Cubit zarządzający stanem utworów projektu
@@ -27,11 +27,25 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
   Future<void> loadSongs() async {
     if (state.status == ProjectSongsStatus.loading) return;
 
-    emit(state.copyWith(status: ProjectSongsStatus.loading, errorMessage: null));
-
     try {
-      // 1. ZAWSZE NAJPIERW SPRAWDŹ CACHE
-      await _loadCachedSongs();
+      // 1. SPRAWDŹ CACHE PRZED POKAZANIEM LOADING
+      final cachedSongs = await _cacheStorage.getCachedSongs(projectId);
+      final hasCachedData = cachedSongs != null && cachedSongs.isNotEmpty;
+
+      // JEŚLI MAMY CACHE - NIE POKAZUJ LOADING, OD RAZU USTAW DANE
+      if (hasCachedData) {
+        emit(
+          state.copyWith(
+            songs: cachedSongs,
+            status: ProjectSongsStatus.loaded,
+            isOfflineMode: true, // Tymczasowo, może się zmieni
+            errorMessage: null,
+          ),
+        );
+      } else {
+        // BRAK CACHE - DOPIERO TERAZ POKAŻ LOADING
+        emit(state.copyWith(status: ProjectSongsStatus.loading, errorMessage: null));
+      }
 
       // 2. JEŚLI ONLINE - SPRAWDŹ CZY CACHE JEST AKTUALNY
       final isOnline = _connectivityCubit.state.isOnline;
@@ -43,7 +57,7 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
           // Cache wygasł lub brak danych - pobierz z serwera
           await _syncWithServer();
         } else {
-          // Cache aktualny - ustaw jako loaded
+          // Cache aktualny - ustaw jako loaded z trybem online
           emit(state.copyWith(status: ProjectSongsStatus.loaded, isOfflineMode: false));
         }
       } else {
@@ -73,20 +87,6 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
       } else {
         emit(state.copyWith(status: ProjectSongsStatus.error, errorMessage: 'Wystąpił błąd: $e'));
       }
-    }
-  }
-
-  /// Ładuje utwory z lokalnego cache
-  Future<void> _loadCachedSongs() async {
-    final cachedSongs = await _cacheStorage.getCachedSongs(projectId);
-    if (cachedSongs != null && cachedSongs.isNotEmpty) {
-      emit(
-        state.copyWith(
-          songs: cachedSongs,
-          status: ProjectSongsStatus.loaded,
-          isOfflineMode: true, // Tymczasowo offline, może się zmieni
-        ),
-      );
     }
   }
 
@@ -140,32 +140,14 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
     emit(state.copyWith(isCreatingSong: true, errorMessage: null));
 
     try {
-      final newSong = await projectRepository.createSong(
-        projectId: projectId,
-        title: title.trim(),
-      );
+      final newSong = await projectRepository.createSong(projectId: projectId, title: title.trim());
 
       final updatedSongs = [newSong, ...state.songs];
-      emit(
-        state.copyWith(
-          isCreatingSong: false,
-          songs: updatedSongs,
-        ),
-      );
+      emit(state.copyWith(isCreatingSong: false, songs: updatedSongs));
     } on ApiException catch (e) {
-      emit(
-        state.copyWith(
-          isCreatingSong: false,
-          errorMessage: 'Błąd podczas tworzenia utworu: ${e.message}',
-        ),
-      );
+      emit(state.copyWith(isCreatingSong: false, errorMessage: 'Błąd podczas tworzenia utworu: ${e.message}'));
     } catch (e) {
-      emit(
-        state.copyWith(
-          isCreatingSong: false,
-          errorMessage: 'Wystąpił nieoczekiwany błąd: $e',
-        ),
-      );
+      emit(state.copyWith(isCreatingSong: false, errorMessage: 'Wystąpił nieoczekiwany błąd: $e'));
     }
   }
 
@@ -174,32 +156,14 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
     emit(state.copyWith(isDeletingSong: true, errorMessage: null));
 
     try {
-      await projectRepository.deleteSong(
-        projectId: projectId,
-        songId: song.id,
-      );
+      await projectRepository.deleteSong(projectId: projectId, songId: song.id);
 
       final updatedSongs = state.songs.where((s) => s.id != song.id).toList();
-      emit(
-        state.copyWith(
-          isDeletingSong: false,
-          songs: updatedSongs,
-        ),
-      );
+      emit(state.copyWith(isDeletingSong: false, songs: updatedSongs));
     } on ApiException catch (e) {
-      emit(
-        state.copyWith(
-          isDeletingSong: false,
-          errorMessage: 'Błąd podczas usuwania utworu: ${e.message}',
-        ),
-      );
+      emit(state.copyWith(isDeletingSong: false, errorMessage: 'Błąd podczas usuwania utworu: ${e.message}'));
     } catch (e) {
-      emit(
-        state.copyWith(
-          isDeletingSong: false,
-          errorMessage: 'Wystąpił nieoczekiwany błąd: $e',
-        ),
-      );
+      emit(state.copyWith(isDeletingSong: false, errorMessage: 'Wystąpił nieoczekiwany błąd: $e'));
     }
   }
 
@@ -215,10 +179,8 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
     if (query.trim().isEmpty) {
       return state.songs;
     }
-    
+
     final lowerQuery = query.toLowerCase();
-    return state.songs
-        .where((song) => song.title.toLowerCase().contains(lowerQuery))
-        .toList();
+    return state.songs.where((song) => song.title.toLowerCase().contains(lowerQuery)).toList();
   }
 }
