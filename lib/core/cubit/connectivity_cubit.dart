@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../services/connectivity_service.dart';
+import '../services/storage_service.dart';
 
 // Connectivity State
 class ConnectivityState extends Equatable {
@@ -54,15 +55,22 @@ class ConnectivityState extends Equatable {
 // Connectivity Cubit
 class ConnectivityCubit extends Cubit<ConnectivityState> {
   final ConnectivityService _connectivityService;
+  final StorageService _storageService;
   StreamSubscription<ConnectionStatus>? _connectivitySubscription;
 
-  ConnectivityCubit({ConnectivityService? connectivityService})
-    : _connectivityService = connectivityService ?? ConnectivityService(),
-      super(ConnectivityState.initial());
+  ConnectivityCubit({
+    ConnectivityService? connectivityService,
+    StorageService? storageService,
+  }) : _connectivityService = connectivityService ?? ConnectivityService(),
+       _storageService = storageService ?? StorageService(),
+       super(ConnectivityState.initial());
 
   Future<void> initialize() async {
     try {
       await _connectivityService.initialize();
+
+      // Load last online time from storage
+      final savedLastOnlineTime = await _storageService.getLastOnlineTime();
 
       // Listen to connectivity changes
       _connectivitySubscription = _connectivityService.connectionStatusStream.listen(
@@ -74,6 +82,14 @@ class ConnectivityCubit extends Cubit<ConnectivityState> {
 
       // Check initial status
       final initialStatus = await _connectivityService.checkConnectivity();
+      
+      // Set initial state with saved lastOnlineTime
+      emit(state.copyWith(
+        status: initialStatus,
+        lastOnlineTime: savedLastOnlineTime,
+      ));
+      
+      // Then process the connectivity change normally
       _onConnectivityChanged(initialStatus);
     } catch (error) {
       emit(
@@ -87,11 +103,25 @@ class ConnectivityCubit extends Cubit<ConnectivityState> {
 
   void _onConnectivityChanged(ConnectionStatus status) {
     final DateTime now = DateTime.now();
+    
+    // Zapisuj lastOnlineTime gdy przechodzisz z online na offline
+    DateTime? newLastOnlineTime = state.lastOnlineTime;
+    
+    if (state.isOnline && status == ConnectionStatus.offline) {
+      // Przechodzimy z online na offline - zapisz aktualny czas
+      newLastOnlineTime = now;
+      // Zapisz do storage asynchronicznie
+      _storageService.saveLastOnlineTime(now);
+    } else if (status == ConnectionStatus.online) {
+      // Jesteśmy online - nie zmieniaj lastOnlineTime (może być null)
+      newLastOnlineTime = state.lastOnlineTime;
+    }
+    // Jeśli już byliśmy offline i nadal jesteśmy - zostaw lastOnlineTime bez zmian
 
     emit(
       state.copyWith(
         status: status,
-        lastOnlineTime: status == ConnectionStatus.online ? now : state.lastOnlineTime,
+        lastOnlineTime: newLastOnlineTime,
         isRetrying: status == ConnectionStatus.online ? false : state.isRetrying,
         errorMessage: null,
       ),

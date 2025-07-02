@@ -22,6 +22,9 @@ class StorageKeys {
   static const String cachePrefix = 'cache_';
   static const String timestampSuffix = '_timestamp';
   
+  // Connectivity timestamps
+  static const String lastOnlineTime = 'last_online_time';
+  
   // Songs cache (per project)
   static String songsCacheKey(int projectId) => 'songs_cache_$projectId';
   static String songsTimestampKey(int projectId) => 'songs_timestamp_$projectId';
@@ -253,6 +256,25 @@ class StorageService {
       if (key.startsWith('songs_cache_') || key.startsWith('songs_timestamp_')) {
         await _storage.delete(key: key);
       }
+    }
+  }
+
+  // =============== CONNECTIVITY METHODS ===============
+
+  /// Zapisuje czas ostatniego połączenia online
+  Future<void> saveLastOnlineTime(DateTime timestamp) async {
+    await _storage.write(key: StorageKeys.lastOnlineTime, value: timestamp.toIso8601String());
+  }
+
+  /// Odczytuje czas ostatniego połączenia online
+  Future<DateTime?> getLastOnlineTime() async {
+    final timestampStr = await _storage.read(key: StorageKeys.lastOnlineTime);
+    if (timestampStr == null) return null;
+
+    try {
+      return DateTime.parse(timestampStr);
+    } catch (e) {
+      return null;
     }
   }
 }
