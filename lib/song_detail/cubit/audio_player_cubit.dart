@@ -119,7 +119,7 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
         await _audioPlayer.play(DeviceFileSource(localPath));
         emit(state.copyWith(isPlayingOffline: true));
       } else {
-        // Pobierz URL do streamowania
+        // Pobierz URL do streamowania i rozpocznij smart caching
         final streamUrl = await songRepository.getFileDownloadUrl(
           songId: songId,
           fileId: state.currentFile!.fileId,
@@ -128,6 +128,12 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
         print('AudioPlayer: Streaming from URL: $streamUrl');
         await _audioPlayer.play(UrlSource(streamUrl));
         emit(state.copyWith(isPlayingOffline: false));
+
+        // Automatyczne cache'owanie w tle (fire-and-forget)
+        _startBackgroundCaching(state.currentFile!, streamUrl);
+        
+        // Opcjonalnie preload następnych plików
+        _preloadNextFiles();
       }
     } catch (e) {
       emit(state.copyWith(
@@ -389,6 +395,83 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
       emit(state.copyWith(
         errorMessage: 'Błąd podczas czyszczenia cache: $e',
       ));
+    }
+  }
+
+  // =============== SMART CACHING METHODS ===============
+
+  /// Rozpoczyna automatyczne cache'owanie w tle podczas streamingu
+  void _startBackgroundCaching(SongFile file, String downloadUrl) {
+    // Fire-and-forget - nie czekamy na zakończenie
+    _backgroundCacheFile(file, downloadUrl).catchError((error) {
+      print('Background caching error for file ${file.fileId}: $error');
+      // Opcjonalnie możemy zaktualizować status na error, ale nie przerywamy odtwarzania
+    });
+  }
+
+  /// Automatyczne cache'owanie pliku w tle
+  Future<void> _backgroundCacheFile(SongFile file, String downloadUrl) async {
+    try {
+      // Sprawdź czy plik już nie jest cache'owany lub w trakcie pobierania
+      final existingFile = await _cacheService.getCachedFile(file.fileId);
+      if (existingFile?.status == CacheStatus.cached || 
+          existingFile?.status == CacheStatus.downloading) {
+        return; // Skip if already cached or downloading
+      }
+
+      print('AudioPlayer: Starting background cache for file ${file.fileId}');
+      
+      // Aktualizuj status na downloading (ale dyskretnie, bez progress UI)
+      final newStatuses = Map<int, CacheStatus>.from(state.cacheStatuses);
+      newStatuses[file.fileId] = CacheStatus.downloading;
+      emit(state.copyWith(cacheStatuses: newStatuses));
+
+      // Rozpocznij pobieranie w tle
+      await _cacheService.downloadFile(file, downloadUrl);
+
+      // Aktualizuj status na cached
+      newStatuses[file.fileId] = CacheStatus.cached;
+      emit(state.copyWith(cacheStatuses: newStatuses));
+
+      print('AudioPlayer: Background cache completed for file ${file.fileId}');
+
+    } catch (e) {
+      // Aktualizuj status na error (dyskretnie)
+      final newStatuses = Map<int, CacheStatus>.from(state.cacheStatuses);
+      newStatuses[file.fileId] = CacheStatus.error;
+      emit(state.copyWith(cacheStatuses: newStatuses));
+      
+      print('AudioPlayer: Background cache failed for file ${file.fileId}: $e');
+      // Nie pokazujemy błędu użytkownikowi - streaming nadal działa
+    }
+  }
+
+  /// Sprawdza i cache'uje następne pliki w playliście (predictive caching)
+  Future<void> _preloadNextFiles() async {
+    if (state.playlist.isEmpty || state.currentIndex >= state.playlist.length - 1) {
+      return;
+    }
+
+    try {
+      // Cache następny plik w playliście
+      final nextIndex = state.currentIndex + 1;
+      if (nextIndex < state.playlist.length) {
+        final nextFile = state.playlist[nextIndex];
+        final isAlreadyCached = await _cacheService.isFileCached(nextFile.fileId);
+        
+        if (!isAlreadyCached) {
+          final downloadUrl = await songRepository.getFileDownloadUrl(
+            songId: songId,
+            fileId: nextFile.fileId,
+          );
+          
+          print('AudioPlayer: Preloading next file ${nextFile.fileId}');
+          _startBackgroundCaching(nextFile, downloadUrl);
+        }
+      }
+    } catch (e) {
+      print('AudioPlayer: Preload failed: $e');
+      // Ignoruj błędy preload - nie są krytyczne
     }
   }
 

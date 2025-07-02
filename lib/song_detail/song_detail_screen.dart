@@ -160,6 +160,9 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
                       onRemoveFromCache: playerState.currentFile != null 
                           ? () => context.read<AudioPlayerCubit>().removeFromCache(playerState.currentFile!)
                           : null,
+                      // Smart caching mode - transparentne cache'owanie
+                      showManualControls: false, // Ukryj manual download controls
+                      showDetailedStatus: false, // Dyskretne status indicators
                     );
                   },
                 ),

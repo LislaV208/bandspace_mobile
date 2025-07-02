@@ -26,6 +26,10 @@ class AudioPlayerWidget extends StatelessWidget {
   final VoidCallback? onDownload;
   final VoidCallback? onCancelDownload;
   final VoidCallback? onRemoveFromCache;
+  
+  // UI behavior settings
+  final bool showManualControls;
+  final bool showDetailedStatus;
 
   const AudioPlayerWidget({
     super.key,
@@ -45,6 +49,8 @@ class AudioPlayerWidget extends StatelessWidget {
     this.onDownload,
     this.onCancelDownload,
     this.onRemoveFromCache,
+    this.showManualControls = false, // Domyślnie ukryte dla smart caching
+    this.showDetailedStatus = true,  // Pokazuj status cache
   });
 
   @override
@@ -146,7 +152,7 @@ class AudioPlayerWidget extends StatelessWidget {
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  if (cacheStatus != null) ...[
+                  if (showDetailedStatus && cacheStatus != null) ...[
                     Text(
                       ' • ',
                       style: AppTextStyles.bodySmall.copyWith(
@@ -160,7 +166,7 @@ class AudioPlayerWidget extends StatelessWidget {
             ],
           ),
         ),
-        if (cacheStatus != null) ...[
+        if (showManualControls && cacheStatus != null) ...[
           const Gap(12),
           _buildCacheActionButton(),
         ],
@@ -302,24 +308,33 @@ class AudioPlayerWidget extends StatelessWidget {
       case CacheStatus.cached:
         statusColor = Colors.green;
         statusIcon = LucideIcons.download;
-        statusText = 'Pobrano';
+        statusText = showDetailedStatus ? 'Cached' : 'C';
         break;
       case CacheStatus.downloading:
-        statusColor = AppColors.primary;
-        statusIcon = LucideIcons.cloud;
-        statusText = downloadProgress?.progressPercentage ?? 'Pobieranie...';
+        if (!showDetailedStatus) {
+          // Dyskretny indicator podczas smart caching
+          statusColor = AppColors.primary.withAlpha(128);
+          statusIcon = LucideIcons.loader;
+          statusText = '...';
+        } else {
+          statusColor = AppColors.primary;
+          statusIcon = LucideIcons.cloud;
+          statusText = downloadProgress?.progressPercentage ?? 'Pobieranie...';
+        }
         break;
       case CacheStatus.error:
         statusColor = AppColors.error;
         statusIcon = LucideIcons.info;
-        statusText = 'Błąd';
+        statusText = showDetailedStatus ? 'Błąd' : '!';
         break;
       case CacheStatus.queued:
         statusColor = AppColors.textSecondary;
         statusIcon = LucideIcons.clock;
-        statusText = 'W kolejce';
+        statusText = showDetailedStatus ? 'W kolejce' : 'Q';
         break;
       case CacheStatus.notCached:
+        // W smart caching mode nie pokazuj "Online" - to domyślny stan
+        if (!showDetailedStatus) return const SizedBox.shrink();
         statusColor = AppColors.textSecondary;
         statusIcon = LucideIcons.cloud;
         statusText = 'Online';
@@ -334,14 +349,16 @@ class AudioPlayerWidget extends StatelessWidget {
           size: 12,
           color: statusColor,
         ),
-        const Gap(4),
-        Text(
-          statusText,
-          style: AppTextStyles.bodySmall.copyWith(
-            color: statusColor,
-            fontSize: 11,
+        if (statusText.isNotEmpty) ...[
+          const Gap(4),
+          Text(
+            statusText,
+            style: AppTextStyles.bodySmall.copyWith(
+              color: statusColor,
+              fontSize: 11,
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
