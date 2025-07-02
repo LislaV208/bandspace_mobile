@@ -30,10 +30,10 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
     try {
       // 1. SPRAWDŹ CACHE PRZED POKAZANIEM LOADING
       final cachedSongs = await _cacheStorage.getCachedSongs(projectId);
-      final hasCachedData = cachedSongs != null && cachedSongs.isNotEmpty;
+      final hasCache = cachedSongs != null; // Rozróżnij między null (brak cache) a [] (pusty cache)
 
-      // JEŚLI MAMY CACHE - NIE POKAZUJ LOADING, OD RAZU USTAW DANE
-      if (hasCachedData) {
+      // JEŚLI MAMY CACHE (nawet pusty) - NIE POKAZUJ LOADING, OD RAZU USTAW DANE
+      if (hasCache) {
         emit(
           state.copyWith(
             songs: cachedSongs,
@@ -53,8 +53,8 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
       if (isOnline) {
         final cacheExpired = await _cacheStorage.isSongsCacheExpired(projectId);
 
-        if (cacheExpired || state.songs.isEmpty) {
-          // Cache wygasł lub brak danych - pobierz z serwera
+        if (cacheExpired || !hasCache) {
+          // Cache wygasł lub brak cache - pobierz z serwera
           await _syncWithServer();
         } else {
           // Cache aktualny - ustaw jako loaded z trybem online
@@ -62,7 +62,7 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
         }
       } else {
         // OFFLINE - użyj tylko cache
-        if (state.songs.isNotEmpty) {
+        if (hasCache) {
           emit(state.copyWith(status: ProjectSongsStatus.loaded, isOfflineMode: true));
         } else {
           emit(
@@ -76,10 +76,12 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
       }
     } catch (e) {
       // Jeśli mamy cache, pokaż go z błędem
-      if (state.songs.isNotEmpty) {
+      final cachedSongs = await _cacheStorage.getCachedSongs(projectId);
+      if (cachedSongs != null) {
         emit(
           state.copyWith(
             status: ProjectSongsStatus.loaded,
+            songs: cachedSongs,
             isOfflineMode: true,
             errorMessage: 'Błąd synchronizacji - używam danych offline',
           ),

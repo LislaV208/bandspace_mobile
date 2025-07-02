@@ -36,7 +36,7 @@ class SongDetailCubit extends Cubit<SongDetailState> {
       // 1. SPRAWDŹ CACHE PRZED POKAZANIEM LOADING
       final cachedSongDetail = await _cacheStorage.getCachedSongDetail(songId);
       final cachedFiles = await _cacheStorage.getCachedSongFiles(songId);
-      final hasCachedData = cachedSongDetail != null || (cachedFiles != null && cachedFiles.isNotEmpty);
+      final hasCachedData = cachedSongDetail != null || cachedFiles != null;
       
       print('SongDetailCubit: Pre-check - has cached data: $hasCachedData');
 
@@ -69,8 +69,8 @@ class SongDetailCubit extends Cubit<SongDetailState> {
         
         print('SongDetailCubit: Online mode, files expired: $filesExpired, detail expired: $detailExpired, files count: ${state.files.length}');
 
-        if (cacheExpired || state.files.isEmpty || state.songDetail == null) {
-          // Cache wygasł lub brak danych - pobierz z serwera
+        if (cacheExpired || !hasCachedData) {
+          // Cache wygasł lub brak cache - pobierz z serwera
           print('SongDetailCubit: Syncing with server');
           await _syncWithServer();
         } else {
@@ -80,7 +80,7 @@ class SongDetailCubit extends Cubit<SongDetailState> {
         }
       } else {
         // OFFLINE - użyj tylko cache
-        if (state.files.isNotEmpty || state.songDetail != null) {
+        if (hasCachedData) {
           emit(state.copyWith(status: SongDetailStatus.loaded, isOfflineMode: true));
         } else {
           emit(
@@ -94,10 +94,14 @@ class SongDetailCubit extends Cubit<SongDetailState> {
       }
     } catch (e) {
       // Jeśli mamy cache, pokaż go z błędem
-      if (state.files.isNotEmpty || state.songDetail != null) {
+      final cachedSongDetail = await _cacheStorage.getCachedSongDetail(songId);
+      final cachedFiles = await _cacheStorage.getCachedSongFiles(songId);
+      if (cachedSongDetail != null || cachedFiles != null) {
         emit(
           state.copyWith(
             status: SongDetailStatus.loaded,
+            songDetail: cachedSongDetail,
+            files: cachedFiles ?? [],
             isOfflineMode: true,
             errorMessage: 'Błąd synchronizacji - używam danych offline',
           ),
