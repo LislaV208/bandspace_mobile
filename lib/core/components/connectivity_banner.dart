@@ -79,6 +79,16 @@ class ConnectivityBanner extends StatelessWidget {
                             'Ostatnie połączenie: ${context.read<ConnectivityCubit>().getTimeSinceLastOnline()}',
                             style: TextStyle(color: textColor.withValues(alpha: 0.8), fontSize: 11),
                           ),
+                        if (state.isSyncing)
+                          Text(
+                            'Synchronizacja...',
+                            style: TextStyle(color: textColor.withValues(alpha: 0.8), fontSize: 11),
+                          )
+                        else if (state.lastSyncTime != null)
+                          Text(
+                            'Ostatnia sync: ${context.read<ConnectivityCubit>().getTimeSinceLastSync()}',
+                            style: TextStyle(color: textColor.withValues(alpha: 0.8), fontSize: 11),
+                          ),
                       ],
                     ),
                   ),
@@ -101,6 +111,26 @@ class ConnectivityBanner extends StatelessWidget {
                           child: Icon(Icons.refresh, size: 16, color: textColor),
                         ),
                       ),
+                  ] else if (state.isOnline && !state.isSyncing) ...[
+                    // Manual sync button when online
+                    InkWell(
+                      onTap: () => context.read<ConnectivityCubit>().triggerSync(),
+                      borderRadius: BorderRadius.circular(16),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(Icons.sync, size: 16, color: textColor),
+                      ),
+                    ),
+                  ] else if (state.isSyncing) ...[
+                    // Sync progress indicator
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(textColor),
+                      ),
+                    ),
                   ],
                 ],
               ),

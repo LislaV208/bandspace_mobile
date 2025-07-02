@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/api/api_client.dart';
+import 'package:bandspace_mobile/core/cubit/connectivity_cubit.dart';
 import 'package:bandspace_mobile/core/repositories/project_repository.dart';
 import 'package:bandspace_mobile/core/services/storage_service.dart';
-import 'package:bandspace_mobile/core/cubit/connectivity_cubit.dart';
 import 'package:bandspace_mobile/dashboard/cubit/dashboard_state.dart';
 
 /// Cubit zarządzający stanem ekranu dashboardu
@@ -24,9 +24,9 @@ class DashboardCubit extends Cubit<DashboardState> {
     required this.projectRepository,
     StorageService? storageService,
     required ConnectivityCubit connectivityCubit,
-  })  : _storageService = storageService ?? StorageService(),
-        _connectivityCubit = connectivityCubit,
-        super(const DashboardState());
+  }) : _storageService = storageService ?? StorageService(),
+       _connectivityCubit = connectivityCubit,
+       super(const DashboardState());
 
   @override
   Future<void> close() {
@@ -49,49 +49,43 @@ class DashboardCubit extends Cubit<DashboardState> {
 
       // 2. JEŚLI ONLINE - SPRAWDŹ CZY CACHE JEST AKTUALNY
       final isOnline = _connectivityCubit.state.isOnline;
-      
+
       if (isOnline) {
         final cacheExpired = await _storageService.isProjectsCacheExpired();
-        
+
         if (cacheExpired || state.projects.isEmpty) {
           // Cache wygasł lub brak danych - pobierz z serwera
           await _syncWithServer();
         } else {
           // Cache aktualny - ustaw jako loaded, ale nie offline
-          emit(state.copyWith(
-            status: DashboardStatus.loaded,
-            isOfflineMode: false,
-            lastSyncTime: DateTime.now(),
-          ));
+          emit(state.copyWith(status: DashboardStatus.loaded, isOfflineMode: false, lastSyncTime: DateTime.now()));
         }
       } else {
         // OFFLINE - użyj tylko cache
         if (state.projects.isNotEmpty) {
-          emit(state.copyWith(
-            status: DashboardStatus.loaded,
-            isOfflineMode: true,
-          ));
+          emit(state.copyWith(status: DashboardStatus.loaded, isOfflineMode: true));
         } else {
-          emit(state.copyWith(
-            status: DashboardStatus.error,
-            isOfflineMode: true,
-            errorMessage: 'Brak połączenia internetowego i brak danych offline',
-          ));
+          emit(
+            state.copyWith(
+              status: DashboardStatus.error,
+              isOfflineMode: true,
+              errorMessage: 'Brak połączenia internetowego i brak danych offline',
+            ),
+          );
         }
       }
     } catch (e) {
       // Jeśli mamy cache, pokaż go z błędem
       if (state.projects.isNotEmpty) {
-        emit(state.copyWith(
-          status: DashboardStatus.loaded,
-          isOfflineMode: true,
-          errorMessage: 'Błąd synchronizacji - używam danych offline',
-        ));
+        emit(
+          state.copyWith(
+            status: DashboardStatus.loaded,
+            isOfflineMode: true,
+            errorMessage: 'Błąd synchronizacji - używam danych offline',
+          ),
+        );
       } else {
-        emit(state.copyWith(
-          status: DashboardStatus.error,
-          errorMessage: 'Wystąpił błąd: $e',
-        ));
+        emit(state.copyWith(status: DashboardStatus.error, errorMessage: 'Wystąpił błąd: $e'));
       }
     }
   }
@@ -100,11 +94,13 @@ class DashboardCubit extends Cubit<DashboardState> {
   Future<void> _loadCachedProjects() async {
     final cachedProjects = await _storageService.getCachedProjects();
     if (cachedProjects != null && cachedProjects.isNotEmpty) {
-      emit(state.copyWith(
-        projects: cachedProjects,
-        status: DashboardStatus.loaded,
-        isOfflineMode: true, // Tymczasowo offline, może się zmieni
-      ));
+      emit(
+        state.copyWith(
+          projects: cachedProjects,
+          status: DashboardStatus.loaded,
+          isOfflineMode: true, // Tymczasowo offline, może się zmieni
+        ),
+      );
     }
   }
 
@@ -120,27 +116,21 @@ class DashboardCubit extends Cubit<DashboardState> {
       await _storageService.cacheProjects(projects);
 
       // Aktualizuj stan
-      emit(state.copyWith(
-        status: DashboardStatus.loaded,
-        projects: projects,
-        isOfflineMode: false,
-        lastSyncTime: DateTime.now(),
-        isSyncing: false,
-        errorMessage: null,
-      ));
+      emit(
+        state.copyWith(
+          status: DashboardStatus.loaded,
+          projects: projects,
+          isOfflineMode: false,
+          lastSyncTime: DateTime.now(),
+          isSyncing: false,
+          errorMessage: null,
+        ),
+      );
     } on ApiException catch (e) {
-      emit(state.copyWith(
-        isSyncing: false,
-        errorMessage: 'Błąd API: ${e.message}',
-        isOfflineMode: true,
-      ));
+      emit(state.copyWith(isSyncing: false, errorMessage: 'Błąd API: ${e.message}', isOfflineMode: true));
       rethrow;
     } catch (e) {
-      emit(state.copyWith(
-        isSyncing: false,
-        errorMessage: 'Błąd synchronizacji: $e',
-        isOfflineMode: true,
-      ));
+      emit(state.copyWith(isSyncing: false, errorMessage: 'Błąd synchronizacji: $e', isOfflineMode: true));
       rethrow;
     }
   }
@@ -148,9 +138,7 @@ class DashboardCubit extends Cubit<DashboardState> {
   /// Manualny sync (pull-to-refresh)
   Future<void> syncWithServer() async {
     if (!_connectivityCubit.state.isOnline) {
-      emit(state.copyWith(
-        errorMessage: 'Brak połączenia internetowego',
-      ));
+      emit(state.copyWith(errorMessage: 'Brak połączenia internetowego'));
       return;
     }
 

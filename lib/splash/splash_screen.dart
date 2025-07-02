@@ -7,6 +7,7 @@ import 'package:bandspace_mobile/auth/auth_screen.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/cubit/auth_state.dart';
 import 'package:bandspace_mobile/core/cubit/connectivity_cubit.dart';
+import 'package:bandspace_mobile/core/services/sync_service.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/dashboard/dashboard_screen.dart';
 
@@ -34,7 +35,9 @@ class _SplashScreenState extends State<SplashScreen> {
         // Gdy stan autentykacji zostanie ustalony, przekieruj do odpowiedniego ekranu
         if (state.isAuthStateInitialized) {
           if (state.user != null) {
-            // Użytkownik jest zalogowany, przekieruj do DashboardScreen
+            // Użytkownik jest zalogowany - trigger sync on app launch
+            SyncService.instance.syncOnAppLaunch();
+            // Przekieruj do DashboardScreen
             Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const DashboardScreen()));
           } else {
             // Użytkownik nie jest zalogowany, przekieruj do AuthScreen

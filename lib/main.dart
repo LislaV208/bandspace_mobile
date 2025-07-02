@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:bandspace_mobile/core/components/connectivity_banner.dart';
 import 'package:bandspace_mobile/core/config/env_config.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/cubit/connectivity_cubit.dart';
@@ -9,7 +10,6 @@ import 'package:bandspace_mobile/core/repositories/auth_repository.dart';
 import 'package:bandspace_mobile/core/repositories/project_repository.dart';
 import 'package:bandspace_mobile/core/repositories/user_repository.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
-import 'package:bandspace_mobile/core/components/connectivity_banner.dart';
 import 'package:bandspace_mobile/splash/splash_screen.dart';
 
 /// Główna funkcja uruchamiająca aplikację.
