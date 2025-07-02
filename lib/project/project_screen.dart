@@ -6,6 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:bandspace_mobile/core/models/project.dart';
 import 'package:bandspace_mobile/core/models/song.dart';
 import 'package:bandspace_mobile/core/repositories/project_repository.dart';
+import 'package:bandspace_mobile/core/cubit/connectivity_cubit.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/project/components/create_song_bottom_sheet.dart';
 import 'package:bandspace_mobile/project/screens/project_members_screen.dart';
@@ -26,8 +27,11 @@ class ProjectScreen extends StatefulWidget {
   /// Statyczna metoda do tworzenia ekranu z odpowiednim providerem
   static Widget create(Project project) {
     return BlocProvider(
-      create:
-          (context) => ProjectSongsCubit(projectRepository: ProjectRepository(), projectId: project.id)..loadSongs(),
+      create: (context) => ProjectSongsCubit(
+        projectRepository: ProjectRepository(),
+        projectId: project.id,
+        connectivityCubit: context.read<ConnectivityCubit>(),
+      )..loadSongs(),
       child: ProjectScreen(project: project),
     );
   }

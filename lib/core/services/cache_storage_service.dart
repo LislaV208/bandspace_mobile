@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:bandspace_mobile/core/models/project.dart';
 import 'package:bandspace_mobile/core/models/song.dart';
+import 'package:bandspace_mobile/core/models/song_file.dart';
 
 /// Klucze używane do przechowywania danych cache
 class CacheStorageKeys {
@@ -18,6 +19,10 @@ class CacheStorageKeys {
   // Songs cache (per project)
   static String songsCacheKey(int projectId) => 'songs_cache_$projectId';
   static String songsTimestampKey(int projectId) => 'songs_timestamp_$projectId';
+  
+  // Song files cache (per song)
+  static String songFilesCacheKey(int songId) => 'song_files_cache_$songId';
+  static String songFilesTimestampKey(int songId) => 'song_files_timestamp_$songId';
 }
 
 /// Serwis odpowiedzialny za cache'owanie danych aplikacji.
@@ -115,6 +120,47 @@ class CacheStorageService {
     return await isCacheExpired(timestampKey, ttl: ttl);
   }
 
+  // =============== SONG FILES CACHE ===============
+
+  /// Zapisuje pliki dla konkretnego utworu
+  Future<void> cacheSongFiles(int songId, List<SongFile> files) async {
+    final filesJson = jsonEncode(files.map((f) => f.toJson()).toList());
+    final cacheKey = CacheStorageKeys.songFilesCacheKey(songId);
+    final timestampKey = CacheStorageKeys.songFilesTimestampKey(songId);
+    
+    await _storage.write(key: cacheKey, value: filesJson);
+    await _setCacheTimestamp(timestampKey);
+  }
+
+  /// Odczytuje pliki dla konkretnego utworu
+  Future<List<SongFile>?> getCachedSongFiles(int songId) async {
+    final cacheKey = CacheStorageKeys.songFilesCacheKey(songId);
+    final filesJson = await _storage.read(key: cacheKey);
+    if (filesJson == null) return null;
+
+    try {
+      final List<dynamic> filesList = jsonDecode(filesJson);
+      return filesList.map((json) => SongFile.fromJson(json)).toList();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Usuwa cache plików dla konkretnego utworu
+  Future<void> clearSongFilesCache(int songId) async {
+    final cacheKey = CacheStorageKeys.songFilesCacheKey(songId);
+    final timestampKey = CacheStorageKeys.songFilesTimestampKey(songId);
+    
+    await _storage.delete(key: cacheKey);
+    await _storage.delete(key: timestampKey);
+  }
+
+  /// Sprawdza czy cache plików utworu wygasł
+  Future<bool> isSongFilesCacheExpired(int songId, {Duration? ttl}) async {
+    final timestampKey = CacheStorageKeys.songFilesTimestampKey(songId);
+    return await isCacheExpired(timestampKey, ttl: ttl);
+  }
+
   // =============== CACHE TIMESTAMP MANAGEMENT ===============
 
   /// Zapisuje timestamp cache'a
@@ -160,10 +206,13 @@ class CacheStorageService {
     // Clear projects cache
     await clearProjectsCache();
     
-    // Clear all songs cache (iterate through all keys)
+    // Clear all songs and song files cache (iterate through all keys)
     final allKeys = await _storage.readAll();
     for (final key in allKeys.keys) {
-      if (key.startsWith('songs_cache_') || key.startsWith('songs_timestamp_')) {
+      if (key.startsWith('songs_cache_') || 
+          key.startsWith('songs_timestamp_') ||
+          key.startsWith('song_files_cache_') ||
+          key.startsWith('song_files_timestamp_')) {
         await _storage.delete(key: key);
       }
     }

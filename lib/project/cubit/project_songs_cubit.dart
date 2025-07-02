@@ -3,42 +3,131 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bandspace_mobile/core/api/api_client.dart';
 import 'package:bandspace_mobile/core/models/song.dart';
 import 'package:bandspace_mobile/core/repositories/project_repository.dart';
+import 'package:bandspace_mobile/core/services/cache_storage_service.dart';
+import 'package:bandspace_mobile/core/cubit/connectivity_cubit.dart';
 import 'package:bandspace_mobile/project/cubit/project_songs_state.dart';
 
 /// Cubit zarządzający stanem utworów projektu
 class ProjectSongsCubit extends Cubit<ProjectSongsState> {
   final ProjectRepository projectRepository;
+  final CacheStorageService _cacheStorage;
+  final ConnectivityCubit _connectivityCubit;
   final int projectId;
 
   ProjectSongsCubit({
     required this.projectRepository,
     required this.projectId,
-  }) : super(const ProjectSongsState());
+    CacheStorageService? cacheStorage,
+    required ConnectivityCubit connectivityCubit,
+  }) : _cacheStorage = cacheStorage ?? CacheStorageService(),
+       _connectivityCubit = connectivityCubit,
+       super(const ProjectSongsState());
 
-  /// Pobiera listę utworów dla projektu
+  /// Pobiera listę utworów dla projektu (offline-first strategy)
   Future<void> loadSongs() async {
     if (state.status == ProjectSongsStatus.loading) return;
 
     emit(state.copyWith(status: ProjectSongsStatus.loading, errorMessage: null));
 
     try {
-      final songs = await projectRepository.getProjectSongs(projectId);
-      emit(state.copyWith(status: ProjectSongsStatus.loaded, songs: songs));
-    } on ApiException catch (e) {
-      emit(
-        state.copyWith(
-          status: ProjectSongsStatus.error,
-          errorMessage: 'Błąd podczas pobierania utworów: ${e.message}',
-        ),
-      );
+      // 1. ZAWSZE NAJPIERW SPRAWDŹ CACHE
+      await _loadCachedSongs();
+
+      // 2. JEŚLI ONLINE - SPRAWDŹ CZY CACHE JEST AKTUALNY
+      final isOnline = _connectivityCubit.state.isOnline;
+
+      if (isOnline) {
+        final cacheExpired = await _cacheStorage.isSongsCacheExpired(projectId);
+
+        if (cacheExpired || state.songs.isEmpty) {
+          // Cache wygasł lub brak danych - pobierz z serwera
+          await _syncWithServer();
+        } else {
+          // Cache aktualny - ustaw jako loaded
+          emit(state.copyWith(status: ProjectSongsStatus.loaded, isOfflineMode: false));
+        }
+      } else {
+        // OFFLINE - użyj tylko cache
+        if (state.songs.isNotEmpty) {
+          emit(state.copyWith(status: ProjectSongsStatus.loaded, isOfflineMode: true));
+        } else {
+          emit(
+            state.copyWith(
+              status: ProjectSongsStatus.error,
+              isOfflineMode: true,
+              errorMessage: 'Brak połączenia internetowego i brak danych offline',
+            ),
+          );
+        }
+      }
     } catch (e) {
+      // Jeśli mamy cache, pokaż go z błędem
+      if (state.songs.isNotEmpty) {
+        emit(
+          state.copyWith(
+            status: ProjectSongsStatus.loaded,
+            isOfflineMode: true,
+            errorMessage: 'Błąd synchronizacji - używam danych offline',
+          ),
+        );
+      } else {
+        emit(state.copyWith(status: ProjectSongsStatus.error, errorMessage: 'Wystąpił błąd: $e'));
+      }
+    }
+  }
+
+  /// Ładuje utwory z lokalnego cache
+  Future<void> _loadCachedSongs() async {
+    final cachedSongs = await _cacheStorage.getCachedSongs(projectId);
+    if (cachedSongs != null && cachedSongs.isNotEmpty) {
       emit(
         state.copyWith(
-          status: ProjectSongsStatus.error,
-          errorMessage: 'Wystąpił nieoczekiwany błąd: $e',
+          songs: cachedSongs,
+          status: ProjectSongsStatus.loaded,
+          isOfflineMode: true, // Tymczasowo offline, może się zmieni
         ),
       );
     }
+  }
+
+  /// Synchronizuje dane z serwerem i cache'uje
+  Future<void> _syncWithServer() async {
+    emit(state.copyWith(isSyncing: true));
+
+    try {
+      // Pobierz z API
+      final songs = await projectRepository.getProjectSongs(projectId);
+
+      // Zapisz w cache
+      await _cacheStorage.cacheSongs(projectId, songs);
+
+      // Aktualizuj stan
+      emit(
+        state.copyWith(
+          status: ProjectSongsStatus.loaded,
+          songs: songs,
+          isOfflineMode: false,
+          isSyncing: false,
+          errorMessage: null,
+        ),
+      );
+    } on ApiException catch (e) {
+      emit(state.copyWith(isSyncing: false, errorMessage: 'Błąd API: ${e.message}', isOfflineMode: true));
+      rethrow;
+    } catch (e) {
+      emit(state.copyWith(isSyncing: false, errorMessage: 'Błąd synchronizacji: $e', isOfflineMode: true));
+      rethrow;
+    }
+  }
+
+  /// Manualny sync (pull-to-refresh)
+  Future<void> syncWithServer() async {
+    if (!_connectivityCubit.state.isOnline) {
+      emit(state.copyWith(errorMessage: 'Brak połączenia internetowego'));
+      return;
+    }
+
+    await _syncWithServer();
   }
 
   /// Tworzy nowy utwór

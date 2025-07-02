@@ -10,6 +10,8 @@ class ProjectSongsState {
   final String? errorMessage;
   final bool isCreatingSong;
   final bool isDeletingSong;
+  final bool isOfflineMode;
+  final bool isSyncing;
 
   const ProjectSongsState({
     this.status = ProjectSongsStatus.initial,
@@ -17,6 +19,8 @@ class ProjectSongsState {
     this.errorMessage,
     this.isCreatingSong = false,
     this.isDeletingSong = false,
+    this.isOfflineMode = false,
+    this.isSyncing = false,
   });
 
   /// Metoda copyWith umożliwiająca tworzenie nowej instancji z wybranymi zmianami
@@ -26,6 +30,8 @@ class ProjectSongsState {
     String? errorMessage,
     bool? isCreatingSong,
     bool? isDeletingSong,
+    bool? isOfflineMode,
+    bool? isSyncing,
   }) {
     return ProjectSongsState(
       status: status ?? this.status,
@@ -33,6 +39,8 @@ class ProjectSongsState {
       errorMessage: errorMessage,
       isCreatingSong: isCreatingSong ?? this.isCreatingSong,
       isDeletingSong: isDeletingSong ?? this.isDeletingSong,
+      isOfflineMode: isOfflineMode ?? this.isOfflineMode,
+      isSyncing: isSyncing ?? this.isSyncing,
     );
   }
 
@@ -44,11 +52,13 @@ class ProjectSongsState {
         other.songs == songs &&
         other.errorMessage == errorMessage &&
         other.isCreatingSong == isCreatingSong &&
-        other.isDeletingSong == isDeletingSong;
+        other.isDeletingSong == isDeletingSong &&
+        other.isOfflineMode == isOfflineMode &&
+        other.isSyncing == isSyncing;
   }
 
   @override
   int get hashCode {
-    return Object.hash(status, songs, errorMessage, isCreatingSong, isDeletingSong);
+    return Object.hash(status, songs, errorMessage, isCreatingSong, isDeletingSong, isOfflineMode, isSyncing);
   }
 }

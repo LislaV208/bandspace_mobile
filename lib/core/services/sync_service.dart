@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bandspace_mobile/core/repositories/project_repository.dart';
+import 'package:bandspace_mobile/core/repositories/song_repository.dart';
 import 'package:bandspace_mobile/core/services/cache_storage_service.dart';
 import 'package:bandspace_mobile/core/services/connectivity_service.dart';
 
@@ -46,6 +47,7 @@ class SyncService {
   SyncService._internal();
 
   final ProjectRepository _projectRepository = ProjectRepository();
+  final SongRepository _songRepository = SongRepository();
   final CacheStorageService _cacheStorage = CacheStorageService();
   final ConnectivityService _connectivityService = ConnectivityService();
 
@@ -166,6 +168,58 @@ class SyncService {
       
     } catch (e) {
       return SyncResult.failure('Błąd synchronizacji projektu $projectId: $e');
+    }
+  }
+
+  /// Synchronizacja plików pojedynczego utworu
+  Future<SyncResult> syncSongFiles(int songId) async {
+    try {
+      // Pobierz pliki utworu z API
+      final files = await _songRepository.getSongFiles(songId);
+      
+      // Cache plików
+      await _cacheStorage.cacheSongFiles(songId, files);
+      
+      return SyncResult.success(details: {'count': files.length});
+      
+    } catch (e) {
+      return SyncResult.failure('Błąd synchronizacji plików utworu $songId: $e');
+    }
+  }
+
+  /// Inteligentny sync - cache tylko dla odwiedzanych ekranów
+  Future<SyncResult> smartSync() async {
+    try {
+      final Map<String, dynamic> syncDetails = {};
+      
+      // 1. Sync wszystkich projektów (zawsze)
+      final projectsResult = await syncProjects();
+      syncDetails['projects'] = projectsResult.details;
+      
+      if (!projectsResult.success) {
+        return SyncResult.failure('Błąd sync projektów: ${projectsResult.error}', details: syncDetails);
+      }
+
+      // 2. Sync songs tylko dla projektów które są już w cache 
+      //    (oznacza że użytkownik je odwiedził)
+      final cachedProjects = await _cacheStorage.getCachedProjects();
+      if (cachedProjects != null) {
+        int totalSongs = 0;
+        for (final project in cachedProjects) {
+          // Sprawdź czy project ma już cached songs (był odwiedzony)
+          final existingSongs = await _cacheStorage.getCachedSongs(project.id);
+          if (existingSongs != null) {
+            final songsResult = await syncProject(project.id);
+            totalSongs += songsResult.details['count'] as int? ?? 0;
+          }
+        }
+        syncDetails['songs'] = {'totalCount': totalSongs};
+      }
+
+      return SyncResult.success(details: syncDetails);
+      
+    } catch (e) {
+      return SyncResult.failure('Błąd smart sync: $e');
     }
   }
 

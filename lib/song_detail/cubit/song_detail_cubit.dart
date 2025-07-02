@@ -6,11 +6,15 @@ import 'package:bandspace_mobile/core/api/api_client.dart';
 import 'package:bandspace_mobile/core/models/song_detail.dart';
 import 'package:bandspace_mobile/core/models/song_file.dart';
 import 'package:bandspace_mobile/core/repositories/song_repository.dart';
+import 'package:bandspace_mobile/core/services/cache_storage_service.dart';
+import 'package:bandspace_mobile/core/cubit/connectivity_cubit.dart';
 import 'package:bandspace_mobile/song_detail/cubit/song_detail_state.dart';
 
 /// Cubit zarządzający stanem ekranu szczegółów utworu
 class SongDetailCubit extends Cubit<SongDetailState> {
   final SongRepository songRepository;
+  final CacheStorageService _cacheStorage;
+  final ConnectivityCubit _connectivityCubit;
   final int projectId;
   final int songId;
 
@@ -18,9 +22,13 @@ class SongDetailCubit extends Cubit<SongDetailState> {
     required this.songRepository,
     required this.projectId,
     required this.songId,
-  }) : super(const SongDetailState());
+    CacheStorageService? cacheStorage,
+    required ConnectivityCubit connectivityCubit,
+  }) : _cacheStorage = cacheStorage ?? CacheStorageService(),
+       _connectivityCubit = connectivityCubit,
+       super(const SongDetailState());
 
-  /// Ładuje szczegóły utworu wraz z listą plików
+  /// Ładuje szczegóły utworu wraz z listą plików (offline-first strategy)
   Future<void> loadSongDetail() async {
     if (state.status == SongDetailStatus.loading) return;
 
@@ -28,6 +36,71 @@ class SongDetailCubit extends Cubit<SongDetailState> {
       status: SongDetailStatus.loading,
       errorMessage: null,
     ));
+
+    try {
+      // 1. ZAWSZE NAJPIERW SPRAWDŹ CACHE PLIKÓW
+      await _loadCachedFiles();
+
+      // 2. JEŚLI ONLINE - SPRAWDŹ CZY CACHE JEST AKTUALNY
+      final isOnline = _connectivityCubit.state.isOnline;
+
+      if (isOnline) {
+        final cacheExpired = await _cacheStorage.isSongFilesCacheExpired(songId);
+
+        if (cacheExpired || state.files.isEmpty) {
+          // Cache wygasł lub brak danych - pobierz z serwera
+          await _syncWithServer();
+        } else {
+          // Cache aktualny - ustaw jako loaded
+          emit(state.copyWith(status: SongDetailStatus.loaded, isOfflineMode: false));
+        }
+      } else {
+        // OFFLINE - użyj tylko cache
+        if (state.files.isNotEmpty) {
+          emit(state.copyWith(status: SongDetailStatus.loaded, isOfflineMode: true));
+        } else {
+          emit(
+            state.copyWith(
+              status: SongDetailStatus.error,
+              isOfflineMode: true,
+              errorMessage: 'Brak połączenia internetowego i brak danych offline',
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Jeśli mamy cache, pokaż go z błędem
+      if (state.files.isNotEmpty) {
+        emit(
+          state.copyWith(
+            status: SongDetailStatus.loaded,
+            isOfflineMode: true,
+            errorMessage: 'Błąd synchronizacji - używam danych offline',
+          ),
+        );
+      } else {
+        emit(state.copyWith(status: SongDetailStatus.error, errorMessage: 'Wystąpił błąd: $e'));
+      }
+    }
+  }
+
+  /// Ładuje pliki z lokalnego cache
+  Future<void> _loadCachedFiles() async {
+    final cachedFiles = await _cacheStorage.getCachedSongFiles(songId);
+    if (cachedFiles != null && cachedFiles.isNotEmpty) {
+      emit(
+        state.copyWith(
+          files: cachedFiles,
+          status: SongDetailStatus.loaded,
+          isOfflineMode: true, // Tymczasowo offline, może się zmieni
+        ),
+      );
+    }
+  }
+
+  /// Synchronizuje dane z serwerem i cache'uje
+  Future<void> _syncWithServer() async {
+    emit(state.copyWith(isSyncing: true));
 
     try {
       // Równoległe ładowanie szczegółów utworu i plików
@@ -39,22 +112,37 @@ class SongDetailCubit extends Cubit<SongDetailState> {
       final songDetail = results[0] as SongDetail;
       final files = results[1] as List<SongFile>;
 
-      emit(state.copyWith(
-        status: SongDetailStatus.loaded,
-        songDetail: songDetail,
-        files: files,
-      ));
+      // Zapisz w cache
+      await _cacheStorage.cacheSongFiles(songId, files);
+
+      // Aktualizuj stan
+      emit(
+        state.copyWith(
+          status: SongDetailStatus.loaded,
+          songDetail: songDetail,
+          files: files,
+          isOfflineMode: false,
+          isSyncing: false,
+          errorMessage: null,
+        ),
+      );
     } on ApiException catch (e) {
-      emit(state.copyWith(
-        status: SongDetailStatus.error,
-        errorMessage: 'Błąd podczas ładowania utworu: ${e.message}',
-      ));
+      emit(state.copyWith(isSyncing: false, errorMessage: 'Błąd API: ${e.message}', isOfflineMode: true));
+      rethrow;
     } catch (e) {
-      emit(state.copyWith(
-        status: SongDetailStatus.error,
-        errorMessage: 'Wystąpił nieoczekiwany błąd: $e',
-      ));
+      emit(state.copyWith(isSyncing: false, errorMessage: 'Błąd synchronizacji: $e', isOfflineMode: true));
+      rethrow;
     }
+  }
+
+  /// Manualny sync (pull-to-refresh)
+  Future<void> syncWithServer() async {
+    if (!_connectivityCubit.state.isOnline) {
+      emit(state.copyWith(errorMessage: 'Brak połączenia internetowego'));
+      return;
+    }
+
+    await _syncWithServer();
   }
 
   /// Odświeża listę plików

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:bandspace_mobile/core/cubit/connectivity_cubit.dart';
 import 'package:bandspace_mobile/core/models/song.dart';
 import 'package:bandspace_mobile/core/models/song_file.dart';
 import 'package:bandspace_mobile/core/repositories/song_repository.dart';
@@ -33,9 +34,12 @@ class SongDetailScreen extends StatefulWidget {
       providers: [
         BlocProvider(
           create:
-              (context) =>
-                  SongDetailCubit(songRepository: SongRepository(), projectId: projectId, songId: songId)
-                    ..loadSongDetail(),
+              (context) => SongDetailCubit(
+                songRepository: SongRepository(),
+                projectId: projectId,
+                songId: songId,
+                connectivityCubit: context.read<ConnectivityCubit>(),
+              )..loadSongDetail(),
         ),
         BlocProvider(create: (context) => AudioPlayerCubit(songRepository: SongRepository(), songId: songId)),
       ],
@@ -151,15 +155,18 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
                       isPlayingOffline: playerState.isPlayingOffline,
                       cacheStatus: playerState.currentFileCacheStatus,
                       downloadProgress: playerState.currentFileDownloadProgress,
-                      onDownload: playerState.currentFile != null 
-                          ? () => context.read<AudioPlayerCubit>().downloadForOffline(playerState.currentFile!)
-                          : null,
-                      onCancelDownload: playerState.currentFile != null 
-                          ? () => context.read<AudioPlayerCubit>().cancelDownload(playerState.currentFile!.fileId)
-                          : null,
-                      onRemoveFromCache: playerState.currentFile != null 
-                          ? () => context.read<AudioPlayerCubit>().removeFromCache(playerState.currentFile!)
-                          : null,
+                      onDownload:
+                          playerState.currentFile != null
+                              ? () => context.read<AudioPlayerCubit>().downloadForOffline(playerState.currentFile!)
+                              : null,
+                      onCancelDownload:
+                          playerState.currentFile != null
+                              ? () => context.read<AudioPlayerCubit>().cancelDownload(playerState.currentFile!.fileId)
+                              : null,
+                      onRemoveFromCache:
+                          playerState.currentFile != null
+                              ? () => context.read<AudioPlayerCubit>().removeFromCache(playerState.currentFile!)
+                              : null,
                       // Smart caching mode - transparentne cache'owanie
                       showManualControls: false, // Ukryj manual download controls
                       showDetailedStatus: false, // Dyskretne status indicators

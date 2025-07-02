@@ -38,6 +38,8 @@ class SongDetailState {
   final FileUploadStatus uploadStatus;
   final double uploadProgress;
   final String? uploadError;
+  final bool isOfflineMode;
+  final bool isSyncing;
 
   const SongDetailState({
     this.status = SongDetailStatus.initial,
@@ -50,6 +52,8 @@ class SongDetailState {
     this.uploadStatus = FileUploadStatus.idle,
     this.uploadProgress = 0.0,
     this.uploadError,
+    this.isOfflineMode = false,
+    this.isSyncing = false,
   });
 
   SongDetailState copyWith({
@@ -63,6 +67,8 @@ class SongDetailState {
     FileUploadStatus? uploadStatus,
     double? uploadProgress,
     String? uploadError,
+    bool? isOfflineMode,
+    bool? isSyncing,
   }) {
     return SongDetailState(
       status: status ?? this.status,
@@ -75,6 +81,8 @@ class SongDetailState {
       uploadStatus: uploadStatus ?? this.uploadStatus,
       uploadProgress: uploadProgress ?? this.uploadProgress,
       uploadError: uploadError,
+      isOfflineMode: isOfflineMode ?? this.isOfflineMode,
+      isSyncing: isSyncing ?? this.isSyncing,
     );
   }
 
@@ -91,7 +99,9 @@ class SongDetailState {
         other.isUpdatingSong == isUpdatingSong &&
         other.uploadStatus == uploadStatus &&
         other.uploadProgress == uploadProgress &&
-        other.uploadError == uploadError;
+        other.uploadError == uploadError &&
+        other.isOfflineMode == isOfflineMode &&
+        other.isSyncing == isSyncing;
   }
 
   @override
@@ -107,6 +117,8 @@ class SongDetailState {
       uploadStatus,
       uploadProgress,
       uploadError,
+      isOfflineMode,
+      isSyncing,
     );
   }
 
