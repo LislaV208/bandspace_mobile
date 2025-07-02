@@ -10,6 +10,7 @@ import 'package:bandspace_mobile/core/components/user_drawer.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/cubit/auth_state.dart';
 import 'package:bandspace_mobile/core/models/user.dart';
+import 'package:bandspace_mobile/core/repositories/project_repository.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/dashboard/components/create_project_bottom_sheet.dart';
 import 'package:bandspace_mobile/dashboard/components/dashboard_project_card.dart';
@@ -43,9 +44,15 @@ class DashboardScreen extends StatelessWidget {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
 
-        // Użyj globalnego DashboardCubit z main.dart i dodaj UserInvitationsCubit
-        return BlocProvider(
-          create: (context) => UserInvitationsCubit(invitationApi: InvitationApi())..loadUserInvitations(),
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (context) => DashboardCubit(projectRepository: context.read<ProjectRepository>())..loadProjects(),
+            ),
+            BlocProvider(
+              create: (context) => UserInvitationsCubit(invitationApi: InvitationApi())..loadUserInvitations(),
+            ),
+          ],
           child: _buildDashboardContent(context, user),
         );
       },

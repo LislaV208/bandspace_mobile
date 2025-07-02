@@ -244,7 +244,7 @@ class AuthCubit extends Cubit<AuthState> {
       }
     }
 
-    emit(state.copyWith(isLoading: false, errorMessage: Value(errorMessage)));
+    emit(const AuthState().copyWith(errorMessage: Value(errorMessage)));
   }
 
   /// Aktualizuje dane użytkownika w stanie autoryzacji
