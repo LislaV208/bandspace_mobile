@@ -209,6 +209,9 @@ class SongDetailCubit extends Cubit<SongDetailState> {
         fileOperationStatus: FileOperationStatus.success,
         files: updatedFiles,
       ));
+      
+      // Aktualizuj cache po usunięciu pliku
+      await _cacheStorage.cacheSongFiles(songId, updatedFiles);
     } on ApiException catch (e) {
       emit(state.copyWith(
         fileOperationStatus: FileOperationStatus.error,
@@ -252,6 +255,9 @@ class SongDetailCubit extends Cubit<SongDetailState> {
         isUpdatingSong: false,
         songDetail: updatedSong,
       ));
+      
+      // Aktualizuj cache po modyfikacji utworu
+      await _cacheStorage.cacheSongDetail(songId, updatedSong);
     } on ApiException catch (e) {
       emit(state.copyWith(
         isUpdatingSong: false,
@@ -364,6 +370,9 @@ class SongDetailCubit extends Cubit<SongDetailState> {
         files: updatedFiles,
         uploadProgress: 1.0,
       ));
+      
+      // Aktualizuj cache po dodaniu pliku
+      await _cacheStorage.cacheSongFiles(songId, updatedFiles);
     } on ApiException catch (e) {
       emit(state.copyWith(
         uploadStatus: FileUploadStatus.error,

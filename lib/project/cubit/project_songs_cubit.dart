@@ -146,6 +146,9 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
 
       final updatedSongs = [newSong, ...state.songs];
       emit(state.copyWith(isCreatingSong: false, songs: updatedSongs));
+      
+      // Aktualizuj cache po utworzeniu utworu
+      await _cacheStorage.cacheSongs(projectId, updatedSongs);
     } on ApiException catch (e) {
       emit(state.copyWith(isCreatingSong: false, errorMessage: 'Błąd podczas tworzenia utworu: ${e.message}'));
     } catch (e) {
@@ -162,6 +165,9 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
 
       final updatedSongs = state.songs.where((s) => s.id != song.id).toList();
       emit(state.copyWith(isDeletingSong: false, songs: updatedSongs));
+      
+      // Aktualizuj cache po usunięciu utworu
+      await _cacheStorage.cacheSongs(projectId, updatedSongs);
     } on ApiException catch (e) {
       emit(state.copyWith(isDeletingSong: false, errorMessage: 'Błąd podczas usuwania utworu: ${e.message}'));
     } catch (e) {
