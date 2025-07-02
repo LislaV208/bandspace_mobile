@@ -108,10 +108,11 @@ class SessionStorageService {
 
   /// Usuwa wszystkie dane sesji
   Future<void> clearSession() async {
-    await _storage.delete(key: SessionStorageKeys.accessToken);
-    await _storage.delete(key: SessionStorageKeys.refreshToken);
-    await _storage.delete(key: SessionStorageKeys.user);
-    await _storage.delete(key: SessionStorageKeys.session);
+    await _storage.deleteAll();
+    // await _storage.delete(key: SessionStorageKeys.accessToken);
+    // await _storage.delete(key: SessionStorageKeys.refreshToken);
+    // await _storage.delete(key: SessionStorageKeys.user);
+    // await _storage.delete(key: SessionStorageKeys.session);
   }
 
   /// Usuwa wszystkie dane sesji (alias dla clearSession)
