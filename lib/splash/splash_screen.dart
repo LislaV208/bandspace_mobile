@@ -6,12 +6,25 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:bandspace_mobile/auth/auth_screen.dart';
 import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/core/cubit/auth_state.dart';
+import 'package:bandspace_mobile/core/cubit/connectivity_cubit.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/dashboard/dashboard_screen.dart';
 
 /// Ekran ładowania wyświetlany podczas sprawdzania stanu logowania użytkownika.
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize connectivity monitoring
+    context.read<ConnectivityCubit>().initialize();
+  }
 
   @override
   Widget build(BuildContext context) {

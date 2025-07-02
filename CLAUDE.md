@@ -187,3 +187,198 @@ AppTextStyles.caption           → Theme.of(context).textTheme.bodySmall
 - **State management**: Each feature has its own Cubit in `[feature]/cubit/`
 - **API client**: `lib/core/api/api_client.dart` - Singleton HTTP client
 - **Models**: `lib/core/models/` - Data models with JSON serialization
+
+---
+
+## Offline Mode Feature Implementation
+
+**Status**: Planned - Implementation Ready
+
+### Overview
+Offline mode functionality allows users to access core application features without internet connection. Users can view cached projects, songs, and play downloaded audio files. A global offline indicator informs users about their connection status across all screens.
+
+### Architecture Analysis Results
+
+**Current State:**
+- ✅ **AuthCubit**: Already implements local session storage via `StorageService`
+- ✅ **StorageService**: Uses `FlutterSecureStorage` for tokens and user data
+- ✅ **Audio System**: Fully functional with `AudioPlayerCubit` and `audioplayers` library
+- ❌ **Project/Song Cache**: No local storage for projects or songs
+- ❌ **Connectivity Monitoring**: No connection state management
+- ❌ **Audio File Cache**: No offline audio file storage
+
+**Key Models with JSON Serialization:**
+- `User`, `Project`, `Song`, `SongDetail`, `SongFile` - All ready for caching
+- `Session` - Already cached in secure storage
+- `AudioFileInfo` - Contains metadata for audio files
+
+### Implementation Plan
+
+#### **Phase 1: Core Offline Infrastructure (1-2 weeks)**
+1. **Connectivity Management**
+   - Add `connectivity_plus` dependency
+   - Create `ConnectivityService` for network monitoring
+   - Implement `ConnectivityCubit` for global state management
+   - Add global offline indicator UI component
+
+2. **Data Storage Enhancement**
+   - Extend `StorageService` with project/song caching
+   - Add cache TTL (Time To Live) management
+   - Implement offline-first strategy in `DashboardCubit`
+
+#### **Phase 2: Audio File Caching (2-3 weeks)**
+1. **Audio Cache Service**
+   - Create `AudioCacheService` for file management
+   - Add selective download functionality
+   - Implement cache size management and cleanup
+   - Modify `AudioPlayerCubit` for offline playback
+
+2. **User Interface**
+   - Add download indicators to song files
+   - Create offline settings screen
+   - Implement download progress UI
+   - Add cache management interface
+
+#### **Phase 3: Synchronization & Optimization (1-2 weeks)**
+1. **Background Sync**
+   - Auto-sync when connection returns
+   - Implement pull-to-refresh with sync
+   - Add conflict resolution strategies
+
+2. **Performance Optimization**
+   - Smart cache strategies (LRU, most played)
+   - Background download management
+   - Storage optimization
+
+### Technical Implementation Details
+
+#### **New Dependencies:**
+```yaml
+connectivity_plus: ^8.0.2    # Network monitoring
+path_provider: ^2.1.4        # File paths
+dio_cache_interceptor: ^4.0.0 # HTTP cache
+sqflite: ^2.3.3              # Local database
+permission_handler: ^11.3.1   # Storage permissions
+```
+
+#### **New Services Architecture:**
+```
+lib/core/services/
+├── connectivity_service.dart  # Network monitoring
+├── offline_service.dart       # Offline state management
+├── audio_cache_service.dart   # Audio file caching
+└── storage_service.dart       # Extended for projects/songs
+```
+
+#### **UI Components:**
+```
+lib/core/components/
+├── connectivity_banner.dart   # Global offline indicator
+├── offline_indicator.dart     # Connection status widget
+├── download_button.dart       # File download control
+└── cache_size_indicator.dart  # Storage usage display
+```
+
+### Backend API Enhancements
+
+#### **Proposed New Endpoints:**
+```typescript
+// Bulk sync - all user data in one request
+GET /api/sync/user-data
+Response: { user: User, projects: Project[], songs: Song[], lastModified: timestamp }
+
+// Delta sync - only changes since timestamp
+GET /api/sync/delta?since=timestamp
+Response: { modified: {...}, deleted: {...} }
+
+// Metadata-only endpoints (without download URLs)
+GET /api/songs/{songId}/files/metadata
+Response: SongFile[] // Metadata only, no streaming URLs
+```
+
+### Cache Strategy Options
+
+#### **For Projects/Songs (Metadata):**
+- **Auto-cache**: All user projects cached automatically
+- **Size**: ~1-5 KB per project, ~0.5-2 KB per song
+- **TTL**: 24 hours, refresh on app launch when online
+
+#### **For Audio Files:**
+- **Selective Download**: User chooses which files to cache offline
+- **Smart Cache**: Auto-cache recently/frequently played files
+- **Full Project**: Download all files from a project
+- **Size Limits**: 1-5 GB configurable cache size
+
+### Global Offline Indicator
+
+**Implementation Options:**
+- **Option A**: Top banner overlay (recommended)
+- **Option B**: Status bar modification
+- **Option C**: Persistent SnackBar
+
+**Display Logic:**
+- Show when offline and cached data is being used
+- Hide when online or when no cached data available
+- Include sync status (syncing, sync failed, last sync time)
+
+### Storage Management
+
+**Cache Size Estimates:**
+- Projects metadata: ~50-100 KB total
+- Songs metadata: ~100-500 KB total  
+- Audio files: 3-50 MB per file
+- Target total cache: 1-5 GB (user configurable)
+
+**Cleanup Strategy:**
+- LRU (Least Recently Used) for audio files
+- Manual cleanup options for users
+- Auto-cleanup when storage limits exceeded
+
+### User Experience Considerations
+
+**Polish Language UI:**
+- "Tryb offline" - offline mode indicator
+- "Pobierz offline" - download for offline
+- "Synchronizacja..." - syncing status
+- "Brak połączenia internetowego" - no internet connection
+
+**Visual Indicators:**
+- Offline icon in global banner
+- Download/cached icons next to songs
+- Progress indicators for downloads
+- Storage usage in settings
+
+### Performance Considerations
+
+**Memory Management:**
+- Lazy loading of cached data
+- Efficient JSON serialization
+- Background processing for sync operations
+
+**Battery Optimization:**
+- Background sync only when charging (optional)
+- Efficient connectivity monitoring
+- Smart download scheduling
+
+### Development Notes
+
+**Testing Strategy:**
+- Mock network conditions (online/offline)
+- Test cache invalidation scenarios
+- Verify storage cleanup functionality
+- Test large file downloads
+
+**Monitoring:**
+- Cache hit/miss ratios
+- Download success rates
+- Storage usage patterns
+- Sync performance metrics
+
+**Security:**
+- Secure storage for cached authentication data
+- Encrypted local database for sensitive information
+- Proper cleanup on logout
+
+---
+
+**Implementation Status**: Ready to begin - see `OFFLINE_DEVELOPMENT_PLAN.md` for detailed task tracking.
