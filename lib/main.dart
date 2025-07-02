@@ -42,13 +42,13 @@ class MainApp extends StatelessWidget {
         BlocProvider(create: (context) => ConnectivityCubit()),
         BlocProvider(create: (context) => AuthCubit(authRepository: context.read<AuthRepository>())),
       ],
-      child: MaterialApp(
-        title: 'BandSpace',
-        theme: AppTheme.darkTheme,
-        home: const ConnectivityBanner(
-          child: SplashScreen(),
+      child: ConnectivityBanner(
+        child: MaterialApp(
+          title: 'BandSpace',
+          theme: AppTheme.darkTheme,
+          home: const SplashScreen(),
+          debugShowCheckedModeBanner: false,
         ),
-        debugShowCheckedModeBanner: false,
       ),
     );
   }
