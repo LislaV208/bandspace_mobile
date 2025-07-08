@@ -45,7 +45,7 @@ abstract class CachedRepository extends ApiRepository {
     required String methodName,
     required Map<String, dynamic> parameters,
     required Future<T> Function() remoteCall,
-    required T Function(Object?) fromJson,
+    required T Function(Map<String, dynamic>) fromJson,
     Duration? cacheDuration,
   }) async {
     return cachedStream<T>(
@@ -65,7 +65,7 @@ abstract class CachedRepository extends ApiRepository {
     required String methodName,
     required Map<String, dynamic> parameters,
     required Future<T> Function() remoteCall,
-    required T Function(Object?) fromJson,
+    required T Function(Map<String, dynamic>) fromJson,
     Duration? cacheDuration,
   }) async* {
     final cacheKey = _generateCacheKey(methodName, parameters);
@@ -81,7 +81,7 @@ abstract class CachedRepository extends ApiRepository {
         cachedResult = await RemoteCaching.instance.call<T>(
           cacheKey,
           remote: () async => throw Exception('Cache miss'),
-          fromJson: fromJson,
+          fromJson: (json) => fromJson(json as Map<String, dynamic>),
           cacheDuration: duration,
         );
       } catch (error) {
@@ -98,7 +98,7 @@ abstract class CachedRepository extends ApiRepository {
       final freshResult = await RemoteCaching.instance.call<T>(
         cacheKey,
         remote: remoteCall,
-        fromJson: fromJson,
+        fromJson: (json) => fromJson(json as Map<String, dynamic>),
         cacheDuration: duration,
         forceRefresh: true,
       );
@@ -257,7 +257,6 @@ abstract class CachedRepository extends ApiRepository {
       }
     }
   }
-
 
   /// Sprawdza czy dwie listy są równe.
   bool _listsEqual<T>(List<T> list1, List<T> list2) {

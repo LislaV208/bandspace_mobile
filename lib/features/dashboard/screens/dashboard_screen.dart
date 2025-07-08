@@ -175,73 +175,73 @@ class DashboardScreen extends StatelessWidget {
   Widget _buildProjectsList(BuildContext context) {
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (context, state) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Wyświetlanie komunikatu błędu, jeśli wystąpił
-            if (state.errorMessage != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withAlpha(25), // 0.1 * 255 = 25
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Colors.red.withAlpha(76),
-                    ), // 0.3 * 255 = 76
-                  ),
-                  child: Text(
-                    state.errorMessage!,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ),
+        return switch (state.status) {
+          DashboardStatus.initial || DashboardStatus.loading => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32.0),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          DashboardStatus.error => Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withAlpha(25), // 0.1 * 255 = 25
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Colors.red.withAlpha(76),
+                ), // 0.3 * 255 = 76
               ),
-
-            // Wyświetlanie wskaźnika ładowania, jeśli trwa ładowanie
-            if (state.status == DashboardStatus.loading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: CircularProgressIndicator(),
-                ),
+              child: Text(
+                state.errorMessage!,
+                style: const TextStyle(color: Colors.red),
               ),
+            ),
+          ),
 
-            // Wyświetlanie projektów, jeśli są dostępne
-            if (state.status == DashboardStatus.success &&
-                state.projects.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32.0),
-                child: Center(
-                  child: Column(
-                    children: [
-                      const Icon(
-                        LucideIcons.folderPlus,
-                        size: 48,
-                        color: Color(0xFF9CA3AF),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Nie masz jeszcze żadnych projektów',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: const Color(0xFF9CA3AF),
+          DashboardStatus.success || DashboardStatus.creatingProject => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Wyświetlanie komunikatu błędu, jeśli wystąpił
+
+              // Wyświetlanie wskaźnika ładowania, jeśli trwa ładowanie
+
+              // Wyświetlanie projektów, jeśli są dostępne
+              if (state.projects.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32.0),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        const Icon(
+                          LucideIcons.folderPlus,
+                          size: 48,
+                          color: Color(0xFF9CA3AF),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Utwórz swój pierwszy projekt, aby rozpocząć',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: const Color(0xFF6B7280),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Nie masz jeszcze żadnych projektów',
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(
+                                color: const Color(0xFF9CA3AF),
+                              ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Text(
+                          'Utwórz swój pierwszy projekt, aby rozpocząć',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: const Color(0xFF6B7280),
+                              ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-            // Wyświetlanie listy projektów
-            if (state.status == DashboardStatus.success)
+              // Wyświetlanie listy projektów
               ...state.projects.map((project) {
                 // Formatowanie czasu utworzenia projektu
                 final createdTime = _formatCreatedTime(project.createdAt);
@@ -257,8 +257,9 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 );
               }),
-          ],
-        );
+            ],
+          ),
+        };
       },
     );
   }

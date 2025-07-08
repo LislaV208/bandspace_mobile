@@ -35,80 +35,13 @@ class DashboardRepository extends CachedRepository {
   /// Tworzy nowy projekt.
   Future<Project> createProject({
     required String name,
-    String? description,
   }) async {
-    try {
-      final projectData = {
-        'name': name,
-        if (description != null) 'description': description,
-      };
+    final response = await apiClient.post(
+      '/api/projects',
+      data: {'name': name},
+    );
 
-      final response = await apiClient.post('/api/projects', data: projectData);
-
-      if (response.data == null) {
-        throw ApiException(
-          message: 'Brak danych w odpowiedzi podczas tworzenia projektu',
-          statusCode: response.statusCode,
-          data: response.data,
-        );
-      }
-
-      return Project.fromJson(response.data);
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw UnknownException(
-        'Wystąpił nieoczekiwany błąd podczas tworzenia projektu: $e',
-      );
-    }
-  }
-
-  /// Usuwa projekt.
-  Future<void> deleteProject(int projectId) async {
-    try {
-      await apiClient.delete('/api/projects/$projectId');
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw UnknownException(
-        'Wystąpił nieoczekiwany błąd podczas usuwania projektu: $e',
-      );
-    }
-  }
-
-  /// Edytuje projekt.
-  Future<Project> updateProject({
-    required int projectId,
-    required String name,
-    String? description,
-  }) async {
-    try {
-      final projectData = {
-        'name': name,
-        if (description != null) 'description': description,
-      };
-
-      final response = await apiClient.patch(
-        '/api/projects/$projectId',
-        data: projectData,
-      );
-
-      if (response.data == null) {
-        throw ApiException(
-          message: 'Brak danych w odpowiedzi podczas aktualizacji projektu',
-          statusCode: response.statusCode,
-          data: response.data,
-        );
-      }
-
-      return Project.fromJson(response.data);
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw UnknownException(
-        'Wystąpił nieoczekiwany błąd podczas aktualizacji projektu: $e',
-      );
-    }
+    return Project.fromJson(response.data);
   }
 
   /// Pobiera listę zaproszeń użytkownika.

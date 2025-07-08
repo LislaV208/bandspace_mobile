@@ -40,7 +40,6 @@ class DashboardCubit extends Cubit<DashboardState> {
     });
   }
 
-  /// Tworzy nowy projekt
   Future<void> createProject(String name) async {
     name = name.trim();
 
@@ -67,10 +66,8 @@ class DashboardCubit extends Cubit<DashboardState> {
         name: name.trim(),
       );
 
-      final updatedProjects = [
-        newProject,
-        ...state.projects,
-      ];
+      final updatedProjects = [newProject, ...state.projects];
+
       emit(
         state.copyWith(
           status: DashboardStatus.success,
