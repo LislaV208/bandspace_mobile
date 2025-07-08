@@ -6,6 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/dashboard_cubit.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/dashboard_state.dart';
+import 'package:bandspace_mobile/features/project_detail/screens/project_detail_screen.dart';
 
 /// Komponent formularza tworzenia nowego projektu wyświetlany jako bottom sheet.
 class CreateProjectBottomSheet extends StatefulWidget {
@@ -133,6 +134,13 @@ class _CreateProjectBottomSheetState extends State<CreateProjectBottomSheet> {
           listener: (context, state) {
             // Zamknij modal tylko po pomyślnym utworzeniu projektu
             Navigator.of(context).pop();
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => ProjectDetailScreen.create(
+                  state.projects.first,
+                ),
+              ),
+            );
           },
           child: ElevatedButton(
             onPressed: state.status == DashboardStatus.creatingProject

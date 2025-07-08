@@ -2,11 +2,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail_state.dart';
-import 'package:bandspace_mobile/features/project_detail/repository/project_repository.dart';
+import 'package:bandspace_mobile/features/project_detail/repository/project_detail_repository.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 
 class ProjectDetailCubit extends Cubit<ProjectDetailState> {
-  final ProjectRepository projectRepository;
+  final ProjectDetailRepository projectRepository;
   final int projectId;
 
   ProjectDetailCubit({

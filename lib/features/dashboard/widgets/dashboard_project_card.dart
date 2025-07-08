@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:bandspace_mobile/features/project_detail/screens/project_detail_screen.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/widgets/member_avatar.dart';
 
@@ -16,14 +17,10 @@ class DashboardProjectCard extends StatelessWidget {
   /// Czas utworzenia projektu w formie względnej (np. "2h temu")
   final String createdTime;
 
-  /// Funkcja wywoływana po kliknięciu na kartę projektu
-  final VoidCallback? onTap;
-
   const DashboardProjectCard({
     super.key,
     required this.project,
     required this.createdTime,
-    this.onTap,
   });
 
   @override
@@ -226,10 +223,10 @@ class DashboardProjectCard extends StatelessWidget {
 
   /// Nawiguje do ekranu szczegółów projektu
   void _navigateToProject(BuildContext context) {
-    // Navigator.of(context).push(
-    //   MaterialPageRoute(
-    //     builder: (context) => ProjectDetailScreen.create(project),
-    //   ),
-    // );
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ProjectDetailScreen.create(project),
+      ),
+    );
   }
 }

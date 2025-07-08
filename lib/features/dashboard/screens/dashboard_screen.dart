@@ -266,9 +266,6 @@ class DashboardScreen extends StatelessWidget {
                           child: DashboardProjectCard(
                             project: project,
                             createdTime: createdTime,
-                            onTap: () {
-                              // TODO: Implementacja nawigacji do szczegółów projektu
-                            },
                           ),
                         );
                       },

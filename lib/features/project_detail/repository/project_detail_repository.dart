@@ -10,9 +10,9 @@ import 'package:bandspace_mobile/shared/models/song.dart';
 ///
 /// Obsługuje pobieranie szczegółów projektu, zarządzanie członkami,
 /// zaproszeniami, utworami i inne operacje związane z projektami.
-class ProjectRepository extends ApiRepository {
+class ProjectDetailRepository extends ApiRepository {
   /// Konstruktor przyjmujący opcjonalną instancję ApiClient
-  ProjectRepository({required super.apiClient});
+  ProjectDetailRepository({required super.apiClient});
 
   /// Pobiera szczegóły projektu.
   ///
