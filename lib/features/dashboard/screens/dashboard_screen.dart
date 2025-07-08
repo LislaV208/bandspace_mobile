@@ -156,9 +156,10 @@ class DashboardScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Moje Projekty',
+          'Moje projekty',
           style: Theme.of(context).textTheme.headlineLarge,
         ),
+        const SizedBox(height: 4),
         Text(
           'Zarządzaj i organizuj swoje projekty muzyczne',
         ),
@@ -182,83 +183,81 @@ class DashboardScreen extends StatelessWidget {
               child: CircularProgressIndicator(),
             ),
           ),
-          DashboardStatus.error => Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.red.withAlpha(25), // 0.1 * 255 = 25
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: Colors.red.withAlpha(76),
-                ), // 0.3 * 255 = 76
-              ),
-              child: Text(
-                state.errorMessage!,
-                style: const TextStyle(color: Colors.red),
+          DashboardStatus.error => Center(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.withAlpha(25), // 0.1 * 255 = 25
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.red.withAlpha(76),
+                  ), // 0.3 * 255 = 76
+                ),
+                child: Text(
+                  state.errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
               ),
             ),
           ),
 
-          DashboardStatus.success || DashboardStatus.creatingProject => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Wyświetlanie komunikatu błędu, jeśli wystąpił
-
-              // Wyświetlanie wskaźnika ładowania, jeśli trwa ładowanie
-
-              // Wyświetlanie projektów, jeśli są dostępne
-              if (state.projects.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 32.0),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        const Icon(
-                          LucideIcons.folderPlus,
-                          size: 48,
-                          color: Color(0xFF9CA3AF),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Nie masz jeszcze żadnych projektów',
-                          style: Theme.of(context).textTheme.bodyLarge
-                              ?.copyWith(
-                                color: const Color(0xFF9CA3AF),
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Utwórz swój pierwszy projekt, aby rozpocząć',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: const Color(0xFF6B7280),
-                              ),
-                        ),
-                      ],
+          DashboardStatus.success || DashboardStatus.creatingProject =>
+            state.projects.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 32.0),
+                      child: Column(
+                        children: [
+                          const Icon(
+                            LucideIcons.folderPlus,
+                            size: 48,
+                            color: Color(0xFF9CA3AF),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Nie masz jeszcze żadnych projektów',
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(
+                                  color: const Color(0xFF9CA3AF),
+                                ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Utwórz swój pierwszy projekt, aby rozpocząć',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: const Color(0xFF6B7280),
+                                ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ),
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: state.projects.map(
+                      (project) {
+                        // Formatowanie czasu utworzenia projektu
+                        final createdTime = _formatCreatedTime(
+                          project.createdAt,
+                        );
 
-              // Wyświetlanie listy projektów
-              ...state.projects.map((project) {
-                // Formatowanie czasu utworzenia projektu
-                final createdTime = _formatCreatedTime(project.createdAt);
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: DashboardProjectCard(
-                    project: project,
-                    createdTime: createdTime,
-                    onTap: () {
-                      // TODO: Implementacja nawigacji do szczegółów projektu
-                    },
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: DashboardProjectCard(
+                            project: project,
+                            createdTime: createdTime,
+                            onTap: () {
+                              // TODO: Implementacja nawigacji do szczegółów projektu
+                            },
+                          ),
+                        );
+                      },
+                    ).toList(),
                   ),
-                );
-              }),
-            ],
-          ),
         };
       },
     );

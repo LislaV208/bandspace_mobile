@@ -35,13 +35,23 @@ class DashboardRepository extends CachedRepository {
   /// Tworzy nowy projekt.
   Future<Project> createProject({
     required String name,
+    String? description,
   }) async {
-    final response = await apiClient.post(
-      '/api/projects',
-      data: {'name': name},
+    return addToList<Project>(
+      listMethodName: 'getProjects',
+      listParameters: {},
+      createCall: () async {
+        final response = await apiClient.post(
+          '/api/projects',
+          data: {
+            'name': name,
+            if (description != null) 'description': description,
+          },
+        );
+        return Project.fromJson(response.data);
+      },
+      fromJson: (json) => Project.fromJson(json),
     );
-
-    return Project.fromJson(response.data);
   }
 
   /// Pobiera listę zaproszeń użytkownika.

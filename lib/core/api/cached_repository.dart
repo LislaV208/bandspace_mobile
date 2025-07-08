@@ -258,6 +258,63 @@ abstract class CachedRepository extends ApiRepository {
     }
   }
 
+  /// Dodaje nowy element do cache'owanej listy po wykonaniu API call.
+  ///
+  /// Najpierw wykonuje API call, następnie dodaje nowy element do cache.
+  /// [addFirst] określa czy element ma być dodany na początku (true) czy na końcu (false) listy.
+  Future<T> addToList<T>({
+    required String listMethodName,
+    required Map<String, dynamic> listParameters,
+    required Future<T> Function() createCall,
+    required T Function(Map<String, dynamic>) fromJson,
+    Duration? cacheDuration,
+    bool addFirst = true,
+  }) async {
+    final listCacheKey = _generateCacheKey(listMethodName, listParameters);
+    
+    // Wykonaj API call
+    final createdItem = await createCall();
+
+    // Pobierz aktualną listę z cache
+    List<T>? currentList;
+    try {
+      currentList = await RemoteCaching.instance.call<List<T>>(
+        listCacheKey,
+        remote: () async => throw Exception('Cache miss'),
+        fromJson: (json) {
+          if (json is List) {
+            return json.map((item) => fromJson(item as Map<String, dynamic>)).toList();
+          }
+          return <T>[];
+        },
+        cacheDuration: cacheDuration,
+      );
+    } catch (e) {
+      currentList = null;
+    }
+
+    // Dodaj nowy element do cache
+    if (currentList != null) {
+      final updatedList = addFirst 
+          ? [createdItem, ...currentList]
+          : [...currentList, createdItem];
+      await RemoteCaching.instance.call<List<T>>(
+        listCacheKey,
+        remote: () async => updatedList,
+        fromJson: (json) {
+          if (json is List) {
+            return json.map((item) => fromJson(item as Map<String, dynamic>)).toList();
+          }
+          return updatedList;
+        },
+        cacheDuration: cacheDuration,
+        forceRefresh: true,
+      );
+    }
+
+    return createdItem;
+  }
+
   /// Sprawdza czy dwie listy są równe.
   bool _listsEqual<T>(List<T> list1, List<T> list2) {
     if (list1.length != list2.length) return false;
