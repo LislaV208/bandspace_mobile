@@ -316,8 +316,6 @@ class DashboardScreen extends StatelessWidget {
   void _showCreateProjectDialog(BuildContext context) {
     // Wyczyść pola formularza przed otwarciem
     final cubit = context.read<DashboardCubit>();
-    cubit.nameController.clear();
-    cubit.descriptionController.clear();
 
     showModalBottomSheet(
       context: context,

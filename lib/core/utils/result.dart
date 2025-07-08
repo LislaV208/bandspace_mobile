@@ -11,7 +11,7 @@
 ///     return Result.failure(e as Exception);
 ///   }
 /// }
-/// 
+///
 /// final result = fetchData();
 /// if (result.isSuccess) {
 ///   print('Data: ${result.data}');
@@ -97,6 +97,7 @@ sealed class Result<T, E> {
 
 /// Klasa reprezentująca sukces
 final class Success<T, E> extends Result<T, E> {
+  @override
   final T data;
 
   const Success(this.data);
@@ -116,6 +117,7 @@ final class Success<T, E> extends Result<T, E> {
 
 /// Klasa reprezentująca niepowodzenie
 final class Failure<T, E> extends Result<T, E> {
+  @override
   final E error;
 
   const Failure(this.error);

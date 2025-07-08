@@ -648,6 +648,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.5"
+  remote_caching:
+    dependency: "direct main"
+    description:
+      name: remote_caching
+      sha256: "509cff41b09a55a6c13ce5d1b002e81d31891c7c41ef0c81516ec596861f5965"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.9"
   sky_engine:
     dependency: transitive
     description: flutter

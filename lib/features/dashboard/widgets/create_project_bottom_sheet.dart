@@ -8,8 +8,23 @@ import 'package:bandspace_mobile/features/dashboard/cubit/dashboard_cubit.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/dashboard_state.dart';
 
 /// Komponent formularza tworzenia nowego projektu wyświetlany jako bottom sheet.
-class CreateProjectBottomSheet extends StatelessWidget {
+class CreateProjectBottomSheet extends StatefulWidget {
   const CreateProjectBottomSheet({super.key});
+
+  @override
+  State<CreateProjectBottomSheet> createState() =>
+      _CreateProjectBottomSheetState();
+}
+
+class _CreateProjectBottomSheetState extends State<CreateProjectBottomSheet> {
+  /// Kontroler dla pola nazwy projektu
+  final TextEditingController nameController = TextEditingController();
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +101,7 @@ class CreateProjectBottomSheet extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextField(
-          controller: context.read<DashboardCubit>().nameController,
+          controller: nameController,
           decoration: const InputDecoration(
             labelText: 'Nazwa projektu',
             hintText: 'Wprowadź nazwę projektu',
@@ -122,7 +137,9 @@ class CreateProjectBottomSheet extends StatelessWidget {
           child: ElevatedButton(
             onPressed: state.status == DashboardStatus.creatingProject
                 ? null
-                : () => context.read<DashboardCubit>().createProject(),
+                : () => context.read<DashboardCubit>().createProject(
+                    nameController.text,
+                  ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.buttonPrimary,
               foregroundColor: Colors.white,

@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
@@ -10,27 +8,13 @@ import 'package:bandspace_mobile/features/dashboard/repository/dashboard_reposit
 class DashboardCubit extends Cubit<DashboardState> {
   final DashboardRepository dashboardRepository;
 
-  /// Kontroler dla pola nazwy projektu
-  final TextEditingController nameController = TextEditingController();
-
-  /// Kontroler dla pola opisu projektu
-  final TextEditingController descriptionController = TextEditingController();
-
   DashboardCubit({
     required this.dashboardRepository,
   }) : super(const DashboardState()) {
     loadProjects();
   }
 
-  @override
-  Future<void> close() {
-    nameController.dispose();
-    descriptionController.dispose();
-    return super.close();
-  }
-
   Future<void> loadProjects() async {
-    // Ustaw stan ładowania
     emit(
       state.copyWith(
         status: DashboardStatus.loading,
@@ -59,8 +43,10 @@ class DashboardCubit extends Cubit<DashboardState> {
   }
 
   /// Tworzy nowy projekt
-  Future<void> createProject() async {
-    if (nameController.text.trim().isEmpty) {
+  Future<void> createProject(String name) async {
+    name = name.trim();
+
+    if (name.isEmpty) {
       emit(
         state.copyWith(
           errorMessage: Value(
@@ -80,10 +66,7 @@ class DashboardCubit extends Cubit<DashboardState> {
 
     try {
       final newProject = await dashboardRepository.createProject(
-        name: nameController.text.trim(),
-        description: descriptionController.text.trim().isEmpty
-            ? null
-            : descriptionController.text.trim(),
+        name: name.trim(),
       );
 
       final updatedProjects = [
