@@ -24,7 +24,11 @@ class DashboardScreen extends StatelessWidget {
           ),
         ),
       ],
-      child: _buildDashboardContent(context),
+      child: Builder(
+        builder: (context) {
+          return _buildDashboardContent(context);
+        },
+      ),
     );
   }
 
