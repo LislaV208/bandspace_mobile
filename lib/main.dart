@@ -2,15 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/core/components/connectivity_banner.dart';
 import 'package:bandspace_mobile/core/config/env_config.dart';
-import 'package:bandspace_mobile/core/cubit/auth_cubit.dart';
-import 'package:bandspace_mobile/core/cubit/connectivity_cubit.dart';
-import 'package:bandspace_mobile/core/repositories/auth_repository.dart';
-import 'package:bandspace_mobile/core/repositories/project_repository.dart';
-import 'package:bandspace_mobile/core/repositories/user_repository.dart';
+import 'package:bandspace_mobile/core/di/app_providers.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
-import 'package:bandspace_mobile/splash/splash_screen.dart';
+import 'package:bandspace_mobile/features/splash/screens/splash_screen.dart';
 
 /// Główna funkcja uruchamiająca aplikację.
 ///
@@ -34,23 +29,22 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [
-        RepositoryProvider(create: (_) => AuthRepository()),
-        RepositoryProvider(create: (_) => ProjectRepository()),
-        RepositoryProvider(create: (_) => UserRepository()),
-
-        BlocProvider(create: (context) => ConnectivityCubit()),
-        BlocProvider(create: (context) => AuthCubit(authRepository: context.read<AuthRepository>())),
-      ],
-      child: ConnectivityBanner(
-        showWhenOnline: false, // Banner tylko offline - sync transparentny
-        child: MaterialApp(
-          title: 'BandSpace',
-          theme: AppTheme.darkTheme,
-          home: const SplashScreen(),
-          debugShowCheckedModeBanner: false,
-        ),
+      providers: appProviders,
+      child: MaterialApp(
+        title: 'BandSpace',
+        theme: AppTheme.darkTheme,
+        home: const SplashScreen(),
+        debugShowCheckedModeBanner: false,
       ),
+      // child: ConnectivityBanner(
+      //   showWhenOnline: false, // Banner tylko offline - sync transparentny
+      //   child: MaterialApp(
+      //     title: 'BandSpace',
+      //     theme: AppTheme.darkTheme,
+      //     home: const SplashScreen(),
+      //     debugShowCheckedModeBanner: false,
+      //   ),
+      // ),
     );
   }
 }

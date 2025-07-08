@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 0.1.0
 
 environment:
-  sdk: ^3.7.2
+  sdk: ^3.8.1
 
 dependencies:
   audioplayers: ^6.5.0
@@ -22,16 +22,21 @@ dependencies:
   gap: ^3.0.1
   google_sign_in: ^7.0.0
   icons_plus: ^5.0.0
+  # isar: ^3.1.0+1
+  # isar_flutter_libs: ^3.1.0+1
   lucide_icons_flutter: ^3.0.6
   path: ^1.9.0
-  path_provider: ^2.1.4
-  permission_handler: ^11.3.1
+  path_provider: ^2.1.5
+  permission_handler: ^12.0.1
+  provider: ^6.1.5
   sqflite: ^2.3.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  # isar_generator: ^3.1.0+1
+  # build_runner: ^2.4.13
 
 flutter:
   uses-material-design: true

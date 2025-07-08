@@ -6,13 +6,21 @@ import 'text_styles.dart';
 class _AppColors {
   // Kolory podstawowe
   static const Color primary = Color(0xFF273486); // BandSpace Blue
-  static const Color primaryLight = Color(0xFF3A4DB0); // Jaśniejsza wersja BandSpace Blue
-  static const Color primaryDark = Color(0xFF1A2360); // Ciemniejsza wersja BandSpace Blue
+  static const Color primaryLight = Color(
+    0xFF3A4DB0,
+  ); // Jaśniejsza wersja BandSpace Blue
+  static const Color primaryDark = Color(
+    0xFF1A2360,
+  ); // Ciemniejsza wersja BandSpace Blue
 
   static const Color onPrimary = Colors.white;
 
-  static const Color accent = Color(0xFF2563EB); // Akcent - używany dla przycisków, linków itp.
-  static const Color accentLight = Color(0xFF60A5FA); // Jaśniejszy akcent - używany dla linków
+  static const Color accent = Color(
+    0xFF2563EB,
+  ); // Akcent - używany dla przycisków, linków itp.
+  static const Color accentLight = Color(
+    0xFF60A5FA,
+  ); // Jaśniejszy akcent - używany dla linków
 
   // Kolory tła
   static const Color background = Color(0xFF111827); // bg-gray-900
@@ -32,18 +40,24 @@ class _AppColors {
 
   // Kolory obramowań
   static const Color border = Color(0xFF374151); // border-gray-700
-  static const Color borderFocused = Color(0xFF60A5FA); // Jaśniejszy niebieski dla zaznaczenia
+  static const Color borderFocused = Color(
+    0xFF60A5FA,
+  ); // Jaśniejszy niebieski dla zaznaczenia
 
   // Kolory statusów
   static const Color error = Colors.redAccent;
-  static const Color errorBackground = Color(0x33FF0000); // Czerwony z alpha 0.2
+  static const Color errorBackground = Color(
+    0x33FF0000,
+  ); // Czerwony z alpha 0.2
   static const Color errorBorder = Color(0x80FF0000); // Czerwony z alpha 0.5
   static const Color success = Color(0xFF10B981); // emerald-500
   static const Color warning = Color(0xFFF59E0B); // amber-500
 
   // Kolory przycisków
   static const Color buttonPrimary = Color(0xFF2563EB); // bg-blue-600
-  static const Color buttonPrimaryDisabled = Color(0x802563EB); // bg-blue-600 z alpha 0.5
+  static const Color buttonPrimaryDisabled = Color(
+    0x802563EB,
+  ); // bg-blue-600 z alpha 0.5
 
   // Kolory dividerów
   static const Color divider = Color(0xFF374151); // border-gray-700
@@ -176,7 +190,7 @@ class AppTheme {
         foregroundColor: Colors.white,
         disabledBackgroundColor: _AppColors.buttonPrimaryDisabled,
         disabledForegroundColor: Colors.white70,
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        padding: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         textStyle: AppTextStyles.buttonMedium,
       ),
@@ -223,7 +237,10 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: _AppColors.borderFocused, width: 1.5),
+        borderSide: const BorderSide(
+          color: _AppColors.borderFocused,
+          width: 1.5,
+        ),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
@@ -235,7 +252,9 @@ class AppTheme {
       ),
       disabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: _AppColors.withAlpha(_AppColors.border, 0.5)),
+        borderSide: BorderSide(
+          color: _AppColors.withAlpha(_AppColors.border, 0.5),
+        ),
       ),
       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       labelStyle: TextStyle(color: _AppColors.textSecondary),
@@ -249,13 +268,21 @@ class AppTheme {
       foregroundColor: _AppColors.textPrimary,
       elevation: 0,
       centerTitle: false,
-      titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+      titleTextStyle: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
     );
   }
 
   // Motyw Divider
   static DividerThemeData get _dividerTheme {
-    return const DividerThemeData(color: _AppColors.divider, thickness: 1, space: 1);
+    return const DividerThemeData(
+      color: _AppColors.divider,
+      thickness: 1,
+      space: 1,
+    );
   }
 
   // Motyw Card
@@ -285,7 +312,9 @@ class AppTheme {
     return const BottomSheetThemeData(
       backgroundColor: _AppColors.surfaceLight,
       modalBackgroundColor: _AppColors.surfaceLight,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
     );
   }
 
@@ -395,7 +424,9 @@ class AppTheme {
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: darkMode ? Brightness.light : Brightness.dark,
         systemNavigationBarColor: _AppColors.background,
-        systemNavigationBarIconBrightness: darkMode ? Brightness.light : Brightness.dark,
+        systemNavigationBarIconBrightness: darkMode
+            ? Brightness.light
+            : Brightness.dark,
       ),
     );
   }
