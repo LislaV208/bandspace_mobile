@@ -1,35 +1,35 @@
 import 'package:bandspace_mobile/core/api/api_client.dart';
-import 'package:bandspace_mobile/core/api/base_repository.dart';
+import 'package:bandspace_mobile/core/api/cached_repository.dart';
 import 'package:bandspace_mobile/shared/models/invitation_response.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/project_invitation.dart';
 
 /// Repozytorium odpowiedzialne za operacje związane z dashboard.
-class DashboardRepository extends BaseRepository {
+// class DashboardRepository extends BaseRepository {
+class DashboardRepository extends CachedRepository {
   DashboardRepository({
     required super.apiClient,
   });
 
   /// Pobiera listę wszystkich projektów użytkownika.
   Future<List<Project>> getProjects() async {
-    try {
-      final response = await apiClient.get('/api/projects');
+    return await cachedListCall<Project>(
+      methodName: 'getProjects',
+      parameters: {},
+      remoteCall: () async {
+        final response = await apiClient.get('/api/projects');
 
-      if (response.data == null) {
-        return [];
-      }
+        if (response.data == null) {
+          return [];
+        }
 
-      final List<dynamic> projectsData = response.data;
-      return projectsData
-          .map((projectData) => Project.fromJson(projectData))
-          .toList();
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw UnknownException(
-        'Wystąpił nieoczekiwany błąd podczas pobierania projektów: $e',
-      );
-    }
+        final List<dynamic> projectsData = response.data;
+        return projectsData
+            .map((projectData) => Project.fromJson(projectData))
+            .toList();
+      },
+      fromJson: (json) => Project.fromJson(json),
+    );
   }
 
   /// Tworzy nowy projekt.

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:bandspace_mobile/core/api/cached_repository.dart';
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
 import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
@@ -17,9 +18,14 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   // Kontrolery tekstowe
-  final TextEditingController emailController = TextEditingController(text: kDebugMode ? 'lislav.hms@gmail.com' : null);
-  final TextEditingController passwordController = TextEditingController(text: kDebugMode ? '@rbuz0Hol' : null);
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController(
+    text: kDebugMode ? 'lislav.hms@gmail.com' : null,
+  );
+  final TextEditingController passwordController = TextEditingController(
+    text: kDebugMode ? '@rbuz0Hol' : null,
+  );
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
 
   // Węzły fokusa
   final FocusNode emailFocus = FocusNode();
@@ -40,7 +46,9 @@ class AuthCubit extends Cubit<AuthState> {
 
   /// Przełącza widok między logowaniem a rejestracją
   void toggleView() {
-    final newView = state.view == AuthView.login ? AuthView.register : AuthView.login;
+    final newView = state.view == AuthView.login
+        ? AuthView.register
+        : AuthView.login;
 
     // Wyczyść pole potwierdzenia hasła przy przejściu do logowania
     if (newView == AuthView.login) {
@@ -51,7 +59,9 @@ class AuthCubit extends Cubit<AuthState> {
       state.copyWith(
         view: newView,
         errorMessage: Value(null), // Wyczyść błędy przy zmianie widoku
-        showConfirmPassword: newView == AuthView.register ? false : state.showConfirmPassword,
+        showConfirmPassword: newView == AuthView.register
+            ? false
+            : state.showConfirmPassword,
       ),
     );
   }
@@ -79,7 +89,10 @@ class AuthCubit extends Cubit<AuthState> {
 
     try {
       // Wywołanie metody logowania z repozytorium
-      final session = await authRepository.login(email: emailController.text.trim(), password: passwordController.text);
+      final session = await authRepository.login(
+        email: emailController.text.trim(),
+        password: passwordController.text,
+      );
 
       // Wyczyść stan ładowania
       emit(state.copyWith(isLoading: false));
@@ -98,9 +111,11 @@ class AuthCubit extends Cubit<AuthState> {
       if (e.toString().contains("ApiException")) {
         errorMessage = e.toString().replaceAll("ApiException: ", "");
       } else if (e.toString().contains("NetworkException")) {
-        errorMessage = "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
+        errorMessage =
+            "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
       } else if (e.toString().contains("TimeoutException")) {
-        errorMessage = "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
+        errorMessage =
+            "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
       }
 
       emit(state.copyWith(isLoading: false, errorMessage: Value(errorMessage)));
@@ -110,7 +125,9 @@ class AuthCubit extends Cubit<AuthState> {
   /// Obsługuje proces rejestracji
   Future<void> register() async {
     // Sprawdź, czy pola nie są puste
-    if (emailController.text.isEmpty || passwordController.text.isEmpty || confirmPasswordController.text.isEmpty) {
+    if (emailController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        confirmPasswordController.text.isEmpty) {
       emit(state.copyWith(errorMessage: Value("Wypełnij wszystkie pola.")));
       return;
     }
@@ -148,9 +165,11 @@ class AuthCubit extends Cubit<AuthState> {
       if (e.toString().contains("ApiException")) {
         errorMessage = e.toString().replaceAll("ApiException: ", "");
       } else if (e.toString().contains("NetworkException")) {
-        errorMessage = "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
+        errorMessage =
+            "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
       } else if (e.toString().contains("TimeoutException")) {
-        errorMessage = "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
+        errorMessage =
+            "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
       }
 
       emit(state.copyWith(isLoading: false, errorMessage: Value(errorMessage)));
@@ -182,9 +201,11 @@ class AuthCubit extends Cubit<AuthState> {
       if (e.toString().contains("ApiException")) {
         errorMessage = e.toString().replaceAll("ApiException: ", "");
       } else if (e.toString().contains("NetworkException")) {
-        errorMessage = "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
+        errorMessage =
+            "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
       } else if (e.toString().contains("TimeoutException")) {
-        errorMessage = "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
+        errorMessage =
+            "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
       } else if (e.toString().contains("Anulowano logowanie przez Google")) {
         errorMessage = "Logowanie przez Google zostało anulowane.";
       }
@@ -209,7 +230,12 @@ class AuthCubit extends Cubit<AuthState> {
 
       if (session != null) {
         // Użytkownik jest zalogowany, ustaw dane użytkownika w stanie
-        emit(state.copyWith(user: Value(session.user), isAuthStateInitialized: true));
+        emit(
+          state.copyWith(
+            user: Value(session.user),
+            isAuthStateInitialized: true,
+          ),
+        );
         debugPrint("Załadowano sesję użytkownika: ${session.user.email}");
       } else {
         // Użytkownik nie jest zalogowany, ustaw flagę inicjalizacji
@@ -225,6 +251,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   /// Obsługuje proces wylogowania
   Future<void> logout() async {
+    await CachedRepository.invalidateAll();
     emit(state.copyWith(isLoading: true, errorMessage: Value(null)));
 
     String? errorMessage;
@@ -238,9 +265,11 @@ class AuthCubit extends Cubit<AuthState> {
       if (e.toString().contains("ApiException")) {
         errorMessage = e.toString().replaceAll("ApiException: ", "");
       } else if (e.toString().contains("NetworkException")) {
-        errorMessage = "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
+        errorMessage =
+            "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
       } else if (e.toString().contains("TimeoutException")) {
-        errorMessage = "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
+        errorMessage =
+            "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
       }
     }
 
@@ -265,8 +294,17 @@ class AuthCubit extends Cubit<AuthState> {
       // Wyczyść token i lokalną sesję
       await authRepository.clearLocalSession();
 
+      // Invaliduj wszystkie cache
+      await CachedRepository.invalidateAll();
+
       // Wyczyść stan ładowania i dane użytkownika
-      emit(state.copyWith(isLoading: false, user: Value(null), errorMessage: Value(null)));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          user: Value(null),
+          errorMessage: Value(null),
+        ),
+      );
 
       // Wyczyść pola formularza
       if (!kDebugMode) {
@@ -279,7 +317,13 @@ class AuthCubit extends Cubit<AuthState> {
     } catch (e) {
       debugPrint("Błąd podczas czyszczenia sesji: $e");
       // Nawet jeśli wystąpi błąd, wyczyść lokalny stan UI
-      emit(state.copyWith(isLoading: false, user: Value(null), errorMessage: Value(null)));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          user: Value(null),
+          errorMessage: Value(null),
+        ),
+      );
     }
   }
 }

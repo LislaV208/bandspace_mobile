@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:remote_caching/remote_caching.dart';
 
 import 'package:bandspace_mobile/core/config/env_config.dart';
 import 'package:bandspace_mobile/core/di/app_providers.dart';
@@ -14,8 +15,17 @@ import 'package:bandspace_mobile/features/splash/screens/splash_screen.dart';
 Future<void> main({String envFileName = '.env'}) async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Inicjalizacja RemoteCaching
+  await RemoteCaching.instance.init();
+
   // Załadowanie odpowiedniego pliku .env
   await EnvConfig().init(fileName: envFileName);
+
+  // Inicjalizacja RemoteCaching
+  await RemoteCaching.instance.init(
+    defaultCacheDuration: const Duration(minutes: 5),
+    verboseMode: true,
+  );
 
   // Ustawienie przezroczystego statusbara
   AppTheme.setStatusBarColor();
