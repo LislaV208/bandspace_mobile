@@ -7,7 +7,9 @@ import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail_state.dart';
 import 'package:bandspace_mobile/features/project_detail/repository/project_detail_repository.dart';
+import 'package:bandspace_mobile/features/project_detail/screens/project_members_screen.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/create_song_bottom_sheet.dart';
+import 'package:bandspace_mobile/features/project_detail/widgets/project_delete_dialog.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/song_list_item.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
@@ -70,8 +72,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   /// Buduje app bar z tytułem projektu
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: AppColors.background,
-      foregroundColor: AppColors.textPrimary,
       title: BlocSelector<ProjectDetailCubit, ProjectDetailState, Project?>(
         selector: (state) {
           return state.project;
@@ -79,16 +79,18 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         builder: (context, project) {
           return Text(
             project?.name ?? 'Projekt',
-            style: AppTextStyles.titleLarge.copyWith(
-              color: AppColors.textPrimary,
-            ),
           );
         },
       ),
       actions: [
-        IconButton(
-          icon: const Icon(LucideIcons.ellipsisVertical),
-          onPressed: _showProjectOptions,
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: TextButton.icon(
+            iconAlignment: IconAlignment.end,
+            onPressed: _showProjectOptions,
+            label: const Text('Więcej'),
+            icon: const Icon(LucideIcons.ellipsisVertical),
+          ),
         ),
       ],
     );
@@ -262,8 +264,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           onPressed: state.status == ProjectDetailStatus.creating
               ? null
               : _showCreateSongSheet,
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.onPrimary,
           icon: state.status == ProjectDetailStatus.creating
               ? const SizedBox(
                   width: 16,
@@ -313,7 +313,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             title: 'Edytuj projekt',
             onTap: () {
               Navigator.pop(context);
-              // TODO: Implement edit project
             },
           ),
           _buildOptionTile(
@@ -335,9 +334,21 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           _buildOptionTile(
             icon: LucideIcons.trash2,
             title: 'Usuń projekt',
-            onTap: () {
+            onTap: () async {
               Navigator.pop(context);
-              // TODO: Implement delete project
+              final shouldDelete = await ProjectDeleteDialog.show(
+                context: context,
+                project: context.read<ProjectDetailCubit>().state.project!,
+              );
+
+              if (!mounted) return;
+
+              if (shouldDelete == true) {
+                await context.read<ProjectDetailCubit>().deleteProject();
+                if (!mounted) return;
+
+                Navigator.pop(context);
+              }
             },
             isDestructive: true,
           ),
@@ -445,11 +456,13 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
 
   /// Pokazuje ekran z członkami projektu
   void _showProjectMembers() {
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => ProjectMembersScreen(project: widget.project),
-    //   ),
-    // );
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProjectMembersScreen.create(
+          context.read<ProjectDetailCubit>().state.project!,
+        ),
+      ),
+    );
   }
 }

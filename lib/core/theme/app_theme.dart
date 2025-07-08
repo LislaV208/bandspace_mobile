@@ -126,6 +126,14 @@ class AppTheme {
 
       // Konfiguracja ProgressIndicator
       progressIndicatorTheme: _progressIndicatorTheme,
+
+      floatingActionButtonTheme: _floatingActionButtonTheme,
+    );
+  }
+
+  static FloatingActionButtonThemeData get _floatingActionButtonTheme {
+    return FloatingActionButtonThemeData(
+      backgroundColor: _AppColors.accent,
     );
   }
 
@@ -216,7 +224,7 @@ class AppTheme {
   static TextButtonThemeData get _textButtonTheme {
     return TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: _AppColors.accentLight,
+        foregroundColor: _AppColors.textSecondary,
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         textStyle: AppTextStyles.link,
       ),

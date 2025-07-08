@@ -3,7 +3,14 @@ import 'package:equatable/equatable.dart';
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 
-enum ProjectDetailStatus { initial, loading, success, creating, error }
+enum ProjectDetailStatus {
+  initial,
+  loading,
+  success,
+  creating,
+  deleting,
+  error,
+}
 
 class ProjectDetailState extends Equatable {
   final ProjectDetailStatus status;

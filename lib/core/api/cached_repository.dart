@@ -235,6 +235,15 @@ abstract class CachedRepository extends ApiRepository {
 
   /// Generuje unikalny klucz cache na podstawie nazwy metody i parametrów.
   String _generateCacheKey(String methodName, Map<String, dynamic> parameters) {
+    return _generateCacheKeyWithPrefix(methodName, parameters, null);
+  }
+
+  /// Generuje unikalny klucz cache z możliwością nadpisania prefiksu.
+  String _generateCacheKeyWithPrefix(
+    String methodName, 
+    Map<String, dynamic> parameters, 
+    String? customPrefix,
+  ) {
     final sortedParams = Map.fromEntries(
       parameters.entries.toList()..sort((a, b) => a.key.compareTo(b.key)),
     );
@@ -243,9 +252,11 @@ abstract class CachedRepository extends ApiRepository {
         .map((entry) => '${entry.key}_${entry.value}')
         .join('_');
 
+    final prefix = customPrefix ?? cacheKeyPrefix;
+
     return paramString.isEmpty
-        ? '${cacheKeyPrefix}_$methodName'
-        : '${cacheKeyPrefix}_${methodName}_$paramString';
+        ? '${prefix}_$methodName'
+        : '${prefix}_${methodName}_$paramString';
   }
 
   /// Invaliduje cache na podstawie konfiguracji invalidationTriggers.
@@ -262,6 +273,7 @@ abstract class CachedRepository extends ApiRepository {
   ///
   /// Najpierw wykonuje API call, następnie dodaje nowy element do cache.
   /// [addFirst] określa czy element ma być dodany na początku (true) czy na końcu (false) listy.
+  /// [customCacheKeyPrefix] pozwala nadpisać domyślny prefiks cache key.
   Future<T> addToList<T>({
     required String listMethodName,
     required Map<String, dynamic> listParameters,
@@ -269,8 +281,13 @@ abstract class CachedRepository extends ApiRepository {
     required T Function(Map<String, dynamic>) fromJson,
     Duration? cacheDuration,
     bool addFirst = true,
+    String? customCacheKeyPrefix,
   }) async {
-    final listCacheKey = _generateCacheKey(listMethodName, listParameters);
+    final listCacheKey = _generateCacheKeyWithPrefix(
+      listMethodName, 
+      listParameters, 
+      customCacheKeyPrefix,
+    );
     
     // Wykonaj API call
     final createdItem = await createCall();
@@ -313,6 +330,65 @@ abstract class CachedRepository extends ApiRepository {
     }
 
     return createdItem;
+  }
+
+  /// Usuwa element z cache'owanej listy po wykonaniu API call.
+  ///
+  /// Najpierw wykonuje API call, następnie usuwa element z cache.
+  /// [predicate] funkcja określająca który element usunąć z listy.
+  /// [customCacheKeyPrefix] pozwala nadpisać domyślny prefiks cache key.
+  Future<void> removeFromList<T>({
+    required String listMethodName,
+    required Map<String, dynamic> listParameters,
+    required Future<void> Function() deleteCall,
+    required T Function(Map<String, dynamic>) fromJson,
+    required bool Function(T) predicate,
+    Duration? cacheDuration,
+    String? customCacheKeyPrefix,
+  }) async {
+    final listCacheKey = _generateCacheKeyWithPrefix(
+      listMethodName, 
+      listParameters, 
+      customCacheKeyPrefix,
+    );
+    
+    // Wykonaj API call
+    await deleteCall();
+
+    // Pobierz aktualną listę z cache
+    List<T>? currentList;
+    try {
+      currentList = await RemoteCaching.instance.call<List<T>>(
+        listCacheKey,
+        remote: () async => throw Exception('Cache miss'),
+        fromJson: (json) {
+          if (json is List) {
+            return json.map((item) => fromJson(item as Map<String, dynamic>)).toList();
+          }
+          return <T>[];
+        },
+        cacheDuration: cacheDuration,
+      );
+    } catch (e) {
+      currentList = null;
+    }
+
+    // Usuń element z cache
+    if (currentList != null) {
+      final updatedList = currentList.where((item) => !predicate(item)).toList();
+      await RemoteCaching.instance.call<List<T>>(
+        listCacheKey,
+        remote: () async => updatedList,
+        fromJson: (json) {
+          if (json is List) {
+            return json.map((item) => fromJson(item as Map<String, dynamic>)).toList();
+          }
+          return updatedList;
+        },
+        cacheDuration: cacheDuration,
+        forceRefresh: true,
+      );
+    }
   }
 
   /// Sprawdza czy dwie listy są równe.

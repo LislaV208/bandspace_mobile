@@ -1,44 +1,29 @@
 import 'package:bandspace_mobile/core/api/api_client.dart';
-import 'package:bandspace_mobile/core/api/api_repository.dart';
+import 'package:bandspace_mobile/core/api/cached_repository.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/project_invitation.dart';
-import 'package:bandspace_mobile/shared/models/project_member.dart';
 import 'package:bandspace_mobile/shared/models/send_invitation_request.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
 
-/// Repozytorium odpowiedzialne za operacje związane z projektami.
-///
-/// Obsługuje pobieranie szczegółów projektu, zarządzanie członkami,
-/// zaproszeniami, utworami i inne operacje związane z projektami.
-class ProjectDetailRepository extends ApiRepository {
+/// Repozytorium odpowiedzialne za operacje związane z konkretnym projektem.
+class ProjectDetailRepository extends CachedRepository {
   /// Konstruktor przyjmujący opcjonalną instancję ApiClient
   ProjectDetailRepository({required super.apiClient});
 
   /// Pobiera szczegóły projektu.
   ///
   /// Zwraca szczegóły projektu dla podanego ID.
-  Future<Project> getProject(int projectId) async {
-    try {
-      final response = await apiClient.get(
-        '/api/projects/$projectId',
-      );
+  Stream<Project> getProject(int projectId) {
+    return cachedStream<Project>(
+      methodName: 'getProject',
+      parameters: {'projectId': projectId},
+      remoteCall: () async {
+        final response = await apiClient.get('/api/projects/$projectId');
 
-      if (response.data == null) {
-        throw ApiException(
-          message: 'Brak danych w odpowiedzi podczas pobierania projektu',
-          statusCode: response.statusCode,
-          data: response.data,
-        );
-      }
-
-      return Project.fromJson(response.data);
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw UnknownException(
-        'Wystąpił nieoczekiwany błąd podczas pobierania projektu: $e',
-      );
-    }
+        return Project.fromJson(response.data);
+      },
+      fromJson: (json) => Project.fromJson(json),
+    );
   }
 
   /// Aktualizuje projekt.
@@ -80,44 +65,17 @@ class ProjectDetailRepository extends ApiRepository {
   }
 
   /// Usuwa projekt.
-  ///
-  /// Przyjmuje ID projektu.
   Future<void> deleteProject(int projectId) async {
-    try {
-      await apiClient.delete('/api/projects/$projectId');
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw UnknownException(
-        'Wystąpił nieoczekiwany błąd podczas usuwania projektu: $e',
-      );
-    }
-  }
-
-  /// Pobiera listę członków projektu.
-  ///
-  /// Zwraca listę członków dla podanego projektu.
-  Future<List<ProjectMember>> getProjectMembers(int projectId) async {
-    try {
-      final response = await apiClient.get(
-        '/api/projects/$projectId/members',
-      );
-
-      if (response.data == null) {
-        return [];
-      }
-
-      final List<dynamic> membersData = response.data;
-      return membersData
-          .map((memberData) => ProjectMember.fromJson(memberData))
-          .toList();
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw UnknownException(
-        'Wystąpił nieoczekiwany błąd podczas pobierania członków: $e',
-      );
-    }
+    return removeFromList<Project>(
+      listMethodName: 'getProjects',
+      listParameters: {},
+      deleteCall: () async {
+        await apiClient.delete('/api/projects/$projectId');
+      },
+      fromJson: (json) => Project.fromJson(json),
+      predicate: (project) => project.id == projectId,
+      customCacheKeyPrefix: 'dashboard',
+    );
   }
 
   /// Usuwa członka z projektu.

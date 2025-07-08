@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
@@ -17,23 +19,45 @@ class ProjectDetailCubit extends Cubit<ProjectDetailState> {
     loadProjectDetail();
   }
 
+  late StreamSubscription<Project> _projectSubscription;
+
+  @override
+  Future<void> close() {
+    _projectSubscription.cancel();
+
+    return super.close();
+  }
+
   Future<void> loadProjectDetail() async {
     emit(state.copyWith(status: ProjectDetailStatus.loading));
 
-    try {
-      final project = await projectRepository.getProject(projectId);
+    _projectSubscription =
+        projectRepository.getProject(projectId).listen((project) {
+          emit(
+            state.copyWith(
+              status: ProjectDetailStatus.success,
+              project: Value(project),
+            ),
+          );
+        })..onError((error) {
+          emit(
+            state.copyWith(
+              status: ProjectDetailStatus.error,
+              errorMessage: error,
+            ),
+          );
+        });
+  }
 
-      emit(
-        state.copyWith(
-          project: Value(project),
-          status: ProjectDetailStatus.success,
-        ),
-      );
+  Future<void> deleteProject() async {
+    try {
+      emit(state.copyWith(status: ProjectDetailStatus.deleting));
+      await projectRepository.deleteProject(projectId);
     } catch (e) {
       emit(
         state.copyWith(
-          errorMessage: Value(e.toString()),
           status: ProjectDetailStatus.error,
+          errorMessage: Value(e.toString()),
         ),
       );
     }
