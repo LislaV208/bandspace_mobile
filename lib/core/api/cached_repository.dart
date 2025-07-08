@@ -1,12 +1,12 @@
 import 'package:remote_caching/remote_caching.dart';
 
-import 'package:bandspace_mobile/core/api/base_repository.dart';
+import 'package:bandspace_mobile/core/api/api_repository.dart';
 
 /// Abstrakcyjna klasa bazowa dla repozytoriów z obsługą cache'owania i offline-first.
 ///
 /// Wszystkie repozytoria dziedziczące po tej klasie będą automatycznie
 /// cache'ować wyniki swoich metod i wspierać tryb offline-first.
-abstract class CachedRepository extends BaseRepository {
+abstract class CachedRepository extends ApiRepository {
   const CachedRepository({
     required super.apiClient,
   });

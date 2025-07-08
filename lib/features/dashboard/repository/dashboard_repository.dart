@@ -13,7 +13,7 @@ class DashboardRepository extends CachedRepository {
 
   /// Pobiera listę wszystkich projektów użytkownika.
   Future<List<Project>> getProjects() async {
-    return await cachedListCall<Project>(
+    return cachedListCall<Project>(
       methodName: 'getProjects',
       parameters: {},
       remoteCall: () async {

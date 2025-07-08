@@ -1,5 +1,5 @@
 import 'package:bandspace_mobile/core/api/api_client.dart';
-import 'package:bandspace_mobile/core/api/base_repository.dart';
+import 'package:bandspace_mobile/core/api/api_repository.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/project_invitation.dart';
 import 'package:bandspace_mobile/shared/models/project_member.dart';
@@ -10,7 +10,7 @@ import 'package:bandspace_mobile/shared/models/song.dart';
 ///
 /// Obsługuje pobieranie szczegółów projektu, zarządzanie członkami,
 /// zaproszeniami, utworami i inne operacje związane z projektami.
-class ProjectRepository extends BaseRepository {
+class ProjectRepository extends ApiRepository {
   /// Konstruktor przyjmujący opcjonalną instancję ApiClient
   ProjectRepository({required super.apiClient});
 
@@ -25,8 +25,7 @@ class ProjectRepository extends BaseRepository {
 
       if (response.data == null) {
         throw ApiException(
-          message:
-              'Brak danych w odpowiedzi podczas pobierania projektu',
+          message: 'Brak danych w odpowiedzi podczas pobierania projektu',
           statusCode: response.statusCode,
           data: response.data,
         );
@@ -64,8 +63,7 @@ class ProjectRepository extends BaseRepository {
 
       if (response.data == null) {
         throw ApiException(
-          message:
-              'Brak danych w odpowiedzi podczas aktualizacji projektu',
+          message: 'Brak danych w odpowiedzi podczas aktualizacji projektu',
           statusCode: response.statusCode,
           data: response.data,
         );
@@ -170,8 +168,7 @@ class ProjectRepository extends BaseRepository {
 
       if (response.data == null) {
         throw ApiException(
-          message:
-              'Brak danych w odpowiedzi podczas wysyłania zaproszenia',
+          message: 'Brak danych w odpowiedzi podczas wysyłania zaproszenia',
           statusCode: response.statusCode,
           data: response.data,
         );
@@ -205,8 +202,7 @@ class ProjectRepository extends BaseRepository {
       final List<dynamic> invitationsData = response.data;
       return invitationsData
           .map(
-            (invitationData) =>
-                ProjectInvitation.fromJson(invitationData),
+            (invitationData) => ProjectInvitation.fromJson(invitationData),
           )
           .toList();
     } on ApiException {
@@ -252,9 +248,7 @@ class ProjectRepository extends BaseRepository {
       }
 
       final List<dynamic> songsData = response.data;
-      return songsData
-          .map((songData) => Song.fromJson(songData))
-          .toList();
+      return songsData.map((songData) => Song.fromJson(songData)).toList();
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -280,8 +274,7 @@ class ProjectRepository extends BaseRepository {
 
       if (response.data == null) {
         throw ApiException(
-          message:
-              'Brak danych w odpowiedzi podczas tworzenia utworu',
+          message: 'Brak danych w odpowiedzi podczas tworzenia utworu',
           statusCode: response.statusCode,
           data: response.data,
         );
@@ -314,8 +307,7 @@ class ProjectRepository extends BaseRepository {
 
       if (response.data == null) {
         throw ApiException(
-          message:
-              'Brak danych w odpowiedzi podczas aktualizacji utworu',
+          message: 'Brak danych w odpowiedzi podczas aktualizacji utworu',
           statusCode: response.statusCode,
           data: response.data,
         );

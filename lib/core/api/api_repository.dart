@@ -5,12 +5,12 @@ import 'package:bandspace_mobile/core/api/api_client.dart';
 /// Dostarcza wspólne funkcjonalności dla repozytoriów, takie jak
 /// dostęp do ApiClient. Wszystkie repozytoria powinny dziedziczyć
 /// po tej klasie.
-abstract class BaseRepository {
+abstract class ApiRepository {
   /// Instancja ApiClient do wykonywania żądań HTTP
   final ApiClient apiClient;
 
   /// Konstruktor przyjmujący instancję ApiClient
-  const BaseRepository({
+  const ApiRepository({
     required this.apiClient,
   });
 }

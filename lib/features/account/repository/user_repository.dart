@@ -1,12 +1,12 @@
 import 'package:bandspace_mobile/core/api/api_client.dart';
-import 'package:bandspace_mobile/core/api/base_repository.dart';
+import 'package:bandspace_mobile/core/api/api_repository.dart';
 import 'package:bandspace_mobile/shared/models/update_profile_request.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
 
 /// Repozytorium odpowiedzialne za operacje związane z profilem użytkownika.
 ///
 /// Obsługuje pobieranie, aktualizację i usuwanie profilu użytkownika.
-class UserRepository extends BaseRepository {
+class UserRepository extends ApiRepository {
   /// Konstruktor przyjmujący opcjonalną instancję ApiClient
   const UserRepository({
     required super.apiClient,

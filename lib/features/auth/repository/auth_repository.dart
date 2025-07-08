@@ -1,7 +1,7 @@
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:bandspace_mobile/core/api/api_client.dart';
-import 'package:bandspace_mobile/core/api/base_repository.dart';
+import 'package:bandspace_mobile/core/api/api_repository.dart';
 import 'package:bandspace_mobile/shared/models/change_password_request.dart';
 import 'package:bandspace_mobile/shared/models/forgot_password_request.dart';
 import 'package:bandspace_mobile/shared/models/session.dart';
@@ -13,12 +13,16 @@ import 'package:bandspace_mobile/shared/services/session_storage_service.dart';
 ///
 /// Obsługuje logowanie, rejestrację, wylogowywanie i inne operacje
 /// związane z autoryzacją użytkownika.
-class AuthRepository extends BaseRepository {
+class AuthRepository extends ApiRepository {
   final SessionStorageService storageService;
   final GoogleSignInService googleSignInService;
 
   /// Konstruktor przyjmujący opcjonalną instancję ApiClient i StorageService
-  AuthRepository({required super.apiClient, required this.storageService, required this.googleSignInService}) {
+  AuthRepository({
+    required super.apiClient,
+    required this.storageService,
+    required this.googleSignInService,
+  }) {
     // Inicjalizuj Google Sign-In przy tworzeniu repozytorium
     googleSignInService.initialize();
   }
@@ -27,9 +31,15 @@ class AuthRepository extends BaseRepository {
   ///
   /// Zwraca sesję użytkownika w przypadku powodzenia.
   /// W przypadku niepowodzenia rzuca wyjątek.
-  Future<Session> login({required String email, required String password}) async {
+  Future<Session> login({
+    required String email,
+    required String password,
+  }) async {
     try {
-      final response = await apiClient.post('/api/auth/login', data: {'email': email, 'password': password});
+      final response = await apiClient.post(
+        '/api/auth/login',
+        data: {'email': email, 'password': password},
+      );
 
       final session = Session.fromMap(response.data);
 
@@ -53,22 +63,35 @@ class AuthRepository extends BaseRepository {
   Future<Session> loginWithGoogle() async {
     try {
       // Krok 1: Logowanie przez Google
-      final GoogleSignInAccount? googleAccount = await googleSignInService.signIn();
+      final GoogleSignInAccount? googleAccount = await googleSignInService
+          .signIn();
 
       if (googleAccount == null) {
-        throw ApiException(message: 'Anulowano logowanie przez Google', statusCode: 401, data: null);
+        throw ApiException(
+          message: 'Anulowano logowanie przez Google',
+          statusCode: 401,
+          data: null,
+        );
       }
 
       // Krok 2: Pobranie tokenów autoryzacji Google
-      final GoogleSignInAuthentication googleAuth = googleAccount.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          googleAccount.authentication;
 
       if (googleAuth.idToken == null) {
-        throw ApiException(message: 'Nie udało się pobrać tokenu ID Google', statusCode: 401, data: null);
+        throw ApiException(
+          message: 'Nie udało się pobrać tokenu ID Google',
+          statusCode: 401,
+          data: null,
+        );
       }
 
       // Krok 3: Wysłanie ID tokenu Google do backendu w celu wymiany na JWT
       // Backend zweryfikuje token Google i zwróci sesję aplikacji
-      final response = await apiClient.post('/api/auth/login', data: {'googleToken': googleAuth.idToken});
+      final response = await apiClient.post(
+        '/api/auth/login',
+        data: {'googleToken': googleAuth.idToken},
+      );
 
       final session = Session.fromMap(response.data);
 
@@ -86,7 +109,9 @@ class AuthRepository extends BaseRepository {
     } catch (e) {
       // Wyloguj z Google w przypadku innych błędów
       await googleSignInService.signOut();
-      throw UnknownException('Wystąpił nieoczekiwany błąd podczas logowania przez Google: $e');
+      throw UnknownException(
+        'Wystąpił nieoczekiwany błąd podczas logowania przez Google: $e',
+      );
     }
   }
 
@@ -94,9 +119,16 @@ class AuthRepository extends BaseRepository {
   ///
   /// Zwraca sesję użytkownika w przypadku powodzenia.
   /// W przypadku niepowodzenia rzuca wyjątek.
-  Future<Session> register({required String email, required String password, required String confirmPassword}) async {
+  Future<Session> register({
+    required String email,
+    required String password,
+    required String confirmPassword,
+  }) async {
     try {
-      final response = await apiClient.post('/api/auth/register', data: {'email': email, 'password': password});
+      final response = await apiClient.post(
+        '/api/auth/register',
+        data: {'email': email, 'password': password},
+      );
 
       final responseData = response.data;
 
@@ -118,7 +150,8 @@ class AuthRepository extends BaseRepository {
         return session;
       } else {
         throw ApiException(
-          message: responseData['message'] ?? 'Nieznany błąd podczas rejestracji',
+          message:
+              responseData['message'] ?? 'Nieznany błąd podczas rejestracji',
           statusCode: response.statusCode,
           data: responseData,
         );
@@ -126,7 +159,9 @@ class AuthRepository extends BaseRepository {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw UnknownException('Wystąpił nieoczekiwany błąd podczas rejestracji: $e');
+      throw UnknownException(
+        'Wystąpił nieoczekiwany błąd podczas rejestracji: $e',
+      );
     }
   }
 
@@ -187,7 +222,9 @@ class AuthRepository extends BaseRepository {
       // Usunięcie danych sesji z lokalnego magazynu
       await storageService.clearSession();
     } catch (e) {
-      throw UnknownException('Wystąpił błąd podczas czyszczenia lokalnej sesji: $e');
+      throw UnknownException(
+        'Wystąpił błąd podczas czyszczenia lokalnej sesji: $e',
+      );
     }
   }
 
@@ -195,11 +232,20 @@ class AuthRepository extends BaseRepository {
   ///
   /// Wymaga podania aktualnego hasła oraz nowego hasła.
   /// Zwraca odpowiedź z informacją o powodzeniu operacji.
-  Future<ChangePasswordResponse> changePassword({required String currentPassword, required String newPassword}) async {
+  Future<ChangePasswordResponse> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
     try {
-      final request = ChangePasswordRequest(currentPassword: currentPassword, newPassword: newPassword);
+      final request = ChangePasswordRequest(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
 
-      final response = await apiClient.patch('/api/users/me', data: request.toJson());
+      final response = await apiClient.patch(
+        '/api/users/me',
+        data: request.toJson(),
+      );
 
       return ChangePasswordResponse.fromJson(response.data);
     } on ApiException {
@@ -216,13 +262,18 @@ class AuthRepository extends BaseRepository {
     try {
       final request = ForgotPasswordRequest(email: email);
 
-      final response = await apiClient.post('/api/auth/password/request-reset', data: request.toJson());
+      final response = await apiClient.post(
+        '/api/auth/password/request-reset',
+        data: request.toJson(),
+      );
 
       return ForgotPasswordResponse.fromJson(response.data);
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw UnknownException('Wystąpił błąd podczas żądania resetowania hasła: $e');
+      throw UnknownException(
+        'Wystąpił błąd podczas żądania resetowania hasła: $e',
+      );
     }
   }
 
@@ -230,11 +281,20 @@ class AuthRepository extends BaseRepository {
   ///
   /// Wymaga podania tokenu resetowania oraz nowego hasła.
   /// Zwraca odpowiedź z informacją o powodzeniu operacji.
-  Future<ResetPasswordResponse> resetPassword({required String token, required String newPassword}) async {
+  Future<ResetPasswordResponse> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
     try {
-      final request = ResetPasswordRequest(token: token, newPassword: newPassword);
+      final request = ResetPasswordRequest(
+        token: token,
+        newPassword: newPassword,
+      );
 
-      final response = await apiClient.post('/api/auth/password/reset', data: request.toJson());
+      final response = await apiClient.post(
+        '/api/auth/password/reset',
+        data: request.toJson(),
+      );
 
       return ResetPasswordResponse.fromJson(response.data);
     } on ApiException {
