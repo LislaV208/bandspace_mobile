@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/dashboard_state.dart';
 import 'package:bandspace_mobile/features/dashboard/repository/dashboard_repository.dart';
+import 'package:bandspace_mobile/shared/models/project.dart';
 
 /// Cubit zarządzający stanem ekranu dashboardu
 class DashboardCubit extends Cubit<DashboardState> {
   final DashboardRepository dashboardRepository;
+
+  late StreamSubscription<List<Project>> projectsSubscription;
 
   DashboardCubit({
     required this.dashboardRepository,
@@ -14,32 +19,25 @@ class DashboardCubit extends Cubit<DashboardState> {
     loadProjects();
   }
 
+  @override
+  Future<void> close() {
+    projectsSubscription.cancel();
+    return super.close();
+  }
+
   Future<void> loadProjects() async {
-    emit(
-      state.copyWith(
-        status: DashboardStatus.loading,
-        errorMessage: null,
-      ),
-    );
+    emit(state.copyWith(status: DashboardStatus.loading));
 
-    try {
-      final projects = await dashboardRepository.getProjects();
-
+    projectsSubscription = dashboardRepository.getProjects().listen((
+      projects,
+    ) {
       emit(
         state.copyWith(
           status: DashboardStatus.success,
           projects: projects,
         ),
       );
-    } catch (e) {
-      emit(
-        state.copyWith(
-          projects: [],
-          status: DashboardStatus.error,
-          errorMessage: Value(e.toString()),
-        ),
-      );
-    }
+    });
   }
 
   /// Tworzy nowy projekt

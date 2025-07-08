@@ -34,7 +34,7 @@ abstract class CachedRepository extends ApiRepository {
     await RemoteCaching.instance.clearCache();
   }
 
-  /// Wykonuje cache'owaną operację.
+  /// Wykonuje cache'owaną operację z strategią stale-while-revalidate.
   ///
   /// [methodName] - nazwa metody do cache'owania
   /// [parameters] - parametry metody (używane do generowania unikalnego klucza)
@@ -55,21 +55,39 @@ abstract class CachedRepository extends ApiRepository {
         defaultCacheDuration;
 
     try {
-      final result = await RemoteCaching.instance.call<T>(
-        cacheKey,
-        remote: remoteCall,
-        fromJson: fromJson,
-        cacheDuration: duration,
-      );
+      // Najpierw próbuj pobrać z cache (bez force refresh)
+      T? cachedResult;
+      try {
+        cachedResult = await RemoteCaching.instance.call<T>(
+          cacheKey,
+          remote: () async => throw Exception('Cache miss'),
+          fromJson: fromJson,
+          cacheDuration: duration,
+        );
+      } catch (error) {
+        // Jeśli cache miss - cachedResult pozostaje null
+        cachedResult = null;
+      }
 
-      return result;
+      if (cachedResult != null) {
+        // Jeśli mamy cache - zwróć go i odśwież w tle
+        _backgroundRefresh(cacheKey, remoteCall, fromJson, duration);
+        return cachedResult;
+      } else {
+        // Jeśli brak cache - wykonaj normalne wywołanie z cache
+        return await RemoteCaching.instance.call<T>(
+          cacheKey,
+          remote: remoteCall,
+          fromJson: fromJson,
+          cacheDuration: duration,
+        );
+      }
     } catch (e) {
-      // W przypadku błędu cache'a, próbuj wykonać wywołanie bezpośrednio
       rethrow;
     }
   }
 
-  /// Wykonuje cache'owaną operację dla list.
+  /// Wykonuje cache'owaną operację dla list z strategią stale-while-revalidate.
   ///
   /// Specjalna wersja dla operacji zwracających listy obiektów.
   Future<List<T>> cachedListCall<T>({
@@ -79,6 +97,26 @@ abstract class CachedRepository extends ApiRepository {
     required T Function(Map<String, dynamic>) fromJson,
     Duration? cacheDuration,
   }) async {
+    return cachedListStream<T>(
+      methodName: methodName,
+      parameters: parameters,
+      remoteCall: remoteCall,
+      fromJson: fromJson,
+      cacheDuration: cacheDuration,
+    ).first;
+  }
+
+  /// Wykonuje cache'owaną operację dla list jako Stream z strategią stale-while-revalidate.
+  ///
+  /// Zwraca Stream który najpierw emituje dane z cache (jeśli istnieją),
+  /// następnie świeże dane z API po ich pobraniu.
+  Stream<List<T>> cachedListStream<T>({
+    required String methodName,
+    required Map<String, dynamic> parameters,
+    required Future<List<T>> Function() remoteCall,
+    required T Function(Map<String, dynamic>) fromJson,
+    Duration? cacheDuration,
+  }) async* {
     final cacheKey = _generateCacheKey(methodName, parameters);
     final duration =
         cacheDuration ??
@@ -86,21 +124,52 @@ abstract class CachedRepository extends ApiRepository {
         defaultCacheDuration;
 
     try {
-      final result = await RemoteCaching.instance.call<List<T>>(
+      // Najpierw próbuj pobrać z cache (bez force refresh)
+      List<T>? cachedResult;
+      try {
+        cachedResult = await RemoteCaching.instance.call<List<T>>(
+          cacheKey,
+          remote: () async => throw Exception('Cache miss'),
+          fromJson: (json) {
+            if (json is List) {
+              return json
+                  .map((item) => fromJson(item as Map<String, dynamic>))
+                  .toList();
+            }
+            return <T>[];
+          },
+          cacheDuration: duration,
+        );
+      } catch (error) {
+        // Jeśli cache miss - cachedResult pozostaje null
+        cachedResult = null;
+      }
+
+      if (cachedResult != null) {
+        // Najpierw emit dane z cache
+        yield cachedResult;
+      }
+
+      // Zawsze pobierz świeże dane z API
+      final freshResult = await RemoteCaching.instance.call<List<T>>(
         cacheKey,
         remote: remoteCall,
         fromJson: (json) {
-          // RemoteCaching przekazuje dane bezpośrednio z remote()
           if (json is List) {
-            return json.map((item) => fromJson(item)).toList();
+            return json
+                .map((item) => fromJson(item as Map<String, dynamic>))
+                .toList();
           }
-
-          return [];
+          return <T>[];
         },
         cacheDuration: duration,
+        forceRefresh: true,
       );
 
-      return result;
+      // Emit świeże dane (jeśli różnią się od cache)
+      if (cachedResult == null || !_listsEqual(cachedResult, freshResult)) {
+        yield freshResult;
+      }
     } catch (e) {
       rethrow;
     }
@@ -162,5 +231,33 @@ abstract class CachedRepository extends ApiRepository {
         await invalidateMethod(method);
       }
     }
+  }
+
+  /// Wykonuje odświeżanie danych w tle.
+  Future<void> _backgroundRefresh<T>(
+    String cacheKey,
+    Future<T> Function() remoteCall,
+    T Function(Object?) fromJson,
+    Duration? duration,
+  ) async {
+    // Nie czekaj na wynik - wykonaj w tle
+    final result = await remoteCall();
+
+    RemoteCaching.instance.call<T>(
+      cacheKey,
+      remote: () async => result,
+      fromJson: fromJson,
+      cacheDuration: duration,
+      forceRefresh: true,
+    );
+  }
+
+  /// Sprawdza czy dwie listy są równe.
+  bool _listsEqual<T>(List<T> list1, List<T> list2) {
+    if (list1.length != list2.length) return false;
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i] != list2[i]) return false;
+    }
+    return true;
   }
 }
