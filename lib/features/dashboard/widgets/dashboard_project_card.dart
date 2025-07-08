@@ -44,39 +44,11 @@ class DashboardProjectCard extends StatelessWidget {
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [_buildHeader(), _buildContent()],
+            children: [
+              // _buildHeader(),
+              _buildContent(),
+            ],
           ),
-        ),
-      ),
-    );
-  }
-
-  /// Buduje nagłówek karty projektu z gradientem i ikoną muzyczną
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      height: 128, // h-32 w Tailwind
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [
-            Color(0xFF1E3A8A),
-            Color(0xFF312E81),
-          ], // from-blue-900 to-indigo-900
-        ),
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(8),
-          topRight: Radius.circular(8),
-        ),
-      ),
-      child: Center(
-        child: Icon(
-          LucideIcons.music,
-          size: 48,
-          color: const Color(0xFF60A5FA).withAlpha(
-            204,
-          ), // text-blue-400 opacity-80 (0.8 * 255 = 204)
         ),
       ),
     );
@@ -89,21 +61,55 @@ class DashboardProjectCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            project.name,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Utworzono $createdTime',
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF9CA3AF), // text-gray-400
-            ),
+          Row(
+            spacing: 16,
+            children: [
+              Container(
+                width: 48,
+                height: 48, // h-32 w Tailwind
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [
+                      Color(0xFF1E3A8A),
+                      Color(0xFF312E81),
+                    ], // from-blue-900 to-indigo-900
+                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                ),
+                child: Center(
+                  child: Icon(
+                    LucideIcons.music,
+                    size: 28,
+                    color: const Color(0xFF60A5FA).withAlpha(
+                      204,
+                    ), // text-blue-400 opacity-80 (0.8 * 255 = 204)
+                  ),
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    project.name,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Utworzono $createdTime',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF9CA3AF), // text-gray-400
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           Row(
@@ -207,12 +213,14 @@ class DashboardProjectCard extends StatelessWidget {
     );
   }
 
-  /// Zwraca prawidłową odmianę słowa "członek" w zależności od liczby
+  /// Zwraca prawidłową odmianę słowa "osoba" w zależności od liczby
   String _getMemberCountText(int count) {
     if (count == 1) {
-      return 'członek';
+      return 'osoba';
+    } else if (count >= 2 && count <= 4) {
+      return 'osoby';
     } else {
-      return 'członków';
+      return 'osób';
     }
   }
 

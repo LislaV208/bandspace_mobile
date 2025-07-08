@@ -42,6 +42,16 @@ class DashboardScreen extends StatelessWidget {
           ],
         ),
       ),
+      floatingActionButton: Builder(
+        builder: (context) {
+          return FloatingActionButton.extended(
+            backgroundColor: Theme.of(context).colorScheme.secondary,
+            onPressed: () => _showCreateProjectDialog(context),
+            label: const Text('Nowy projekt'),
+            icon: const Icon(LucideIcons.plus),
+          );
+        },
+      ),
     );
   }
 
@@ -76,15 +86,21 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 16),
-          _buildProjectsSection(context),
-          const SizedBox(height: 16),
-        ],
+    return RefreshIndicator(
+      onRefresh: () async {
+        await context.read<DashboardCubit>().refreshProjects();
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            _buildProjectsSection(context),
+            const SizedBox(height: 74),
+          ],
+        ),
       ),
     );
   }
@@ -164,7 +180,7 @@ class DashboardScreen extends StatelessWidget {
           'Zarządzaj i organizuj swoje projekty muzyczne',
         ),
         const SizedBox(height: 16),
-        _buildNewProjectButton(context),
+        // _buildNewProjectButton(context),
         // const SizedBox(height: 16),
         // _buildInvitationsSection(context),
         const SizedBox(height: 16),
@@ -293,23 +309,6 @@ class DashboardScreen extends StatelessWidget {
     } else {
       return 'przed chwilą';
     }
-  }
-
-  Widget _buildNewProjectButton(BuildContext context) {
-    return BlocBuilder<DashboardCubit, DashboardState>(
-      builder: (context, state) {
-        return SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            icon: const Icon(LucideIcons.plus, color: Colors.white),
-            label: const Text('Nowy Projekt'),
-            onPressed: state.status == DashboardStatus.creatingProject
-                ? null
-                : () => _showCreateProjectDialog(context),
-          ),
-        );
-      },
-    );
   }
 
   /// Wyświetla bottom sheet tworzenia nowego projektu
