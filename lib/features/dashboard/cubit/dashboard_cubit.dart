@@ -30,7 +30,13 @@ class DashboardCubit extends Cubit<DashboardState> {
 
     projectsSubscription = dashboardRepository.getProjects().listen((
       projects,
-    ) {
+    ) async {
+      if (state.status == DashboardStatus.creatingProject) {
+        // poczekaj z aktualizacją listy projektów
+        // dla lepszego UX
+        await Future.delayed(const Duration(milliseconds: 200));
+      }
+
       emit(
         state.copyWith(
           status: DashboardStatus.success,
@@ -47,7 +53,9 @@ class DashboardCubit extends Cubit<DashboardState> {
       emit(state.copyWith(status: DashboardStatus.loading));
     }
 
-    final projects = await dashboardRepository.getProjects().first;
+    final projects = await dashboardRepository
+        .getProjects(forceRefresh: true)
+        .first;
     emit(
       state.copyWith(
         status: DashboardStatus.success,
@@ -56,20 +64,7 @@ class DashboardCubit extends Cubit<DashboardState> {
     );
   }
 
-  Future<void> createProject(String name) async {
-    name = name.trim();
-
-    if (name.isEmpty) {
-      emit(
-        state.copyWith(
-          errorMessage: Value(
-            'Nazwa projektu nie może być pusta',
-          ),
-        ),
-      );
-      return;
-    }
-
+  Future<Project?> createProject(String name) async {
     emit(
       state.copyWith(
         status: DashboardStatus.creatingProject,
@@ -78,18 +73,7 @@ class DashboardCubit extends Cubit<DashboardState> {
     );
 
     try {
-      final newProject = await dashboardRepository.createProject(
-        name: name.trim(),
-      );
-
-      final updatedProjects = [newProject, ...state.projects];
-
-      emit(
-        state.copyWith(
-          status: DashboardStatus.success,
-          projects: updatedProjects,
-        ),
-      );
+      return dashboardRepository.createProject(name: name.trim());
     } catch (e) {
       emit(
         state.copyWith(
@@ -98,5 +82,6 @@ class DashboardCubit extends Cubit<DashboardState> {
         ),
       );
     }
+    return null;
   }
 }

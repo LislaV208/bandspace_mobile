@@ -66,7 +66,7 @@ class ProjectDetailRepository extends CachedRepository {
 
   /// Usuwa projekt.
   Future<void> deleteProject(int projectId) async {
-    return removeFromList<Project>(
+    await removeFromList<Project>(
       listMethodName: 'getProjects',
       listParameters: {},
       deleteCall: () async {

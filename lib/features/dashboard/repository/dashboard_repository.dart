@@ -11,23 +11,35 @@ class DashboardRepository extends CachedRepository {
     required super.apiClient,
   });
 
+  Future<List<Project>> _fetchProjects() async {
+    final response = await apiClient.get('/api/projects');
+
+    if (response.data == null) {
+      return [];
+    }
+
+    final List<dynamic> projectsData = response.data;
+    return projectsData
+        .map((projectData) => Project.fromJson(projectData))
+        .toList();
+  }
+
   /// Pobiera listę wszystkich projektów użytkownika.
-  Stream<List<Project>> getProjects() {
-    return cachedListStream<Project>(
+  Stream<List<Project>> getProjects({bool forceRefresh = false}) {
+    if (forceRefresh) {
+      return cachedListStream<Project>(
+        methodName: 'getProjects',
+        parameters: {},
+        remoteCall: _fetchProjects,
+        fromJson: (json) => Project.fromJson(json),
+        forceRefresh: forceRefresh,
+      );
+    }
+
+    return reactiveListStream<Project>(
       methodName: 'getProjects',
       parameters: {},
-      remoteCall: () async {
-        final response = await apiClient.get('/api/projects');
-
-        if (response.data == null) {
-          return [];
-        }
-
-        final List<dynamic> projectsData = response.data;
-        return projectsData
-            .map((projectData) => Project.fromJson(projectData))
-            .toList();
-      },
+      remoteCall: _fetchProjects,
       fromJson: (json) => Project.fromJson(json),
     );
   }

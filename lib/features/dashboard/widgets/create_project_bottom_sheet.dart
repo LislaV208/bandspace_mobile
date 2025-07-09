@@ -126,52 +126,57 @@ class _CreateProjectBottomSheetState extends State<CreateProjectBottomSheet> {
           child: const Text('Anuluj'),
         ),
         const SizedBox(width: 8),
-        BlocListener<DashboardCubit, DashboardState>(
-          listenWhen: (previous, current) =>
-              previous.status == DashboardStatus.creatingProject &&
-              current.status == DashboardStatus.success &&
-              current.errorMessage == null,
-          listener: (context, state) {
-            // Zamknij modal tylko po pomyślnym utworzeniu projektu
-            Navigator.of(context).pop();
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => ProjectDetailScreen.create(
-                  state.projects.first,
-                ),
+        ValueListenableBuilder(
+          valueListenable: nameController,
+          builder: (context, nameEditingValue, child) {
+            final name = nameEditingValue.text.trim();
+            return ElevatedButton(
+              onPressed:
+                  name.isEmpty ||
+                      state.status == DashboardStatus.creatingProject
+                  ? null
+                  : () async {
+                      final project = await context
+                          .read<DashboardCubit>()
+                          .createProject(name);
+
+                      if (!context.mounted) return;
+
+                      if (project != null) {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ProjectDetailScreen.create(project),
+                          ),
+                        );
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.buttonPrimary,
+                foregroundColor: Colors.white,
               ),
-            );
-          },
-          child: ElevatedButton(
-            onPressed: state.status == DashboardStatus.creatingProject
-                ? null
-                : () => context.read<DashboardCubit>().createProject(
-                    nameController.text,
-                  ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.buttonPrimary,
-              foregroundColor: Colors.white,
-            ),
-            child: state.status == DashboardStatus.creatingProject
-                ? const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
+              child: state.status == DashboardStatus.creatingProject
+                  ? const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         ),
-                      ),
-                      SizedBox(width: 8),
-                      Text('Tworzenie...'),
-                    ],
-                  )
-                : const Text('Utwórz'),
-          ),
+                        SizedBox(width: 8),
+                        Text('Tworzenie...'),
+                      ],
+                    )
+                  : const Text('Utwórz'),
+            );
+          },
         ),
       ],
     );
