@@ -1,15 +1,16 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
-import 'package:path/path.dart' as path;
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/theme/theme.dart';
-import 'package:bandspace_mobile/features/project_detail/widgets/song_create/file_picker_step.dart';
-import 'package:bandspace_mobile/features/project_detail/widgets/song_create/song_details_step.dart';
+
+import '../cubit/song_create_cubit.dart';
+import '../cubit/song_create_state.dart';
+import '../widgets/song_create/file_picker_step.dart';
+import '../widgets/song_create/song_details_step.dart';
 
 /// Ekran tworzenia nowego utworu z 2-stepowym flow
-class CreateSongScreen extends StatefulWidget {
+class CreateSongScreen extends StatelessWidget {
   final int projectId;
   final String projectName;
 
@@ -20,65 +21,105 @@ class CreateSongScreen extends StatefulWidget {
   });
 
   @override
-  State<CreateSongScreen> createState() => _CreateSongScreenState();
-}
-
-class _CreateSongScreenState extends State<CreateSongScreen> {
-  final PageController _pageController = PageController();
-  int _currentStep = 0;
-
-  // Dane z Step 1
-  File? _selectedFile;
-  String? _fileName;
-
-  // Dane z Step 2
-  String _songTitle = '';
-  String _songDescription = '';
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          _buildProgressIndicator(),
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              onPageChanged: (page) {
-                setState(() {
-                  _currentStep = page;
-                });
-              },
-              children: [
-                FilePickerStep(
-                  onFileSelected: _onFileSelected,
-                ),
-                SongDetailsStep(
-                  fileName: _fileName ?? '',
-                  initialTitle: _songTitle,
-                  initialDescription: _songDescription,
-                  onDetailsChanged: _onDetailsChanged,
-                  onCancel: _goToPreviousStep,
-                  onCreate: _createSong,
-                ),
-              ],
-            ),
-          ),
-        ],
+    return BlocProvider(
+      create: (context) => SongCreateCubit(),
+      child: _CreateSongScreenContent(
+        projectId: projectId,
+        projectName: projectName,
       ),
     );
   }
+}
 
-  PreferredSizeWidget _buildAppBar() {
+/// Wewnętrzny widget z logiką ekranu
+class _CreateSongScreenContent extends StatefulWidget {
+  final int projectId;
+  final String projectName;
+
+  const _CreateSongScreenContent({
+    required this.projectId,
+    required this.projectName,
+  });
+
+  @override
+  State<_CreateSongScreenContent> createState() =>
+      _CreateSongScreenContentState();
+}
+
+class _CreateSongScreenContentState extends State<_CreateSongScreenContent> {
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<SongCreateCubit, SongCreateState>(
+      listener: (context, state) {
+        // Obsługa błędów
+        if (state.status == SongCreateStatus.error &&
+            state.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage!),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+
+        // Obsługa sukcesu
+        if (state.status == SongCreateStatus.success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Utwór został utworzony pomyślnie!'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+          Navigator.pop(context);
+        }
+      },
+      builder: (context, state) {
+        // Jeśli jest w trakcie tworzenia, pokaż ekran uploadu
+        if (state.isCreating) {
+          return _buildUploadingScreen(state.uploadProgress);
+        }
+
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: _buildAppBar(state),
+          body: Column(
+            children: [
+              _buildProgressIndicator(state),
+              Expanded(
+                child: PageView(
+                  controller: context.read<SongCreateCubit>().pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  onPageChanged: context.read<SongCreateCubit>().onPageChanged,
+                  children: [
+                    FilePickerStep(
+                      onFileSelected: context
+                          .read<SongCreateCubit>()
+                          .onFileSelected,
+                    ),
+                    SongDetailsStep(
+                      fileName: state.fileName ?? '',
+                      initialTitle: state.songTitle,
+                      initialDescription: state.songDescription,
+                      onDetailsChanged: context
+                          .read<SongCreateCubit>()
+                          .onDetailsChanged,
+                      onCancel: context
+                          .read<SongCreateCubit>()
+                          .goToPreviousStep,
+                      onCreate: context.read<SongCreateCubit>().createSong,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(SongCreateState state) {
     return AppBar(
       backgroundColor: AppColors.background,
       foregroundColor: AppColors.textPrimary,
@@ -94,7 +135,9 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
             ),
           ),
           Text(
-            _currentStep == 0 ? 'Wybierz plik audio' : 'Uzupełnij szczegóły',
+            state.currentStep == 0
+                ? 'Wybierz plik audio'
+                : 'Uzupełnij szczegóły',
             style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.textSecondary,
             ),
@@ -104,7 +147,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
     );
   }
 
-  Widget _buildProgressIndicator() {
+  Widget _buildProgressIndicator(SongCreateState state) {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -123,7 +166,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
             child: Container(
               height: 4,
               decoration: BoxDecoration(
-                color: _currentStep >= 1
+                color: state.currentStep >= 1
                     ? AppColors.primary
                     : AppColors.textSecondary.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(2),
@@ -135,136 +178,81 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
     );
   }
 
-  void _onFileSelected(File file) {
-    setState(() {
-      _selectedFile = file;
-      _fileName = path.basename(file.path);
-      // Auto-wypełnij tytuł z nazwy pliku (bez rozszerzenia)
-      _songTitle = path.basenameWithoutExtension(file.path);
-    });
-
-    _goToNextStep();
-  }
-
-  void _onDetailsChanged(String title, String description) {
-    setState(() {
-      _songTitle = title;
-      _songDescription = description;
-    });
-  }
-
-  void _goToNextStep() {
-    _pageController.nextPage(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
-  }
-
-  void _goToPreviousStep() {
-    _pageController.previousPage(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
-  }
-
   Widget _buildUploadingScreen(double progress) {
-    final progressPercentage = (progress * 100).round();
+    return BlocBuilder<SongCreateCubit, SongCreateState>(
+      builder: (context, state) {
+        final progressPercentage = (progress * 100).round();
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(40),
-              ),
-              child: const Icon(
-                Icons.cloud_upload,
-                size: 40,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: 32),
-            Text(
-              'Przesyłanie utworu...',
-              style: AppTextStyles.titleLarge.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _songTitle,
-              style: AppTextStyles.bodyLarge.copyWith(
-                color: AppColors.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            Container(
-              width: double.infinity,
-              height: 8,
-              decoration: BoxDecoration(
-                color: AppColors.surfaceDark,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: Colors.transparent,
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    AppColors.primary,
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(40),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(40),
+                    ),
+                    child: const Icon(
+                      Icons.cloud_upload,
+                      size: 40,
+                      color: AppColors.primary,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 32),
+                  Text(
+                    'Przesyłanie utworu...',
+                    style: AppTextStyles.titleLarge.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    state.songTitle,
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 32),
+                  Container(
+                    width: double.infinity,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceDark,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        backgroundColor: Colors.transparent,
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '$progressPercentage%',
+                    style: AppTextStyles.titleMedium.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              '$progressPercentage%',
-              style: AppTextStyles.titleMedium.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
-  }
-
-  Future<void> _createSong() async {
-    // if (_selectedFile != null && _songTitle.isNotEmpty) {
-    //   final dto = CreateSongWithFileDto(
-    //     title: _songTitle,
-    //     file: _selectedFile!,
-    //     notes: _songDescription.isNotEmpty ? _songDescription : null,
-    //   );
-
-    //   final createdSong = await context
-    //       .read<ProjectSongsCubit>()
-    //       .createSongWithFile(dto);
-
-    //   if (createdSong != null && mounted) {
-    //     // Nawiguj do ekranu utworu
-    //     Navigator.pushReplacement(
-    //       context,
-    //       MaterialPageRoute(
-    //         builder: (context) => SongDetailScreen.fromSong(
-    //           projectId: widget.projectId,
-    //           song: createdSong,
-    //         ),
-    //       ),
-    //     );
-    //   } else if (mounted) {
-    //     // Jeśli wystąpił błąd, pozostań na tym ekranie
-    //     // Błąd zostanie pokazany przez BlocListener
-    //   }
-    // }
   }
 }
