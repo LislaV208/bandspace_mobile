@@ -401,8 +401,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => BlocProvider.value(
-        value: this.context.read<ProjectDetailCubit>(),
+      builder: (_) => BlocProvider.value(
+        value: context.read<ProjectDetailCubit>(),
         child: CreateSongBottomSheet(
           projectId: context.read<ProjectDetailCubit>().state.project!.id,
           onSongCreated: (songTitle) {
