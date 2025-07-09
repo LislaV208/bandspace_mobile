@@ -35,33 +35,34 @@ class ProjectDetailRepository extends CachedRepository {
     required String name,
     String? description,
   }) async {
-    try {
-      final projectData = {
-        'name': name,
-        if (description != null) 'description': description,
-      };
+    return updateInList<Project>(
+      listMethodName: 'getProjects',
+      listParameters: {},
+      updateCall: () async {
+        final projectData = {
+          'name': name,
+          if (description != null) 'description': description,
+        };
 
-      final response = await apiClient.patch(
-        '/api/projects/$projectId',
-        data: projectData,
-      );
-
-      if (response.data == null) {
-        throw ApiException(
-          message: 'Brak danych w odpowiedzi podczas aktualizacji projektu',
-          statusCode: response.statusCode,
-          data: response.data,
+        final response = await apiClient.patch(
+          '/api/projects/$projectId',
+          data: projectData,
         );
-      }
 
-      return Project.fromJson(response.data);
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw UnknownException(
-        'Wystąpił nieoczekiwany błąd podczas aktualizacji projektu: $e',
-      );
-    }
+        if (response.data == null) {
+          throw ApiException(
+            message: 'Brak danych w odpowiedzi podczas aktualizacji projektu',
+            statusCode: response.statusCode,
+            data: response.data,
+          );
+        }
+
+        return Project.fromJson(response.data);
+      },
+      fromJson: (json) => Project.fromJson(json),
+      predicate: (project) => project.id == projectId,
+      customCacheKeyPrefix: 'dashboard',
+    );
   }
 
   /// Usuwa projekt.

@@ -535,6 +535,78 @@ abstract class CachedRepository extends ApiRepository {
     }
   }
 
+  /// Aktualizuje element w cache'owanej liście po wykonaniu API call.
+  ///
+  /// Najpierw wykonuje API call, następnie aktualizuje element w cache.
+  /// [predicate] funkcja określająca który element zaktualizować w liście.
+  /// [customCacheKeyPrefix] pozwala nadpisać domyślny prefiks cache key.
+  Future<T> updateInList<T>({
+    required String listMethodName,
+    required Map<String, dynamic> listParameters,
+    required Future<T> Function() updateCall,
+    required T Function(Map<String, dynamic>) fromJson,
+    required bool Function(T) predicate,
+    Duration? cacheDuration,
+    String? customCacheKeyPrefix,
+  }) async {
+    final listCacheKey = _generateCacheKeyWithPrefix(
+      listMethodName,
+      listParameters,
+      customCacheKeyPrefix,
+    );
+
+    // Wykonaj API call
+    final updatedItem = await updateCall();
+
+    // Pobierz aktualną listę z cache
+    List<T>? currentList;
+    try {
+      currentList = await RemoteCaching.instance.call<List<T>>(
+        listCacheKey,
+        remote: () async => throw Exception('Cache miss'),
+        fromJson: (json) {
+          if (json is List) {
+            return json
+                .map((item) => fromJson(item as Map<String, dynamic>))
+                .toList();
+          }
+          return <T>[];
+        },
+        cacheDuration: cacheDuration,
+      );
+    } catch (e) {
+      currentList = null;
+    }
+
+    // Aktualizuj element w cache
+    if (currentList != null) {
+      final updatedList = currentList
+          .map((item) => predicate(item) ? updatedItem : item)
+          .toList();
+      await RemoteCaching.instance.call<List<T>>(
+        listCacheKey,
+        remote: () async => updatedList,
+        fromJson: (json) {
+          if (json is List) {
+            return json
+                .map((item) => fromJson(item as Map<String, dynamic>))
+                .toList();
+          }
+          return updatedList;
+        },
+        cacheDuration: cacheDuration,
+        forceRefresh: true,
+      );
+
+      // Jeśli istnieje reaktywny stream, zaktualizuj go
+      if (_reactiveStreams.containsKey(listCacheKey)) {
+        _reactiveStreams[listCacheKey]!.add(updatedList);
+      }
+    }
+
+    return updatedItem;
+  }
+
   /// Odświeża cache dla listy i powiadamia subskrybentów streamu.
   ///
   /// Wykonuje API call z forceRefresh=true, co powoduje emission nowych danych
