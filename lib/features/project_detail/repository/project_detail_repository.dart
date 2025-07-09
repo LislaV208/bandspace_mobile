@@ -1,5 +1,8 @@
+import 'package:dio/dio.dart';
+
 import 'package:bandspace_mobile/core/api/api_client.dart';
 import 'package:bandspace_mobile/core/api/cached_repository.dart';
+import 'package:bandspace_mobile/features/project_detail/models/song_create_dto.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/project_invitation.dart';
 import 'package:bandspace_mobile/shared/models/send_invitation_request.dart';
@@ -202,59 +205,51 @@ class ProjectDetailRepository extends CachedRepository {
   }
 
   /// Pobiera listę utworów dla danego projektu.
-  ///
-  /// Zwraca listę utworów posortowanych według daty utworzenia (najnowsze pierwsze).
-  Future<List<Song>> getProjectSongs(int projectId) async {
-    try {
-      final response = await apiClient.get(
-        '/api/projects/$projectId/songs',
-      );
+  Stream<List<Song>> getProjectSongs(int projectId) {
+    return reactiveListStream<Song>(
+      methodName: 'getProjectSongs',
+      parameters: {'projectId': projectId},
+      remoteCall: () async {
+        final response = await apiClient.get(
+          '/api/projects/$projectId/songs',
+        );
 
-      if (response.data == null) {
-        return [];
-      }
-
-      final List<dynamic> songsData = response.data;
-      return songsData.map((songData) => Song.fromJson(songData)).toList();
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw UnknownException(
-        'Wystąpił nieoczekiwany błąd podczas pobierania utworów: $e',
-      );
-    }
+        final List<dynamic> songsData = response.data;
+        return songsData.map((songData) => Song.fromJson(songData)).toList();
+      },
+      fromJson: (json) => Song.fromJson(json),
+    );
   }
 
   /// Tworzy nowy utwór w projekcie.
-  ///
-  /// Przyjmuje ID projektu i dane utworu.
-  /// Zwraca utworzony utwór.
   Future<Song> createSong(
     int projectId,
-    Map<String, dynamic> songData,
+    SongCreateDto songData,
+    void Function(int sent, int total)? onProgress,
   ) async {
-    try {
-      final response = await apiClient.post(
-        '/api/projects/$projectId/songs',
-        data: songData,
-      );
+    return addToList<Song>(
+      listMethodName: 'getProjectSongs',
+      listParameters: {'projectId': projectId},
+      createCall: () async {
+        // TODO: wyodrebnic rzeczy zwiazane z dio do core (apiClient)
+        final formData = FormData.fromMap({
+          'title': songData.title,
+          'file': await MultipartFile.fromFile(
+            songData.file.path,
+            filename: songData.file.path.split('/').last,
+          ),
+        });
 
-      if (response.data == null) {
-        throw ApiException(
-          message: 'Brak danych w odpowiedzi podczas tworzenia utworu',
-          statusCode: response.statusCode,
-          data: response.data,
+        final response = await apiClient.post(
+          '/api/projects/$projectId/songs',
+          data: formData,
+          onSendProgress: onProgress,
         );
-      }
 
-      return Song.fromJson(response.data);
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw UnknownException(
-        'Wystąpił nieoczekiwany błąd podczas tworzenia utworu: $e',
-      );
-    }
+        return Song.fromJson(response.data);
+      },
+      fromJson: (json) => Song.fromJson(json),
+    );
   }
 
   /// Aktualizuje utwór w projekcie.

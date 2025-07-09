@@ -6,6 +6,7 @@ import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail_state.dart';
 import 'package:bandspace_mobile/features/project_detail/repository/project_detail_repository.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
+import 'package:bandspace_mobile/shared/models/song.dart';
 
 class ProjectDetailCubit extends Cubit<ProjectDetailState> {
   final ProjectDetailRepository projectRepository;
@@ -16,10 +17,11 @@ class ProjectDetailCubit extends Cubit<ProjectDetailState> {
     required this.projectId,
     Project? initialProject,
   }) : super(ProjectDetailState(project: initialProject)) {
-    loadProjectDetail();
+    loadProjectData();
   }
 
   late StreamSubscription<Project> _projectSubscription;
+  late StreamSubscription<List<Song>> _songsSubscription;
 
   @override
   Future<void> close() {
@@ -28,7 +30,7 @@ class ProjectDetailCubit extends Cubit<ProjectDetailState> {
     return super.close();
   }
 
-  Future<void> loadProjectDetail() async {
+  Future<void> loadProjectData() async {
     emit(state.copyWith(status: ProjectDetailStatus.loading));
 
     _projectSubscription =
@@ -39,6 +41,25 @@ class ProjectDetailCubit extends Cubit<ProjectDetailState> {
             state.copyWith(
               status: ProjectDetailStatus.success,
               project: Value(project),
+            ),
+          );
+        })..onError((error) {
+          emit(
+            state.copyWith(
+              status: ProjectDetailStatus.error,
+              errorMessage: Value(error.toString()),
+            ),
+          );
+        });
+
+    _songsSubscription =
+        projectRepository.getProjectSongs(projectId).listen((songs) {
+          if (state.status == ProjectDetailStatus.deleting) return;
+
+          emit(
+            state.copyWith(
+              status: ProjectDetailStatus.success,
+              songs: songs,
             ),
           );
         })..onError((error) {
