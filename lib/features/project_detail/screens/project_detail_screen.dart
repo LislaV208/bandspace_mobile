@@ -157,7 +157,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           }
 
           if (state.status == ProjectDetailStatus.error) {
-            return _buildErrorState();
+            return _buildErrorState(state.errorMessage);
           }
 
           // final cubit = context.read<ProjectDetailCubit>();
@@ -227,7 +227,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   }
 
   /// Buduje stan błędu
-  Widget _buildErrorState() {
+  Widget _buildErrorState(String? errorMessage) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -241,6 +241,17 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             ),
             textAlign: TextAlign.center,
           ),
+          if (errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4.0),
+              child: Text(
+                errorMessage,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
           const SizedBox(height: 16),
           ElevatedButton(
             // onPressed: () => context.read<ProjectDetailCubit>().loadSongs(),
@@ -336,18 +347,17 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             title: 'Usuń projekt',
             onTap: () async {
               Navigator.pop(context);
-              final shouldDelete = await ProjectDeleteDialog.show(
+              final deleted = await ProjectDeleteDialog.show(
                 context: context,
                 project: context.read<ProjectDetailCubit>().state.project!,
               );
 
-              if (!mounted) return;
+              if (!mounted) {
+                return;
+              }
 
-              if (shouldDelete == true) {
-                await context.read<ProjectDetailCubit>().deleteProject();
-                if (!mounted) return;
-
-                Navigator.pop(context);
+              if (deleted == true) {
+                Navigator.pop(context, true);
               }
             },
             isDestructive: true,

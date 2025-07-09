@@ -33,6 +33,8 @@ class ProjectDetailCubit extends Cubit<ProjectDetailState> {
 
     _projectSubscription =
         projectRepository.getProject(projectId).listen((project) {
+          if (state.status == ProjectDetailStatus.deleting) return;
+
           emit(
             state.copyWith(
               status: ProjectDetailStatus.success,
@@ -43,16 +45,19 @@ class ProjectDetailCubit extends Cubit<ProjectDetailState> {
           emit(
             state.copyWith(
               status: ProjectDetailStatus.error,
-              errorMessage: error,
+              errorMessage: Value(error.toString()),
             ),
           );
         });
   }
 
-  Future<void> deleteProject() async {
+  Future<bool> deleteProject() async {
     try {
       emit(state.copyWith(status: ProjectDetailStatus.deleting));
+
       await projectRepository.deleteProject(projectId);
+
+      return true;
     } catch (e) {
       emit(
         state.copyWith(
@@ -60,6 +65,7 @@ class ProjectDetailCubit extends Cubit<ProjectDetailState> {
           errorMessage: Value(e.toString()),
         ),
       );
+      return false;
     }
   }
 }

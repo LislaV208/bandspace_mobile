@@ -40,7 +40,13 @@ class DashboardCubit extends Cubit<DashboardState> {
     });
   }
 
-  Future<void> refreshProjects() async {
+  Future<void> refreshProjects({
+    bool showLoading = false,
+  }) async {
+    if (showLoading) {
+      emit(state.copyWith(status: DashboardStatus.loading));
+    }
+
     final projects = await dashboardRepository.getProjects().first;
     emit(
       state.copyWith(
