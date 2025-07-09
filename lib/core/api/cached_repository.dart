@@ -17,6 +17,10 @@ abstract class CachedRepository extends ApiRepository {
   static final Map<String, BehaviorSubject<List<dynamic>>> _reactiveStreams =
       {};
 
+  /// Mapa przechowująca BehaviorSubject streams dla reaktywnych pojedynczych elementów.
+  /// Klucz: cache key, wartość: BehaviorSubject z danymi.
+  static final Map<String, BehaviorSubject<dynamic>> _reactiveSingleStreams = {};
+
   /// Domyślny czas cache'owania dla tego repozytorium.
   /// Może być nadpisany w konkretnych implementacjach.
   Duration? get defaultCacheDuration => null;
@@ -43,6 +47,12 @@ abstract class CachedRepository extends ApiRepository {
       subject.close();
     }
     _reactiveStreams.clear();
+    
+    // Zamknij wszystkie reaktywne pojedyncze streamy
+    for (final subject in _reactiveSingleStreams.values) {
+      subject.close();
+    }
+    _reactiveSingleStreams.clear();
   }
 
   /// Wykonuje cache'owaną operację z strategią stale-while-revalidate.
@@ -256,6 +266,88 @@ abstract class CachedRepository extends ApiRepository {
     }
 
     return _reactiveStreams[cacheKey]!.stream.cast<List<T>>();
+  }
+
+  /// Reaktywny stream dla pojedynczego elementu z BehaviorSubject.
+  ///
+  /// Zwraca Stream który będzie emitować nowe dane za każdym razem,
+  /// gdy element zostanie zaktualizowany przez inne metody.
+  Stream<T> reactiveStream<T>({
+    required String methodName,
+    required Map<String, dynamic> parameters,
+    required Future<T> Function() remoteCall,
+    required T Function(Map<String, dynamic>) fromJson,
+    Duration? cacheDuration,
+  }) {
+    final cacheKey = _generateCacheKey(methodName, parameters);
+
+    // Sprawdź czy już istnieje subject dla tego klucza
+    if (!_reactiveSingleStreams.containsKey(cacheKey)) {
+      _reactiveSingleStreams[cacheKey] = BehaviorSubject<T>();
+      
+      // Rozpocznij ładowanie danych
+      _loadAndEmitSingleData<T>(
+        cacheKey: cacheKey,
+        methodName: methodName,
+        parameters: parameters,
+        remoteCall: remoteCall,
+        fromJson: fromJson,
+        cacheDuration: cacheDuration,
+      );
+    }
+
+    return _reactiveSingleStreams[cacheKey]!.stream.cast<T>();
+  }
+
+  /// Ładuje dane i emituje je do BehaviorSubject dla pojedynczego elementu.
+  Future<void> _loadAndEmitSingleData<T>({
+    required String cacheKey,
+    required String methodName,
+    required Map<String, dynamic> parameters,
+    required Future<T> Function() remoteCall,
+    required T Function(Map<String, dynamic>) fromJson,
+    Duration? cacheDuration,
+  }) async {
+    final duration =
+        cacheDuration ??
+        methodCacheStrategies[methodName] ??
+        defaultCacheDuration;
+
+    try {
+      // Najpierw próbuj pobrać z cache
+      T? cachedResult;
+      try {
+        cachedResult = await RemoteCaching.instance.call<T>(
+          cacheKey,
+          remote: () async => throw Exception('Cache miss'),
+          fromJson: (json) => fromJson(json as Map<String, dynamic>),
+          cacheDuration: duration,
+        );
+      } catch (error) {
+        cachedResult = null;
+      }
+
+      if (cachedResult != null) {
+        // Emit dane z cache
+        _reactiveSingleStreams[cacheKey]?.add(cachedResult);
+      }
+
+      // Zawsze pobierz świeże dane z API
+      final freshResult = await RemoteCaching.instance.call<T>(
+        cacheKey,
+        remote: remoteCall,
+        fromJson: (json) => fromJson(json as Map<String, dynamic>),
+        cacheDuration: duration,
+        forceRefresh: true,
+      );
+
+      // Emit świeże dane (jeśli różnią się od cache)
+      if (cachedResult == null || cachedResult != freshResult) {
+        _reactiveSingleStreams[cacheKey]?.add(freshResult);
+      }
+    } catch (e) {
+      _reactiveSingleStreams[cacheKey]?.addError(e);
+    }
   }
 
   /// Ładuje dane i emituje je do BehaviorSubject.
@@ -602,6 +694,44 @@ abstract class CachedRepository extends ApiRepository {
       if (_reactiveStreams.containsKey(listCacheKey)) {
         _reactiveStreams[listCacheKey]!.add(updatedList);
       }
+    }
+
+    return updatedItem;
+  }
+
+  /// Aktualizuje pojedynczy element w cache po wykonaniu API call.
+  ///
+  /// Najpierw wykonuje API call, następnie aktualizuje cache.
+  /// Przydatne do aktualizacji pojedynczego obiektu bez pobierania listy.
+  Future<T> updateSingle<T>({
+    required String methodName,
+    required Map<String, dynamic> parameters,
+    required Future<T> Function() updateCall,
+    required T Function(Map<String, dynamic>) fromJson,
+    Duration? cacheDuration,
+  }) async {
+    final cacheKey = _generateCacheKey(methodName, parameters);
+    
+    // Wykonaj API call
+    final updatedItem = await updateCall();
+    
+    final duration =
+        cacheDuration ??
+        methodCacheStrategies[methodName] ??
+        defaultCacheDuration;
+
+    // Zaktualizuj cache
+    await RemoteCaching.instance.call<T>(
+      cacheKey,
+      remote: () async => updatedItem,
+      fromJson: (json) => fromJson(json as Map<String, dynamic>),
+      cacheDuration: duration,
+      forceRefresh: true,
+    );
+
+    // Jeśli istnieje reaktywny stream, zaktualizuj go
+    if (_reactiveSingleStreams.containsKey(cacheKey)) {
+      _reactiveSingleStreams[cacheKey]!.add(updatedItem);
     }
 
     return updatedItem;

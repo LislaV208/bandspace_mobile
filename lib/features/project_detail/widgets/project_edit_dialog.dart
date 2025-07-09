@@ -73,6 +73,7 @@ class _ProjectEditDialogState extends State<ProjectEditDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   TextFormField(
+                    autofocus: true,
                     controller: _nameController,
                     decoration: const InputDecoration(
                       labelText: 'Nazwa projektu',

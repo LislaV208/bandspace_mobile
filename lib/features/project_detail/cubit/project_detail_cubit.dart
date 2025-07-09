@@ -75,16 +75,9 @@ class ProjectDetailCubit extends Cubit<ProjectDetailState> {
     try {
       emit(state.copyWith(status: ProjectDetailStatus.updating));
 
-      final updatedProject = await projectRepository.updateProject(
+      await projectRepository.updateProject(
         projectId: projectId,
         name: name,
-      );
-
-      emit(
-        state.copyWith(
-          status: ProjectDetailStatus.success,
-          project: Value(updatedProject),
-        ),
       );
 
       return true;

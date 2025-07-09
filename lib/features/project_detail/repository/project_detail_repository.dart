@@ -14,7 +14,7 @@ class ProjectDetailRepository extends CachedRepository {
   ///
   /// Zwraca szczegóły projektu dla podanego ID.
   Stream<Project> getProject(int projectId) {
-    return cachedStream<Project>(
+    return reactiveStream<Project>(
       methodName: 'getProject',
       parameters: {'projectId': projectId},
       remoteCall: () async {
@@ -33,36 +33,44 @@ class ProjectDetailRepository extends CachedRepository {
   Future<Project> updateProject({
     required int projectId,
     required String name,
-    String? description,
   }) async {
-    return updateInList<Project>(
+    // Definicja API call
+    Future<Project> apiCall() async {
+      final projectData = {
+        'name': name,
+      };
+
+      final response = await apiClient.patch(
+        '/api/projects/$projectId',
+        data: projectData,
+      );
+
+      return Project.fromJson(response.data);
+    }
+
+    // Aktualizuj pojedynczy cache projektu
+    final updatedProject = await updateSingle<Project>(
+      methodName: 'getProject',
+      parameters: {'projectId': projectId},
+      updateCall: apiCall,
+      fromJson: (json) => Project.fromJson(json),
+    );
+
+    refreshList(
+      customCacheKeyPrefix: 'dashboard',
       listMethodName: 'getProjects',
       listParameters: {},
-      updateCall: () async {
-        final projectData = {
-          'name': name,
-          if (description != null) 'description': description,
-        };
-
-        final response = await apiClient.patch(
-          '/api/projects/$projectId',
-          data: projectData,
-        );
-
-        if (response.data == null) {
-          throw ApiException(
-            message: 'Brak danych w odpowiedzi podczas aktualizacji projektu',
-            statusCode: response.statusCode,
-            data: response.data,
-          );
-        }
-
-        return Project.fromJson(response.data);
+      remoteCall: () async {
+        final response = await apiClient.get('/api/projects');
+        final List<dynamic> projectsData = response.data;
+        return projectsData
+            .map((projectData) => Project.fromJson(projectData))
+            .toList();
       },
       fromJson: (json) => Project.fromJson(json),
-      predicate: (project) => project.id == projectId,
-      customCacheKeyPrefix: 'dashboard',
     );
+
+    return updatedProject;
   }
 
   /// Usuwa projekt.
