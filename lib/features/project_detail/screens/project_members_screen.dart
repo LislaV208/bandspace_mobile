@@ -11,7 +11,6 @@ import 'package:bandspace_mobile/features/project_detail/widgets/empty_members_s
 import 'package:bandspace_mobile/features/project_detail/widgets/member_list_item.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/project_member.dart';
-import 'package:bandspace_mobile/shared/models/user.dart';
 
 /// Ekran wyświetlający członków projektu
 class ProjectMembersScreen extends StatelessWidget {
@@ -136,27 +135,27 @@ class ProjectMembersScreen extends StatelessWidget {
   //   // );
   // }
 
-  Widget _buildInviteButton(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          onPressed: () => _navigateToInviteUser(context),
-          icon: const Icon(LucideIcons.userPlus),
-          label: const Text('Zaproś użytkownika'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            foregroundColor: Theme.of(context).colorScheme.onPrimary,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildInviteButton(BuildContext context) {
+  //   return Padding(
+  //     padding: const EdgeInsets.symmetric(horizontal: 16),
+  //     child: SizedBox(
+  //       width: double.infinity,
+  //       child: ElevatedButton.icon(
+  //         onPressed: () => _navigateToInviteUser(context),
+  //         icon: const Icon(LucideIcons.userPlus),
+  //         label: const Text('Zaproś użytkownika'),
+  //         style: ElevatedButton.styleFrom(
+  //           backgroundColor: Theme.of(context).colorScheme.primary,
+  //           foregroundColor: Theme.of(context).colorScheme.onPrimary,
+  //           padding: const EdgeInsets.symmetric(vertical: 12),
+  //           shape: RoundedRectangleBorder(
+  //             borderRadius: BorderRadius.circular(12),
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildMembersList(BuildContext context, List<ProjectMember> members) {
     if (members.isEmpty) {
@@ -222,10 +221,10 @@ class ProjectMembersScreen extends StatelessWidget {
     );
   }
 
-  void _navigateToInviteUser(BuildContext context) {
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(builder: (context) => InviteUserScreen.create(project)),
-    // );
-  }
+  // void _navigateToInviteUser(BuildContext context) {
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(builder: (context) => InviteUserScreen.create(project)),
+  //   );
+  // }
 }
