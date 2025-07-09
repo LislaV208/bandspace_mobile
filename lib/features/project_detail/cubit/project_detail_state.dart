@@ -8,6 +8,7 @@ enum ProjectDetailStatus {
   loading,
   success,
   creating,
+  updating,
   deleting,
   error,
 }

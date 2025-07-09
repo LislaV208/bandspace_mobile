@@ -68,4 +68,34 @@ class ProjectDetailCubit extends Cubit<ProjectDetailState> {
       return false;
     }
   }
+
+  Future<bool> updateProject({
+    required String name,
+  }) async {
+    try {
+      emit(state.copyWith(status: ProjectDetailStatus.updating));
+
+      final updatedProject = await projectRepository.updateProject(
+        projectId: projectId,
+        name: name,
+      );
+
+      emit(
+        state.copyWith(
+          status: ProjectDetailStatus.success,
+          project: Value(updatedProject),
+        ),
+      );
+
+      return true;
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: ProjectDetailStatus.error,
+          errorMessage: Value(e.toString()),
+        ),
+      );
+      return false;
+    }
+  }
 }

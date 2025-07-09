@@ -10,6 +10,7 @@ import 'package:bandspace_mobile/features/project_detail/repository/project_deta
 import 'package:bandspace_mobile/features/project_detail/screens/project_members_screen.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/create_song_bottom_sheet.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/project_delete_dialog.dart';
+import 'package:bandspace_mobile/features/project_detail/widgets/project_edit_dialog.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/song_list_item.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
@@ -322,8 +323,12 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           _buildOptionTile(
             icon: LucideIcons.pencil,
             title: 'Edytuj projekt',
-            onTap: () {
+            onTap: () async {
               Navigator.pop(context);
+              await ProjectEditDialog.show(
+                context: context,
+                project: context.read<ProjectDetailCubit>().state.project!,
+              );
             },
           ),
           _buildOptionTile(
