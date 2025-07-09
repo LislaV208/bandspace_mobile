@@ -183,71 +183,75 @@ class _CreateSongScreenContentState extends State<_CreateSongScreenContent> {
       builder: (context, state) {
         final progressPercentage = (progress * 100).round();
 
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          body: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(40),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(40),
+        return PopScope(
+          onPopInvokedWithResult: (didPop, result) {},
+          canPop: false,
+          child: Scaffold(
+            backgroundColor: AppColors.background,
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(40),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(40),
+                      ),
+                      child: const Icon(
+                        Icons.cloud_upload,
+                        size: 40,
+                        color: AppColors.primary,
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.cloud_upload,
-                      size: 40,
-                      color: AppColors.primary,
+                    const SizedBox(height: 32),
+                    Text(
+                      'Przesyłanie utworu...',
+                      style: AppTextStyles.titleLarge.copyWith(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 32),
-                  Text(
-                    'Przesyłanie utworu...',
-                    style: AppTextStyles.titleLarge.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w600,
+                    const SizedBox(height: 8),
+                    Text(
+                      state.songTitle,
+                      style: AppTextStyles.bodyLarge.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    state.songTitle,
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 32),
-                  Container(
-                    width: double.infinity,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceDark,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        backgroundColor: Colors.transparent,
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          AppColors.primary,
+                    const SizedBox(height: 32),
+                    Container(
+                      width: double.infinity,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceDark,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          backgroundColor: Colors.transparent,
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            AppColors.primary,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    '$progressPercentage%',
-                    style: AppTextStyles.titleMedium.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
+                    const SizedBox(height: 16),
+                    Text(
+                      '$progressPercentage%',
+                      style: AppTextStyles.titleMedium.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
