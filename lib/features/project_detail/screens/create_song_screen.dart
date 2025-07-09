@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/theme/theme.dart';
-
-import '../cubit/song_create_cubit.dart';
-import '../cubit/song_create_state.dart';
-import '../widgets/song_create/file_picker_step.dart';
-import '../widgets/song_create/song_details_step.dart';
+import 'package:bandspace_mobile/features/project_detail/cubit/song_create_cubit.dart';
+import 'package:bandspace_mobile/features/project_detail/cubit/song_create_state.dart';
+import 'package:bandspace_mobile/features/project_detail/widgets/song_create/file_picker_step.dart';
+import 'package:bandspace_mobile/features/project_detail/widgets/song_create/song_details_step.dart';
+import 'package:bandspace_mobile/features/project_detail/widgets/song_create_error_dialog.dart';
 
 /// Ekran tworzenia nowego utworu z 2-stepowym flow
 class CreateSongScreen extends StatelessWidget {
@@ -52,15 +52,26 @@ class _CreateSongScreenContentState extends State<_CreateSongScreenContent> {
   Widget build(BuildContext context) {
     return BlocConsumer<SongCreateCubit, SongCreateState>(
       listener: (context, state) {
-        // Obsługa błędów
+        // Obsługa błędów - pokaż dialog z opcją powrotu lub ponowienia
         if (state.status == SongCreateStatus.error &&
             state.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage!),
-              backgroundColor: AppColors.error,
-            ),
-          );
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            final shouldRetry = await SongCreateErrorDialog.show(
+              context,
+              errorMessage: state.errorMessage!,
+              onRetry: () => context.read<SongCreateCubit>().createSong(),
+            );
+
+            // Jeśli użytkownik nie chce próbować ponownie, wróć do poprzedniego ekranu
+            if (shouldRetry != true && context.mounted) {
+              context.read<SongCreateCubit>().clearError();
+              Navigator.pop(context);
+            } else if (shouldRetry == true) {
+              // Spróbuj ponownie - clearError i wywołaj createSong ponownie
+              context.read<SongCreateCubit>().clearError();
+              context.read<SongCreateCubit>().createSong();
+            }
+          });
         }
 
         // Obsługa sukcesu

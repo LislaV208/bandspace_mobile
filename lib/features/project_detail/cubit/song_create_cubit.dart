@@ -122,6 +122,10 @@ class SongCreateCubit extends Cubit<SongCreateState> {
       for (int i = 0; i <= 100; i += 1) {
         await Future.delayed(const Duration(milliseconds: 100));
         updateUploadProgress(i / 100.0);
+
+        if (i == 50) {
+          throw Exception('Błąd uploadu');
+        }
       }
 
       emit(
@@ -131,16 +135,10 @@ class SongCreateCubit extends Cubit<SongCreateState> {
         ),
       );
     } catch (e) {
-      String errorMessage = "BBd tworzenia utworu: ${e.toString()}";
-
-      if (e.toString().contains("ApiException")) {
-        errorMessage = e.toString().replaceAll("ApiException: ", "");
-      }
-
       emit(
         state.copyWith(
           status: SongCreateStatus.error,
-          errorMessage: Value(errorMessage),
+          errorMessage: Value(e.toString()),
           uploadProgress: 0.0,
         ),
       );
