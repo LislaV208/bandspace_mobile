@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/song_create_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/song_create_state.dart';
+import 'package:bandspace_mobile/features/project_detail/repository/project_detail_repository.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/song_create/file_picker_step.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/song_create/song_details_step.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/song_create_error_dialog.dart';
@@ -23,7 +24,10 @@ class CreateSongScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => SongCreateCubit(),
+      create: (context) => SongCreateCubit(
+        projectId: projectId,
+        projectDetailRepository: context.read<ProjectDetailRepository>(),
+      ),
       child: _CreateSongScreenContent(
         projectId: projectId,
         projectName: projectName,
@@ -67,6 +71,8 @@ class _CreateSongScreenContentState extends State<_CreateSongScreenContent> {
               context.read<SongCreateCubit>().clearError();
               Navigator.pop(context);
             } else if (shouldRetry == true) {
+              if (!context.mounted) return;
+
               // Spróbuj ponownie - clearError i wywołaj createSong ponownie
               context.read<SongCreateCubit>().clearError();
               context.read<SongCreateCubit>().createSong();

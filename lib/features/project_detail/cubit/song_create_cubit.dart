@@ -7,14 +7,20 @@ import 'package:path/path.dart' as path;
 
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/song_create_state.dart';
+import 'package:bandspace_mobile/features/project_detail/models/song_create_dto.dart';
+import 'package:bandspace_mobile/features/project_detail/repository/project_detail_repository.dart';
 
 /// Cubit zarzdzajcy procesem tworzenia nowego utworu
 class SongCreateCubit extends Cubit<SongCreateState> {
+  final int projectId;
+  final ProjectDetailRepository projectDetailRepository;
   final PageController pageController;
 
-  SongCreateCubit({PageController? pageController})
-    : pageController = pageController ?? PageController(),
-      super(const SongCreateState());
+  SongCreateCubit({
+    required this.projectId,
+    required this.projectDetailRepository,
+  }) : pageController = PageController(),
+       super(const SongCreateState());
 
   @override
   Future<void> close() {
@@ -101,7 +107,7 @@ class SongCreateCubit extends Cubit<SongCreateState> {
       emit(
         state.copyWith(
           errorMessage: Value(
-            "Nie mo|na utworzy piosenki - sprawdz czy wszystkie pola s wypeBnione",
+            'Nie można utworzyć piosenki - sprawdź czy wszystkie pola są wypełnione',
           ),
         ),
       );
@@ -117,16 +123,26 @@ class SongCreateCubit extends Cubit<SongCreateState> {
         ),
       );
 
-      // TODO: Tutaj bdzie integracja z repository
       // Symulacja uploadu dla cel�w demonstracyjnych
-      for (int i = 0; i <= 100; i += 1) {
-        await Future.delayed(const Duration(milliseconds: 100));
-        updateUploadProgress(i / 100.0);
+      // for (int i = 0; i <= 100; i += 1) {
+      //   await Future.delayed(const Duration(milliseconds: 100));
+      //   updateUploadProgress(i / 100.0);
 
-        if (i == 50) {
-          throw Exception('Błąd uploadu');
-        }
-      }
+      //   if (i == 50) {
+      //     throw Exception('Błąd uploadu');
+      //   }
+      // }
+
+      await projectDetailRepository.createSong(
+        projectId,
+        SongCreateDto(
+          title: state.songTitle,
+          file: state.selectedFile!,
+        ),
+        (sent, total) {
+          updateUploadProgress(sent / total);
+        },
+      );
 
       emit(
         state.copyWith(
