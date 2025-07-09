@@ -7,6 +7,7 @@ import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail_state.dart';
 import 'package:bandspace_mobile/features/project_detail/repository/project_detail_repository.dart';
+import 'package:bandspace_mobile/features/project_detail/screens/create_song_screen.dart';
 import 'package:bandspace_mobile/features/project_detail/screens/project_members_screen.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/create_song_bottom_sheet.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/project_delete_dialog.dart';
@@ -397,22 +398,32 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
 
   /// Pokazuje arkusz tworzenia nowego utworu
   void _showCreateSongSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => BlocProvider.value(
-        value: context.read<ProjectDetailCubit>(),
-        child: CreateSongBottomSheet(
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CreateSongScreen(
           projectId: context.read<ProjectDetailCubit>().state.project!.id,
-          onSongCreated: (songTitle) {
-            // this.context.read<ProjectDetailCubit>().createSong(
-            //   songTitle,
-            // );
-          },
+          projectName: context.read<ProjectDetailCubit>().state.project!.name,
         ),
       ),
     );
+
+    // showModalBottomSheet(
+    //   context: context,
+    //   backgroundColor: Colors.transparent,
+    //   isScrollControlled: true,
+    //   builder: (_) => BlocProvider.value(
+    //     value: context.read<ProjectDetailCubit>(),
+    //     child: CreateSongBottomSheet(
+    //       projectId: context.read<ProjectDetailCubit>().state.project!.id,
+    //       onSongCreated: (songTitle) {
+    //         // this.context.read<ProjectDetailCubit>().createSong(
+    //         //   songTitle,
+    //         // );
+    //       },
+    //     ),
+    //   ),
+    // );
   }
 
   /// Otwiera szczegóły utworu
