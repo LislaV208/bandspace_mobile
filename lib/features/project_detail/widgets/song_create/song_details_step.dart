@@ -37,13 +37,18 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.initialTitle);
-    _descriptionController = TextEditingController(text: widget.initialDescription);
+    _descriptionController = TextEditingController(
+      text: widget.initialDescription,
+    );
 
     // Automatyczne fokusowanie pola tytułu
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _titleFocus.requestFocus();
+      // _titleFocus.requestFocus();
       // Zaznacz cały tekst dla łatwej edycji
-      _titleController.selection = TextSelection(baseOffset: 0, extentOffset: _titleController.text.length);
+      _titleController.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _titleController.text.length,
+      );
     });
 
     // Nasłuchiwanie zmian
@@ -67,7 +72,12 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: MediaQuery.of(context).viewInsets.bottom + 20),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
       child: ConstrainedBox(
         constraints: BoxConstraints(
           minHeight:
@@ -112,7 +122,11 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
               color: AppColors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(LucideIcons.music, size: 24, color: AppColors.primary),
+            child: const Icon(
+              LucideIcons.music,
+              size: 24,
+              color: AppColors.primary,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -121,12 +135,20 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
               children: [
                 Text(
                   widget.fileName,
-                  style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
-                Text('Plik audio', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
+                Text(
+                  'Plik audio',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ],
             ),
           ),
@@ -142,7 +164,10 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
       children: [
         Text(
           'Nazwa utworu *',
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         const SizedBox(height: 8),
         TextField(
@@ -151,10 +176,15 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
           style: AppTextStyles.bodyLarge.copyWith(color: AppColors.textPrimary),
           decoration: InputDecoration(
             hintText: 'Wprowadź nazwę utworu...',
-            hintStyle: AppTextStyles.bodyLarge.copyWith(color: AppColors.textSecondary),
+            hintStyle: AppTextStyles.bodyLarge.copyWith(
+              color: AppColors.textSecondary,
+            ),
             filled: true,
             fillColor: AppColors.surfaceDark,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
@@ -165,12 +195,20 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
           textInputAction: TextInputAction.next,
           onSubmitted: (_) => _descriptionFocus.requestFocus(),
           maxLength: 100,
-          buildCounter: (context, {required currentLength, required isFocused, maxLength}) {
-            return Text(
-              '$currentLength/${maxLength ?? 0}',
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-            );
-          },
+          buildCounter:
+              (
+                context, {
+                required currentLength,
+                required isFocused,
+                maxLength,
+              }) {
+                return Text(
+                  '$currentLength/${maxLength ?? 0}',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                );
+              },
         ),
       ],
     );
@@ -182,19 +220,29 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
       children: [
         Text(
           'Opis (opcjonalnie)',
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: _descriptionController,
           focusNode: _descriptionFocus,
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.textPrimary,
+          ),
           decoration: InputDecoration(
             hintText: 'Dodaj opis utworu...',
-            hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+            hintStyle: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
             filled: true,
             fillColor: AppColors.surfaceDark,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
@@ -202,15 +250,24 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
             contentPadding: const EdgeInsets.all(16),
           ),
           textInputAction: TextInputAction.done,
-          onSubmitted: (_) => _titleController.text.trim().isNotEmpty ? _onCreate() : null,
+          onSubmitted: (_) =>
+              _titleController.text.trim().isNotEmpty ? _onCreate() : null,
           maxLines: 3,
           maxLength: 500,
-          buildCounter: (context, {required currentLength, required isFocused, maxLength}) {
-            return Text(
-              '$currentLength/${maxLength ?? 0}',
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-            );
-          },
+          buildCounter:
+              (
+                context, {
+                required currentLength,
+                required isFocused,
+                maxLength,
+              }) {
+                return Text(
+                  '$currentLength/${maxLength ?? 0}',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                );
+              },
         ),
       ],
     );
@@ -226,10 +283,19 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
               onPressed: widget.onCancel,
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.textSecondary,
-                side: BorderSide(color: AppColors.textSecondary.withOpacity(0.3)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                side: BorderSide(
+                  color: AppColors.textSecondary.withOpacity(0.3),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-              child: Text('Wstecz', style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.w600)),
+              child: Text(
+                'Wstecz',
+                style: AppTextStyles.bodyLarge.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
         ),
@@ -248,12 +314,16 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
                   icon: const Icon(LucideIcons.plus, size: 20),
                   label: Text(
                     'Utwórz utwór',
-                    style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.w600),
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: AppColors.onPrimary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 );
               },
