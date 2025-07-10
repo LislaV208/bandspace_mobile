@@ -7,10 +7,28 @@ import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/create_project/create_project_cubit.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/create_project/create_project_state.dart';
 import 'package:bandspace_mobile/features/project_detail/screens/project_detail_screen.dart';
+import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 /// Komponent formularza tworzenia nowego projektu wyświetlany jako bottom sheet.
 class CreateProjectBottomSheet extends StatefulWidget {
   const CreateProjectBottomSheet({super.key});
+
+  static Future<bool?> show(BuildContext context) {
+    return showModalBottomSheet<bool>(
+      context: context,
+      isDismissible: false,
+      isScrollControlled:
+          true, // Pozwala na dostosowanie wysokości do zawartości
+      backgroundColor: Colors
+          .transparent, // Przezroczyste tło, aby widoczne były zaokrąglone rogi
+      builder: (context) => BlocProvider(
+        create: (context) => CreateProjectCubit(
+          projectsRepository: context.read<ProjectsRepository>(),
+        ),
+        child: const CreateProjectBottomSheet(),
+      ),
+    );
+  }
 
   @override
   State<CreateProjectBottomSheet> createState() =>
@@ -32,7 +50,7 @@ class _CreateProjectBottomSheetState extends State<CreateProjectBottomSheet> {
     return BlocConsumer<CreateProjectCubit, CreateProjectState>(
       listener: (context, state) {
         if (state is CreateProjectSuccess) {
-          Navigator.of(context).pop();
+          Navigator.of(context).pop(true);
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => ProjectDetailScreen.create(state.project),
@@ -133,7 +151,7 @@ class _CreateProjectBottomSheetState extends State<CreateProjectBottomSheet> {
         TextButton(
           onPressed: state is CreateProjectLoading
               ? null
-              : () => Navigator.of(context).pop(),
+              : () => Navigator.of(context).pop(false),
           child: const Text('Anuluj'),
         ),
         const SizedBox(width: 8),
@@ -142,7 +160,8 @@ class _CreateProjectBottomSheetState extends State<CreateProjectBottomSheet> {
           builder: (context, nameEditingValue, child) {
             final name = nameEditingValue.text.trim();
             return ElevatedButton(
-              onPressed: name.isEmpty || state is CreateProjectLoading
+              onPressed:
+                  state is CreateProjectLoading || state is CreateProjectSuccess
                   ? null
                   : () async {
                       context.read<CreateProjectCubit>().createProject(name);
@@ -151,7 +170,8 @@ class _CreateProjectBottomSheetState extends State<CreateProjectBottomSheet> {
                 backgroundColor: AppColors.buttonPrimary,
                 foregroundColor: Colors.white,
               ),
-              child: state is CreateProjectLoading
+              child:
+                  state is CreateProjectLoading || state is CreateProjectSuccess
                   ? const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [

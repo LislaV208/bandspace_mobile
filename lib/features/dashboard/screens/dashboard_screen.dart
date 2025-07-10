@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/features/dashboard/cubit/create_project/create_project_cubit.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_cubit.dart';
 import 'package:bandspace_mobile/features/dashboard/views/projects_view.dart';
 import 'package:bandspace_mobile/features/dashboard/widgets/create_project_bottom_sheet.dart';
@@ -46,7 +45,6 @@ class DashboardScreen extends StatelessWidget {
                         onTap: () => Scaffold.of(context).openEndDrawer(),
                         child: UserAvatar(
                           size: 40,
-                          // borderWidth: 2,
                         ),
                       );
                     },
@@ -67,20 +65,16 @@ class DashboardScreen extends StatelessWidget {
         builder: (context) {
           return FloatingActionButton.extended(
             backgroundColor: Theme.of(context).colorScheme.secondary,
-            onPressed: () => showModalBottomSheet(
-              context: context,
-              isDismissible: false,
-              isScrollControlled:
-                  true, // Pozwala na dostosowanie wysokości do zawartości
-              backgroundColor: Colors
-                  .transparent, // Przezroczyste tło, aby widoczne były zaokrąglone rogi
-              builder: (context) => BlocProvider(
-                create: (context) => CreateProjectCubit(
-                  projectsRepository: context.read<ProjectsRepository>(),
-                ),
-                child: const CreateProjectBottomSheet(),
-              ),
-            ),
+            onPressed: () async {
+              final cubit = context.read<ProjectsCubit>();
+              cubit.pauseUpdates();
+              final created = await CreateProjectBottomSheet.show(context);
+
+              if (created == true) {
+                cubit.resumeUpdates();
+                cubit.refreshProjects();
+              }
+            },
             label: const Text('Nowy projekt'),
             icon: const Icon(LucideIcons.plus),
           );

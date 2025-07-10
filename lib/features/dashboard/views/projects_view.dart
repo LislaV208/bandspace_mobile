@@ -39,7 +39,9 @@ class ProjectsView extends StatelessWidget {
                     child: CircularProgressIndicator(),
                   ),
                 ),
-                ProjectsLoadSuccess() => ProjectsList(projects: state.projects),
+                ProjectsLoadSuccess() => ProjectsList(
+                  projects: state.projects,
+                ),
                 ProjectsLoadFailure() => Center(
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 16.0),

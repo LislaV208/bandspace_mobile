@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/features/project_detail/screens/project_detail_screen.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
+import 'package:bandspace_mobile/shared/utils/date_format_utils.dart';
 import 'package:bandspace_mobile/shared/widgets/member_avatar.dart';
 
 /// Komponent karty projektu dla ekranu dashboardu.
@@ -14,8 +15,8 @@ class DashboardProjectCard extends StatelessWidget {
   /// Model projektu zawierający wszystkie dane do wyświetlenia
   final Project project;
 
-  /// Czas utworzenia projektu w formie względnej (np. "2h temu")
-  final String createdTime;
+  /// Czas utworzenia projektu
+  final DateTime? createdTime;
 
   const DashboardProjectCard({
     super.key,
@@ -98,7 +99,7 @@ class DashboardProjectCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Utworzono $createdTime',
+                    'Utworzono ${DateFormatUtils.formatRelativeTime(createdTime)}',
                     style: const TextStyle(
                       fontSize: 14,
                       color: Color(0xFF9CA3AF), // text-gray-400

@@ -12,6 +12,8 @@ class ProjectsCubit extends Cubit<ProjectsState> {
 
   late StreamSubscription<List<Project>> projectsSubscription;
 
+  bool _acceptStreamUpdates = true;
+
   ProjectsCubit({
     required this.projectsRepository,
   }) : super(const ProjectsInitial()) {
@@ -31,6 +33,8 @@ class ProjectsCubit extends Cubit<ProjectsState> {
         projectsRepository.getProjects().listen((
           projects,
         ) {
+          if (!_acceptStreamUpdates) return;
+
           emit(ProjectsLoadSuccess(projects));
         })..onError(
           (error) {
@@ -42,4 +46,7 @@ class ProjectsCubit extends Cubit<ProjectsState> {
   Future<void> refreshProjects() async {
     await projectsRepository.refreshProjects();
   }
+
+  void pauseUpdates() => _acceptStreamUpdates = false;
+  void resumeUpdates() => _acceptStreamUpdates = true;
 }
