@@ -31,9 +31,6 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     _playerStateSubscription = _audioPlayer.playerStateStream.listen((
       playerState,
     ) {
-      if (state.status == PlayerStatus.loading) {
-        return; // Ignoruj zdarzenia podczas ładowania
-      }
 
       log(
         'AudioPlayerCubit: Player state changed: ${playerState.processingState}',
