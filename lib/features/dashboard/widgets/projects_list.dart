@@ -20,55 +20,94 @@ class ProjectsList extends StatelessWidget {
       },
       displacement: 0.0,
       color: Theme.of(context).colorScheme.tertiary,
-      child: ListView(
-        padding: const EdgeInsets.only(bottom: 56.0),
-        children: projects.map(
-          (project) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: DashboardProjectCard(
-                project: project,
-                createdTime: project.createdAt,
-              ),
-            );
-          },
-        ).toList(),
-      ),
+      child: projects.isEmpty
+          ? _buildEmptyState()
+          : ListView(
+              padding: const EdgeInsets.only(bottom: 56.0),
+              children: projects.map(
+                (project) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: DashboardProjectCard(
+                      project: project,
+                      createdTime: project.createdAt,
+                    ),
+                  );
+                },
+              ).toList(),
+            ),
     );
   }
 
   Widget _buildEmptyState() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              LucideIcons.folderPlus,
-              size: 48,
-              color: Color(0xFF9CA3AF),
+    return CustomScrollView(
+      slivers: [
+        SliverFillRemaining(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 56),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  LucideIcons.folderPlus,
+                  size: 48,
+                  color: const Color(0xFF9CA3AF),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Nie masz jeszcze żadnych projektów',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF9CA3AF),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Utwórz swój pierwszy projekt, aby rozpocząć',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 16),
-            Text(
-              'Nie masz jeszcze żadnych projektów',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF9CA3AF),
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Utwórz swój pierwszy projekt, aby rozpocząć',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF6B7280),
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
+
+    // return const Center(
+    //   child: Padding(
+    //     padding: EdgeInsets.symmetric(vertical: 32.0),
+    //     child: Column(
+    //       mainAxisAlignment: MainAxisAlignment.center,
+    //       children: [
+    //         Icon(
+    //           LucideIcons.folderPlus,
+    //           size: 48,
+    //           color: Color(0xFF9CA3AF),
+    //         ),
+    //         SizedBox(height: 16),
+    //         Text(
+    //           'Nie masz jeszcze żadnych projektów',
+    //           style: TextStyle(
+    //             fontSize: 18,
+    //             fontWeight: FontWeight.w500,
+    //             color: Color(0xFF9CA3AF),
+    //           ),
+    //         ),
+    //         SizedBox(height: 8),
+    //         Text(
+    //           'Utwórz swój pierwszy projekt, aby rozpocząć',
+    //           style: TextStyle(
+    //             fontSize: 14,
+    //             color: Color(0xFF6B7280),
+    //           ),
+    //         ),
+    //       ],
+    //     ),
+    //   ),
+    // );
   }
 }
