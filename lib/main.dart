@@ -42,7 +42,17 @@ class MainApp extends StatelessWidget {
       providers: appProviders,
       child: MaterialApp(
         title: 'BandSpace',
-        theme: AppTheme.darkTheme,
+        theme: AppTheme.darkTheme.copyWith(
+          pageTransitionsTheme: const PageTransitionsTheme(
+            builders: <TargetPlatform, PageTransitionsBuilder>{
+              TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+              TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+              TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
+              TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
+              TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+            },
+          ),
+        ),
         home: const SplashScreen(),
         debugShowCheckedModeBanner: false,
       ),
