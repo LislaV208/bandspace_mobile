@@ -9,7 +9,7 @@ import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/pr
 import 'package:bandspace_mobile/features/project_detail/cubit/project_songs/project_songs_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/screens/new_song_screen.dart';
 import 'package:bandspace_mobile/features/project_detail/views/project_details_view.dart';
-import 'package:bandspace_mobile/features/project_detail/widgets/manage_project_sheet.dart';
+import 'package:bandspace_mobile/features/project_detail/widgets/project_details/manage_project_button.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
@@ -42,22 +42,7 @@ class ProjectDetailScreen extends StatelessWidget {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
-            child: TextButton.icon(
-              iconAlignment: IconAlignment.end,
-              onPressed: () => ManageProjectSheet.show(context),
-              label: const Text(
-                'Zarządzaj',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              icon: const Icon(
-                LucideIcons.settings2,
-                size: 22,
-              ),
-            ),
+            child: ManageProjectButton(),
           ),
         ],
       ),
