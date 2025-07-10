@@ -22,18 +22,18 @@ class ProjectSongsList extends StatelessWidget {
       color: Theme.of(context).colorScheme.tertiary,
       child: songs.isEmpty
           ? _buildEmptyState(context)
-          : ListView(
+          : ListView.builder(
+              itemCount: songs.length,
+              itemBuilder: (context, index) {
+                final song = songs[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: ProjectSongListItem(
+                    song: song,
+                  ),
+                );
+              },
               padding: const EdgeInsets.only(bottom: 56.0),
-              children: songs.map(
-                (project) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: ProjectSongListItem(
-                      song: project,
-                    ),
-                  );
-                },
-              ).toList(),
             ),
     );
   }

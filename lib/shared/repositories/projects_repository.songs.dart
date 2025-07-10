@@ -26,9 +26,10 @@ extension SongsManagement on ProjectsRepository {
   // POST /api/projects/{projectId}/songs
   Future<Song> createSong(
     int projectId,
-    SongCreateDto songData,
-    void Function(int sent, int total)? onProgress,
-  ) async {
+    CreateSongData songData,
+    File file, {
+    required void Function(int sent, int total)? onProgress,
+  }) async {
     return addToList<Song>(
       listMethodName: 'getSongs',
       listParameters: {'projectId': projectId},
@@ -37,8 +38,8 @@ extension SongsManagement on ProjectsRepository {
         final formData = FormData.fromMap({
           'title': songData.title,
           'file': await MultipartFile.fromFile(
-            songData.file.path,
-            filename: songData.file.path.split('/').last,
+            file.path,
+            filename: file.path.split('/').last,
           ),
         });
 

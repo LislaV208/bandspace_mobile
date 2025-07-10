@@ -12,23 +12,26 @@ class ProjectDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProjectSongsCubit, ProjectSongsState>(
-      builder: (context, state) {
-        return switch (state) {
-          ProjectSongsInitial() => const SizedBox(),
-          ProjectSongsLoading() => const Center(
-            child: CircularProgressIndicator(),
-          ),
-          ProjectSongsLoadSuccess() => ProjectSongsList(
-            songs: state.songs,
-          ),
-          ProjectSongsLoadFailure() => _buildErrorState(
-            context,
-            state.message,
-          ),
-          _ => const SizedBox(),
-        };
-      },
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: BlocBuilder<ProjectSongsCubit, ProjectSongsState>(
+        builder: (context, state) {
+          return switch (state) {
+            ProjectSongsInitial() => const SizedBox(),
+            ProjectSongsLoading() => const Center(
+              child: CircularProgressIndicator(),
+            ),
+            ProjectSongsLoadSuccess() => ProjectSongsList(
+              songs: state.songs,
+            ),
+            ProjectSongsLoadFailure() => _buildErrorState(
+              context,
+              state.message,
+            ),
+            _ => const SizedBox(),
+          };
+        },
+      ),
     );
   }
 

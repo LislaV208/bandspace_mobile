@@ -1,60 +1,35 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/features/project_detail/cubit/create_song/new_song_state.dart';
+import 'package:bandspace_mobile/features/project_detail/cubit/create_song/song_create_cubit.dart';
+import 'package:bandspace_mobile/shared/models/song_create_data.dart';
 
 /// Step 2: Uzupełnienie szczegółów utworu
-class SongDetailsStep extends StatefulWidget {
-  final String fileName;
-  final String initialTitle;
-  final String initialDescription;
-  final Function(String title, String description) onDetailsChanged;
-  final VoidCallback onCancel;
-  final VoidCallback onCreate;
+class SongDetailsView extends StatefulWidget {
+  final NewSongState state;
 
-  const SongDetailsStep({
+  const SongDetailsView({
     super.key,
-    required this.fileName,
-    required this.initialTitle,
-    required this.initialDescription,
-    required this.onDetailsChanged,
-    required this.onCancel,
-    required this.onCreate,
+    required this.state,
   });
 
   @override
-  State<SongDetailsStep> createState() => _SongDetailsStepState();
+  State<SongDetailsView> createState() => _SongDetailsViewState();
 }
 
-class _SongDetailsStepState extends State<SongDetailsStep> {
-  late final TextEditingController _titleController;
-  late final TextEditingController _descriptionController;
-  final FocusNode _titleFocus = FocusNode();
-  final FocusNode _descriptionFocus = FocusNode();
-
-  @override
-  void initState() {
-    super.initState();
-    _titleController = TextEditingController(text: widget.initialTitle);
-    _descriptionController = TextEditingController(
-      text: widget.initialDescription,
-    );
-
-    // Automatyczne fokusowanie pola tytułu
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // _titleFocus.requestFocus();
-      // Zaznacz cały tekst dla łatwej edycji
-      _titleController.selection = TextSelection(
-        baseOffset: 0,
-        extentOffset: _titleController.text.length,
-      );
-    });
-
-    // Nasłuchiwanie zmian
-    _titleController.addListener(_onDetailsChanged);
-    _descriptionController.addListener(_onDetailsChanged);
-  }
+class _SongDetailsViewState extends State<SongDetailsView> {
+  late final _titleController = TextEditingController(
+    text: widget.state is NewSongFileSelected
+        ? (widget.state as NewSongFileSelected).songInitialName
+        : '',
+  );
+  final _descriptionController = TextEditingController();
+  final _titleFocus = FocusNode();
+  final _descriptionFocus = FocusNode();
 
   @override
   void dispose() {
@@ -63,10 +38,6 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
     _titleFocus.dispose();
     _descriptionFocus.dispose();
     super.dispose();
-  }
-
-  void _onDetailsChanged() {
-    widget.onDetailsChanged(_titleController.text, _descriptionController.text);
   }
 
   @override
@@ -133,20 +104,26 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  widget.fileName,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                BlocBuilder<NewSongCubit, NewSongState>(
+                  builder: (context, state) {
+                    return Text(
+                      state is NewSongFileSelected
+                          ? state.file.path.split('/').last
+                          : 'Wybierz plik audio',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    );
+                  },
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Plik audio',
                   style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textSecondary,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -163,7 +140,7 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Nazwa utworu *',
+          'Nazwa utworu',
           style: AppTextStyles.bodyMedium.copyWith(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.w500,
@@ -177,7 +154,7 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
           decoration: InputDecoration(
             hintText: 'Wprowadź nazwę utworu...',
             hintStyle: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.textSecondary,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             filled: true,
             fillColor: AppColors.surfaceDark,
@@ -205,7 +182,7 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
                 return Text(
                   '$currentLength/${maxLength ?? 0}',
                   style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textSecondary,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 );
               },
@@ -235,7 +212,7 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
           decoration: InputDecoration(
             hintText: 'Dodaj opis utworu...',
             hintStyle: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             filled: true,
             fillColor: AppColors.surfaceDark,
@@ -250,8 +227,14 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
             contentPadding: const EdgeInsets.all(16),
           ),
           textInputAction: TextInputAction.done,
-          onSubmitted: (_) =>
-              _titleController.text.trim().isNotEmpty ? _onCreate() : null,
+          onSubmitted: (_) => _titleController.text.trim().isNotEmpty
+              ? context.read<NewSongCubit>().uploadFile(
+                  CreateSongData(
+                    title: _titleController.text.trim(),
+                    description: _descriptionController.text.trim(),
+                  ),
+                )
+              : null,
           maxLines: 3,
           maxLength: 500,
           buildCounter:
@@ -263,8 +246,8 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
               }) {
                 return Text(
                   '$currentLength/${maxLength ?? 0}',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textSecondary,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 );
               },
@@ -280,11 +263,15 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
           child: SizedBox(
             height: 56,
             child: OutlinedButton(
-              onPressed: widget.onCancel,
+              onPressed: () {
+                context.read<NewSongCubit>().goToInitialStep();
+              },
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.textSecondary,
+                foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
                 side: BorderSide(
-                  color: AppColors.textSecondary.withOpacity(0.3),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withOpacity(0.3),
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -310,7 +297,16 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
                 final isEnabled = value.text.trim().isNotEmpty;
 
                 return ElevatedButton.icon(
-                  onPressed: isEnabled ? _onCreate : null,
+                  onPressed: isEnabled
+                      ? () {
+                          context.read<NewSongCubit>().uploadFile(
+                            CreateSongData(
+                              title: _titleController.text.trim(),
+                              description: _descriptionController.text.trim(),
+                            ),
+                          );
+                        }
+                      : null,
                   icon: const Icon(LucideIcons.plus, size: 20),
                   label: Text(
                     'Utwórz utwór',
@@ -332,10 +328,5 @@ class _SongDetailsStepState extends State<SongDetailsStep> {
         ),
       ],
     );
-  }
-
-  void _onCreate() {
-    if (_titleController.text.trim().isEmpty) return;
-    widget.onCreate();
   }
 }

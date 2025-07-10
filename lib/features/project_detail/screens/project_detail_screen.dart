@@ -8,6 +8,7 @@ import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/pr
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_state.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_songs/project_songs_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/screens/create_song_screen.dart';
+import 'package:bandspace_mobile/features/project_detail/screens/new_song_screen.dart';
 import 'package:bandspace_mobile/features/project_detail/views/project_details_view.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/manage_project_sheet.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
@@ -97,7 +98,20 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       //     ),
       //   ],
       // ),
-      floatingActionButton: _buildCreateSongFab(),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => NewSongScreen.create(
+                context.read<ProjectDetailCubit>().state.project,
+              ),
+            ),
+          );
+        },
+        icon: const Icon(LucideIcons.plus),
+        label: const Text('Nowy utwór'),
+      ),
     );
   }
 
@@ -148,46 +162,22 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     );
   }
 
-  /// Buduje przycisk dodawania nowego utworu
   Widget _buildCreateSongFab() {
     return BlocBuilder<ProjectDetailCubit, ProjectDetailState>(
       builder: (context, state) {
         return FloatingActionButton.extended(
-          onPressed: _showCreateSongSheet,
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => NewSongScreen.create(state.project),
+              ),
+            );
+          },
           icon: const Icon(LucideIcons.plus),
           label: const Text('Nowy utwór'),
         );
       },
     );
-  }
-
-  /// Pokazuje arkusz tworzenia nowego utworu
-  void _showCreateSongSheet() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CreateSongScreen(
-          projectId: context.read<ProjectDetailCubit>().state.project.id,
-          projectName: context.read<ProjectDetailCubit>().state.project.name,
-        ),
-      ),
-    );
-
-    // showModalBottomSheet(
-    //   context: context,
-    //   backgroundColor: Colors.transparent,
-    //   isScrollControlled: true,
-    //   builder: (_) => BlocProvider.value(
-    //     value: context.read<ProjectDetailCubit>(),
-    //     child: CreateSongBottomSheet(
-    //       projectId: context.read<ProjectDetailCubit>().state.project!.id,
-    //       onSongCreated: (songTitle) {
-    //         // this.context.read<ProjectDetailCubit>().createSong(
-    //         //   songTitle,
-    //         // );
-    //       },
-    //     ),
-    //   ),
-    // );
   }
 }

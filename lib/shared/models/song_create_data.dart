@@ -1,18 +1,16 @@
-import 'dart:io';
-
-class SongCreateDto {
+class CreateSongData {
   final String title;
-  final File file;
+  final String? description;
 
-  const SongCreateDto({
+  const CreateSongData({
     required this.title,
-    required this.file,
+    this.description,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'title': title,
-      'file': file,
+      'description': description,
     };
   }
 }
