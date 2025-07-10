@@ -3,9 +3,11 @@ import 'package:dio/dio.dart';
 import 'package:bandspace_mobile/core/api/cached_repository.dart';
 import 'package:bandspace_mobile/features/project_detail/models/song_create_dto.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
+import 'package:bandspace_mobile/shared/models/project_member.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
 
 part 'projects_repository.songs.dart';
+part 'projects_repository.members.dart';
 
 class ProjectsRepository extends CachedRepository {
   const ProjectsRepository({

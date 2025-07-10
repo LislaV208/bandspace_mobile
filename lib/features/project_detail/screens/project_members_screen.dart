@@ -4,13 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/features/project_detail/cubit/project_members_cubit.dart';
-import 'package:bandspace_mobile/features/project_detail/cubit/project_members_state.dart';
-import 'package:bandspace_mobile/features/project_detail/repository/project_members_repository.dart';
-import 'package:bandspace_mobile/features/project_detail/widgets/empty_members_state.dart';
-import 'package:bandspace_mobile/features/project_detail/widgets/member_list_item.dart';
+import 'package:bandspace_mobile/features/project_detail/cubit/project_members/project_members_cubit.dart';
+import 'package:bandspace_mobile/features/project_detail/cubit/project_members/project_members_state.dart';
+import 'package:bandspace_mobile/features/project_detail/widgets/project_members/empty_members_state.dart';
+import 'package:bandspace_mobile/features/project_detail/widgets/project_members/member_list_item.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/project_member.dart';
+import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 /// Ekran wyświetlający członków projektu
 class ProjectMembersScreen extends StatelessWidget {
@@ -21,7 +21,7 @@ class ProjectMembersScreen extends StatelessWidget {
   static Widget create(Project project) {
     return BlocProvider(
       create: (context) => ProjectMembersCubit(
-        projectMembersRepository: context.read<ProjectMembersRepository>(),
+        projectsRepository: context.read<ProjectsRepository>(),
         projectId: project.id,
       ),
       child: ProjectMembersScreen(project: project),
@@ -45,19 +45,20 @@ class ProjectMembersScreen extends StatelessWidget {
           Expanded(
             child: BlocBuilder<ProjectMembersCubit, ProjectMembersState>(
               builder: (context, state) {
-                return switch (state.status) {
-                  ProjectMembersStatus.initial ||
-                  ProjectMembersStatus.loading => const Center(
+                return switch (state) {
+                  ProjectMembersInitial() => const SizedBox(),
+                  ProjectMembersLoading() => const Center(
                     child: CircularProgressIndicator(),
                   ),
-                  ProjectMembersStatus.error => _buildErrorState(
-                    context,
-                    state.errorMessage,
-                  ),
-                  ProjectMembersStatus.success => _buildMembersList(
+                  ProjectMembersLoadSuccess() => _buildMembersList(
                     context,
                     state.members,
                   ),
+                  ProjectMembersLoadFailure() => _buildErrorState(
+                    context,
+                    state.message,
+                  ),
+                  _ => const SizedBox(),
                 };
               },
             ),
@@ -211,7 +212,7 @@ class ProjectMembersScreen extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () =>
-                  context.read<ProjectMembersCubit>().loadProjectMembers(),
+                  context.read<ProjectMembersCubit>().refreshProjectMembers(),
 
               child: const Text('Spróbuj ponownie'),
             ),

@@ -6,10 +6,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_state.dart';
-import 'package:bandspace_mobile/features/project_detail/cubit/project_songs_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/screens/create_song_screen.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/manage_project_sheet.dart';
-import 'package:bandspace_mobile/features/project_detail/widgets/project_songs_list.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 

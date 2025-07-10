@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:bandspace_mobile/features/project_detail/widgets/member_info.dart';
+import 'package:bandspace_mobile/features/project_detail/widgets/project_members/member_info.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
 import 'package:bandspace_mobile/shared/widgets/member_avatar.dart';
 

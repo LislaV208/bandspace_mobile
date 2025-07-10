@@ -6,6 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:bandspace_mobile/core/theme/app_colors.dart';
 import 'package:bandspace_mobile/core/theme/text_styles.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_cubit.dart';
+import 'package:bandspace_mobile/features/project_detail/screens/project_members_screen.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/project_details/delete_project_dialog.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/project_details/edit_project_dialog.dart';
 
@@ -66,7 +67,14 @@ class ManageProjectSheet extends StatelessWidget {
             title: 'Członkowie',
             onTap: () {
               Navigator.pop(context);
-              // _showProjectMembers();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ProjectMembersScreen.create(
+                    context.read<ProjectDetailCubit>().state.project,
+                  ),
+                ),
+              );
             },
           ),
           _buildOptionTile(
