@@ -86,7 +86,7 @@ class ProjectsRepository extends CachedRepository {
     required int projectId,
     required String name,
   }) async {
-    return updateSingle<Project>(
+    final updatedProject = await updateSingle<Project>(
       methodName: 'getProject',
       parameters: {'projectId': projectId},
       updateCall: () async {
@@ -96,10 +96,15 @@ class ProjectsRepository extends CachedRepository {
             'name': name,
           },
         );
+
         return _projectFromJson(response.data);
       },
       fromJson: (json) => _projectFromJson(json),
     );
+
+    await refreshProjects();
+
+    return updatedProject;
   }
 
   // Usuwa projekt.

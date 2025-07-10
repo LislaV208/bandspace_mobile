@@ -2,27 +2,56 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/features/project_detail/cubit/project_detail_cubit.dart';
-import 'package:bandspace_mobile/features/project_detail/cubit/project_detail_state.dart';
+import 'package:bandspace_mobile/features/project_detail/cubit/Delete_project/Delete_project_state.dart';
+import 'package:bandspace_mobile/features/project_detail/cubit/delete_project/delete_project_cubit.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
+import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 /// Dialog do potwierdzenia usunięcia projektu.
 ///
 /// Wyświetla ostrzeżenie o nieodwracalności akcji i pozwala
 /// użytkownikowi potwierdzić lub anulować usunięcie.
-class ProjectDeleteDialog extends StatelessWidget {
-  const ProjectDeleteDialog({
+class DeleteProjectDialog extends StatelessWidget {
+  const DeleteProjectDialog({
     super.key,
     required this.project,
   });
 
   final Project project;
 
+  /// Wyświetla dialog usunięcia projektu.
+  static Future<bool?> show({
+    required BuildContext context,
+    required Project project,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => BlocProvider(
+        create: (context) => DeleteProjectCubit(
+          projectsRepository: context.read<ProjectsRepository>(),
+          projectId: project.id,
+        ),
+        child: DeleteProjectDialog(
+          project: project,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<ProjectDetailCubit, ProjectDetailState, bool>(
-      selector: (state) => state.status == ProjectDetailStatus.deleting,
-      builder: (context, isDeleting) {
+    return BlocConsumer<DeleteProjectCubit, DeleteProjectState>(
+      listener: (context, state) {
+        if (state is DeleteProjectSuccess) {
+          // Zamknij dialog
+          Navigator.of(context).pop();
+          // Powrót do poprzedniego ekranu
+          Navigator.of(context).pop();
+        }
+      },
+      builder: (context, state) {
+        final isDeleting =
+            state is DeleteProjectLoading || state is DeleteProjectSuccess;
         return PopScope(
           onPopInvokedWithResult: (didPop, result) {},
           canPop: !isDeleting,
@@ -77,16 +106,8 @@ class ProjectDeleteDialog extends StatelessWidget {
               ElevatedButton(
                 onPressed: isDeleting
                     ? null
-                    : () async {
-                        final deleted = await context
-                            .read<ProjectDetailCubit>()
-                            .deleteProject();
-
-                        if (!context.mounted) {
-                          return;
-                        }
-
-                        Navigator.of(context).pop(deleted);
+                    : () {
+                        context.read<DeleteProjectCubit>().deleteProject();
                       },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
@@ -115,25 +136,6 @@ class ProjectDeleteDialog extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-
-  /// Wyświetla dialog usunięcia projektu.
-  ///
-  /// Zwraca `true` jeśli użytkownik potwierdził usunięcie,
-  /// `false` jeśli anulował lub zamknął dialog.
-  static Future<bool?> show({
-    required BuildContext context,
-    required Project project,
-  }) {
-    return showDialog<bool>(
-      context: context,
-      builder: (_) => BlocProvider.value(
-        value: context.read<ProjectDetailCubit>(),
-        child: ProjectDeleteDialog(
-          project: project,
-        ),
-      ),
     );
   }
 }
