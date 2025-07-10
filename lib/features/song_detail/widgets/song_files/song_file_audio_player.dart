@@ -22,11 +22,12 @@ class SongFileAudioPlayer extends StatelessWidget {
     //     ? currentPosition.inMilliseconds / totalDuration.inMilliseconds
     //     : 0.0;
 
-    final progress = 0.0;
+    // final progress = 0.0;
 
     return BlocBuilder<AudioPlayerCubit, AudioPlayerState>(
       builder: (context, state) {
-        final isLoading = state.status != PlayerStatus.ready;
+        final progress = state.progress;
+        final isLoading = !state.isReady;
         final isPlaying = state.status == PlayerStatus.playing;
 
         return Container(
@@ -118,18 +119,8 @@ class SongFileAudioPlayer extends StatelessWidget {
                       child: Slider(
                         value: progress.clamp(0.0, 1.0),
                         onChanged: (value) {
-                          // TODO: Implement seek
+                          context.read<AudioPlayerCubit>().seek(value);
                         },
-                        // onChanged: onSeek != null
-                        //     ? (value) {
-                        //         final newPosition = Duration(
-                        //           milliseconds:
-                        //               (value * totalDuration.inMilliseconds)
-                        //                   .round(),
-                        //         );
-                        //         onSeek!(newPosition);
-                        //       }
-                        //     : null,
                       ),
                     ),
                   ),
@@ -139,7 +130,9 @@ class SongFileAudioPlayer extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          DurationFormatUtils.formatDuration(Duration.zero),
+                          DurationFormatUtils.formatDuration(
+                            state.currentPosition,
+                          ),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(
@@ -148,7 +141,9 @@ class SongFileAudioPlayer extends StatelessWidget {
                               ),
                         ),
                         Text(
-                          DurationFormatUtils.formatDuration(Duration.zero),
+                          DurationFormatUtils.formatDuration(
+                            state.totalDuration,
+                          ),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(

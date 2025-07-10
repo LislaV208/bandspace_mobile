@@ -31,7 +31,6 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     _playerStateSubscription = _audioPlayer.playerStateStream.listen((
       playerState,
     ) {
-
       log(
         'AudioPlayerCubit: Player state changed: ${playerState.processingState}',
       );
@@ -42,6 +41,7 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
             state.copyWith(
               status: PlayerStatus.idle,
               currentPosition: Duration.zero,
+              isReady: false,
             ),
           );
           break;
@@ -59,6 +59,7 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
           emit(
             state.copyWith(
               status: newStatus,
+              isReady: true,
             ),
           );
           break;
@@ -80,6 +81,7 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
         emit(
           state.copyWith(
             totalDuration: duration,
+            isReady: true,
           ),
         );
       }
@@ -125,6 +127,7 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
         currentPosition: Duration.zero,
         totalDuration: Duration.zero,
         errorMessage: Value(null), // Wyczyść poprzednie błędy
+        isReady: false,
         bufferedPosition: Duration.zero,
       ),
     );
@@ -139,6 +142,7 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
         state.copyWith(
           status: PlayerStatus.error,
           errorMessage: Value(e.toString()),
+          isReady: false,
           bufferedPosition: Duration.zero,
         ),
       );
@@ -179,9 +183,14 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     await _audioPlayer.pause();
   }
 
-  /// Przewija do określonej pozycji w pliku.
-  Future<void> seek(Duration position) async {
-    await _audioPlayer.seek(position);
+  /// Przewija do określonej pozycji w pliku
+  /// `value` to wartość z zakresu 0.0 - 1.0
+  Future<void> seek(double value) async {
+    await _audioPlayer.seek(
+      Duration(
+        milliseconds: (value * state.totalDuration.inMilliseconds).round(),
+      ),
+    );
   }
 
   /// Zatrzymuje odtwarzanie i zwalnia zasoby związane z plikiem.
