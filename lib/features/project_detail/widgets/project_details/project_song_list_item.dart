@@ -8,14 +8,10 @@ import 'package:bandspace_mobile/shared/models/song.dart';
 /// Komponent elementu listy utworów
 class ProjectSongListItem extends StatelessWidget {
   final Song song;
-  final VoidCallback? onTap;
-  final VoidCallback? onDelete;
 
   const ProjectSongListItem({
     super.key,
     required this.song,
-    this.onTap,
-    this.onDelete,
   });
 
   @override
@@ -23,14 +19,13 @@ class ProjectSongListItem extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: () {},
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(12),
-            // border: Border.all(color: AppColors.divider, width: 1),
           ),
           child: Row(
             children: [
@@ -38,9 +33,10 @@ class ProjectSongListItem extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(child: _buildSongInfo()),
               const SizedBox(width: 12),
-              // _buildFileCount(),
-              // const SizedBox(width: 8),
-              _buildOptionsButton(context),
+              Icon(
+                LucideIcons.chevronRight,
+                color: AppColors.textSecondary,
+              ),
             ],
           ),
         ),
@@ -188,7 +184,6 @@ class ProjectSongListItem extends StatelessWidget {
             title: 'Odtwórz',
             onTap: () {
               Navigator.pop(context);
-              onTap?.call();
             },
           ),
           _buildOptionTile(
@@ -225,7 +220,6 @@ class ProjectSongListItem extends StatelessWidget {
             title: 'Usuń',
             onTap: () {
               Navigator.pop(context);
-              onDelete?.call();
             },
             isDestructive: true,
           ),

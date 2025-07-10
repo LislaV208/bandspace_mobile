@@ -40,4 +40,15 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
   Future<void> refreshSongs() async {
     await projectsRepository.refreshSongs(projectId);
   }
+
+  Future<void> filterSongs(String query) async {
+    if (state is ProjectSongsLoadSuccess) {
+      final currentState = state as ProjectSongsLoadSuccess;
+      final filteredSongs = currentState.songs.where((song) {
+        return song.title.toLowerCase().contains(query.toLowerCase());
+      }).toList();
+
+      emit(ProjectSongsFiltered(currentState.songs, filteredSongs));
+    }
+  }
 }

@@ -26,6 +26,15 @@ class ProjectSongsLoadSuccess extends ProjectSongsState {
   List<Object?> get props => [songs];
 }
 
+class ProjectSongsFiltered extends ProjectSongsLoadSuccess {
+  final List<Song> filteredSongs;
+
+  const ProjectSongsFiltered(super.songs, this.filteredSongs);
+
+  @override
+  List<Object?> get props => [songs, filteredSongs];
+}
+
 class ProjectSongsLoadFailure extends ProjectSongsState {
   final String message;
 

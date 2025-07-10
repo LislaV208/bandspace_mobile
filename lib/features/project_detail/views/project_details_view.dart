@@ -22,7 +22,7 @@ class ProjectDetailsView extends StatelessWidget {
               child: CircularProgressIndicator(),
             ),
             ProjectSongsLoadSuccess() => ProjectSongsList(
-              songs: state.songs,
+              state: state,
             ),
             ProjectSongsLoadFailure() => _buildErrorState(
               context,
