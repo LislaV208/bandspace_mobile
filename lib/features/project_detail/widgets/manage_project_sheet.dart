@@ -22,25 +22,6 @@ class ManageProjectSheet extends StatelessWidget {
       title: 'Zarządzaj projektem',
       options: [
         BottomSheetOption(
-          icon: LucideIcons.pencil,
-          title: 'Edytuj projekt',
-          onTap: () async {
-            Navigator.pop(context);
-            EditProjectDialog.show(
-              context: context,
-              project: cubit.state.project,
-            );
-          },
-        ),
-        BottomSheetOption(
-          icon: LucideIcons.share,
-          title: 'Udostępnij',
-          onTap: () {
-            Navigator.pop(context);
-            // TODO: Implement share project
-          },
-        ),
-        BottomSheetOption(
           icon: LucideIcons.users,
           title: 'Członkowie',
           onTap: () {
@@ -54,6 +35,26 @@ class ManageProjectSheet extends StatelessWidget {
             );
           },
         ),
+        BottomSheetOption(
+          icon: LucideIcons.pencil,
+          title: 'Edytuj projekt',
+          onTap: () async {
+            Navigator.pop(context);
+            EditProjectDialog.show(
+              context: context,
+              project: cubit.state.project,
+            );
+          },
+        ),
+
+        // BottomSheetOption(
+        //   icon: LucideIcons.share,
+        //   title: 'Udostępnij',
+        //   onTap: () {
+        //     Navigator.pop(context);
+        //     // TODO: Implement share project
+        //   },
+        // ),
         BottomSheetOption(
           icon: LucideIcons.trash2,
           title: 'Usuń projekt',
