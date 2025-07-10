@@ -48,8 +48,14 @@ class SongFilesCubit extends Cubit<SongFilesState> {
   }
 
   Future<void> selectFile(SongFile file) async {
+    if (state is SongFilesFileSelected &&
+        (state as SongFilesFileSelected).selectedFile.id == file.id) {
+      return;
+    }
+
     if (state is SongFilesLoadSuccess) {
       final currentState = state as SongFilesLoadSuccess;
+
       if (currentState.files.contains(file)) {
         emit(SongFilesFileSelected(currentState.files, file));
 
