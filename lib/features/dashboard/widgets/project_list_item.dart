@@ -8,20 +8,12 @@ import 'package:bandspace_mobile/shared/utils/date_format_utils.dart';
 import 'package:bandspace_mobile/shared/widgets/member_avatar.dart';
 
 /// Komponent karty projektu dla ekranu dashboardu.
-///
-/// Wyświetla informacje o projekcie, takie jak nazwa, czas utworzenia,
-/// liczbę członków oraz avatary członków projektu.
-class DashboardProjectCard extends StatelessWidget {
-  /// Model projektu zawierający wszystkie dane do wyświetlenia
+class ProjectListItem extends StatelessWidget {
   final Project project;
 
-  /// Czas utworzenia projektu
-  final DateTime? createdTime;
-
-  const DashboardProjectCard({
+  const ProjectListItem({
     super.key,
     required this.project,
-    required this.createdTime,
   });
 
   @override
@@ -99,7 +91,7 @@ class DashboardProjectCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Utworzono ${DateFormatUtils.formatRelativeTime(createdTime)}',
+                    'Utworzono ${DateFormatUtils.formatRelativeTime(project.createdAt)}',
                     style: const TextStyle(
                       fontSize: 14,
                       color: Color(0xFF9CA3AF), // text-gray-400

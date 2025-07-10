@@ -23,11 +23,6 @@ class ProjectsView extends StatelessWidget {
           'Zarządzaj i organizuj swoje projekty muzyczne',
         ),
         const SizedBox(height: 32),
-
-        // _buildNewProjectButton(context),
-        // const SizedBox(height: 16),
-        // _buildInvitationsSection(context),
-        // const SizedBox(height: 16),
         Expanded(
           child: BlocBuilder<ProjectsCubit, ProjectsState>(
             builder: (context, state) {

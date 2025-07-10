@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_cubit.dart';
-import 'package:bandspace_mobile/features/dashboard/widgets/dashboard_project_card.dart';
+import 'package:bandspace_mobile/features/dashboard/widgets/project_list_item.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 
 class ProjectsList extends StatelessWidget {
@@ -28,9 +28,8 @@ class ProjectsList extends StatelessWidget {
                 (project) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16.0),
-                    child: DashboardProjectCard(
+                    child: ProjectListItem(
                       project: project,
-                      createdTime: project.createdAt,
                     ),
                   );
                 },
