@@ -7,7 +7,6 @@ import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail_state.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_songs_cubit.dart';
-import 'package:bandspace_mobile/features/project_detail/repository/project_songs_repository.dart';
 import 'package:bandspace_mobile/features/project_detail/screens/create_song_screen.dart';
 import 'package:bandspace_mobile/features/project_detail/screens/project_members_screen.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/project_delete_dialog.dart';
@@ -68,7 +67,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           Expanded(
             child: BlocProvider(
               create: (_) => ProjectSongsCubit(
-                songsRepository: context.read<ProjectSongsRepository>(),
+                projectsRepository: context.read<ProjectsRepository>(),
                 projectId: context.read<ProjectDetailCubit>().state.project!.id,
               ),
               child: const ProjectSongsList(),

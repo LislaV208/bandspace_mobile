@@ -4,15 +4,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_songs_state.dart';
-import 'package:bandspace_mobile/features/project_detail/repository/project_songs_repository.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
+import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 class ProjectSongsCubit extends Cubit<ProjectSongsState> {
-  final ProjectSongsRepository songsRepository;
+  final ProjectsRepository projectsRepository;
   final int projectId;
 
   ProjectSongsCubit({
-    required this.songsRepository,
+    required this.projectsRepository,
     required this.projectId,
   }) : super(const ProjectSongsState()) {
     loadSongs();
@@ -31,7 +31,7 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
     emit(state.copyWith(status: ProjectSongsStatus.loading));
 
     _songsSubscription =
-        songsRepository.getProjectSongs(projectId).listen((songs) {
+        projectsRepository.getSongs(projectId).listen((songs) {
           emit(
             state.copyWith(
               status: ProjectSongsStatus.success,
