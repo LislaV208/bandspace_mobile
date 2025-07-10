@@ -4,15 +4,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail_state.dart';
-import 'package:bandspace_mobile/features/project_detail/repository/project_detail_repository.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
+import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 class ProjectDetailCubit extends Cubit<ProjectDetailState> {
-  final ProjectDetailRepository projectRepository;
+  final ProjectsRepository projectsRepository;
   final int projectId;
 
   ProjectDetailCubit({
-    required this.projectRepository,
+    required this.projectsRepository,
     required this.projectId,
     Project? initialProject,
   }) : super(ProjectDetailState(project: initialProject)) {
@@ -32,7 +32,7 @@ class ProjectDetailCubit extends Cubit<ProjectDetailState> {
     emit(state.copyWith(status: ProjectDetailStatus.loading));
 
     _projectSubscription =
-        projectRepository.getProject(projectId).listen((project) {
+        projectsRepository.getProject(projectId).listen((project) {
           if (state.status == ProjectDetailStatus.deleting) return;
 
           emit(
@@ -55,7 +55,7 @@ class ProjectDetailCubit extends Cubit<ProjectDetailState> {
     try {
       emit(state.copyWith(status: ProjectDetailStatus.deleting));
 
-      await projectRepository.deleteProject(projectId);
+      await projectsRepository.deleteProject(projectId);
 
       return true;
     } catch (e) {
@@ -75,7 +75,7 @@ class ProjectDetailCubit extends Cubit<ProjectDetailState> {
     try {
       emit(state.copyWith(status: ProjectDetailStatus.updating));
 
-      await projectRepository.updateProject(
+      await projectsRepository.updateProject(
         projectId: projectId,
         name: name,
       );

@@ -5,10 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/song_create_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/song_create_state.dart';
-import 'package:bandspace_mobile/features/project_detail/repository/project_detail_repository.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/song_create/file_picker_step.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/song_create/song_details_step.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/song_create_error_dialog.dart';
+import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 /// Ekran tworzenia nowego utworu z 2-stepowym flow
 class CreateSongScreen extends StatelessWidget {
@@ -26,7 +26,7 @@ class CreateSongScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) => SongCreateCubit(
         projectId: projectId,
-        projectDetailRepository: context.read<ProjectDetailRepository>(),
+        projectsRepository: context.read<ProjectsRepository>(),
       ),
       child: _CreateSongScreenContent(
         projectId: projectId,

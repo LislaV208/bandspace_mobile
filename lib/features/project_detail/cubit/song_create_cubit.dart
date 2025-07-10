@@ -8,17 +8,17 @@ import 'package:path/path.dart' as path;
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/song_create_state.dart';
 import 'package:bandspace_mobile/features/project_detail/models/song_create_dto.dart';
-import 'package:bandspace_mobile/features/project_detail/repository/project_detail_repository.dart';
+import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
-/// Cubit zarzdzajcy procesem tworzenia nowego utworu
+/// Cubit zarządzający stanem tworzenia nowego utworu
 class SongCreateCubit extends Cubit<SongCreateState> {
   final int projectId;
-  final ProjectDetailRepository projectDetailRepository;
+  final ProjectsRepository projectsRepository;
   final PageController pageController;
 
   SongCreateCubit({
     required this.projectId,
-    required this.projectDetailRepository,
+    required this.projectsRepository,
   }) : pageController = PageController(),
        super(const SongCreateState());
 
@@ -133,7 +133,7 @@ class SongCreateCubit extends Cubit<SongCreateState> {
       //   }
       // }
 
-      await projectDetailRepository.createSong(
+      await projectsRepository.createSong(
         projectId,
         SongCreateDto(
           title: state.songTitle,

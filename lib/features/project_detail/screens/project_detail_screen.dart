@@ -7,7 +7,6 @@ import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail_state.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_songs_cubit.dart';
-import 'package:bandspace_mobile/features/project_detail/repository/project_detail_repository.dart';
 import 'package:bandspace_mobile/features/project_detail/repository/project_songs_repository.dart';
 import 'package:bandspace_mobile/features/project_detail/screens/create_song_screen.dart';
 import 'package:bandspace_mobile/features/project_detail/screens/project_members_screen.dart';
@@ -16,6 +15,7 @@ import 'package:bandspace_mobile/features/project_detail/widgets/project_edit_di
 import 'package:bandspace_mobile/features/project_detail/widgets/project_songs_list.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
+import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 /// Ekran szczegółów projektu z listą utworów
 class ProjectDetailScreen extends StatefulWidget {
@@ -24,7 +24,7 @@ class ProjectDetailScreen extends StatefulWidget {
   static Widget create(Project project) {
     return BlocProvider(
       create: (context) => ProjectDetailCubit(
-        projectRepository: context.read<ProjectDetailRepository>(),
+        projectsRepository: context.read<ProjectsRepository>(),
         projectId: project.id,
         initialProject: project,
       ),

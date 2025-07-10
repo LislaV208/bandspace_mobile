@@ -6,9 +6,9 @@ import 'package:bandspace_mobile/features/account/repository/user_repository.dar
 import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
 import 'package:bandspace_mobile/features/dashboard/repository/dashboard_repository.dart';
-import 'package:bandspace_mobile/features/project_detail/repository/project_detail_repository.dart';
 import 'package:bandspace_mobile/features/project_detail/repository/project_members_repository.dart';
 import 'package:bandspace_mobile/features/project_detail/repository/project_songs_repository.dart';
+import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 import 'package:bandspace_mobile/shared/services/google_sign_in_service.dart';
 import 'package:bandspace_mobile/shared/services/session_storage_service.dart';
 
@@ -17,6 +17,13 @@ final appProviders = [
   Provider(create: (context) => ApiClient()),
 
   // Repozytoria
+  // Shared
+  RepositoryProvider(
+    create: (context) => ProjectsRepository(
+      apiClient: context.read<ApiClient>(),
+    ),
+  ),
+  // Features
   RepositoryProvider(
     create: (context) => AuthRepository(
       apiClient: context.read<ApiClient>(),
@@ -26,11 +33,6 @@ final appProviders = [
   ),
   RepositoryProvider(
     create: (context) => DashboardRepository(
-      apiClient: context.read<ApiClient>(),
-    ),
-  ),
-  RepositoryProvider(
-    create: (context) => ProjectDetailRepository(
       apiClient: context.read<ApiClient>(),
     ),
   ),

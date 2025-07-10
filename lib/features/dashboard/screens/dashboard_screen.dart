@@ -5,9 +5,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/features/dashboard/cubit/dashboard_cubit.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/dashboard_state.dart';
-import 'package:bandspace_mobile/features/dashboard/repository/dashboard_repository.dart';
 import 'package:bandspace_mobile/features/dashboard/widgets/create_project_bottom_sheet.dart';
 import 'package:bandspace_mobile/features/dashboard/widgets/dashboard_project_card.dart';
+import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 import 'package:bandspace_mobile/shared/widgets/member_avatar.dart';
 import 'package:bandspace_mobile/shared/widgets/user_drawer.dart';
 
@@ -20,7 +20,7 @@ class DashboardScreen extends StatelessWidget {
       providers: [
         BlocProvider(
           create: (context) => DashboardCubit(
-            dashboardRepository: context.read<DashboardRepository>(),
+            projectsRepository: context.read<ProjectsRepository>(),
           ),
         ),
       ],
