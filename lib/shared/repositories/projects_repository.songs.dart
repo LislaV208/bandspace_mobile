@@ -55,6 +55,20 @@ extension SongsManagement on ProjectsRepository {
     );
   }
 
+  Stream<Song> getSong(int projectId, int songId) {
+    return reactiveStream<Song>(
+      methodName: 'getSong',
+      parameters: {'projectId': projectId, 'songId': songId},
+      remoteCall: () async {
+        final response = await apiClient.get(
+          '/api/projects/$projectId/songs/$songId',
+        );
+        return _songFromJson(response.data);
+      },
+      fromJson: (json) => _songFromJson(json),
+    );
+  }
+
   Future<List<Song>> _fetchSongs(int projectId) async {
     final response = await apiClient.get(
       '/api/projects/$projectId/songs',

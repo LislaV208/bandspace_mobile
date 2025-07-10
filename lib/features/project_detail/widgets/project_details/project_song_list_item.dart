@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_cubit.dart';
+import 'package:bandspace_mobile/features/song_detail/screens/song_detail_screen.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
 
 /// Komponent elementu listy utworów
@@ -21,7 +24,17 @@ class ProjectSongListItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       tileColor: AppColors.surface,
-      onTap: () {},
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => SongDetailScreen.create(
+              context.read<ProjectDetailCubit>().state.project,
+              song,
+            ),
+          ),
+        );
+      },
       leading: _buildSongIcon(),
       title: Text(
         song.title,
