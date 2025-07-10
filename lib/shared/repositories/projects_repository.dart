@@ -33,6 +33,16 @@ class ProjectsRepository extends CachedRepository {
     );
   }
 
+  // Odświeża listę projektów.
+  Future<void> refreshProjects() async {
+    await refreshList<Project>(
+      listMethodName: 'getProjects',
+      listParameters: {},
+      remoteCall: _fetchProjects,
+      fromJson: (json) => _projectFromJson(json),
+    );
+  }
+
   // Tworzy nowy projekt.
   // POST /api/projects
   Future<Project> createProject({

@@ -33,7 +33,7 @@ class _SplashScreenState extends State<SplashScreen> {
         if (state.isAuthStateInitialized) {
           if (state.user != null) {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const DashboardScreen()),
+              MaterialPageRoute(builder: (context) => DashboardScreen.create()),
             );
           } else {
             // Użytkownik nie jest zalogowany, przekieruj do AuthScreen

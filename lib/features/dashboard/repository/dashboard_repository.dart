@@ -5,6 +5,7 @@ import 'package:bandspace_mobile/shared/models/project_invitation.dart';
 
 /// Repozytorium odpowiedzialne za operacje związane z dashboard.
 
+// @Deprecated('Używaj ProjectsRepository')
 class DashboardRepository extends CachedRepository {
   DashboardRepository({
     required super.apiClient,

@@ -171,11 +171,7 @@ class DashboardProjectCard extends StatelessWidget {
             (index) => Positioned(
               left: index * 24.0,
               child: UserAvatar(
-                size: 32,
-                borderWidth: 2,
-                borderColor: const Color(
-                  0xFF1F2937,
-                ), // border-gray-800
+                size: 30,
               ),
             ),
           ),

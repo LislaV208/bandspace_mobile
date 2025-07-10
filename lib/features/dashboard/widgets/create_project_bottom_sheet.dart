@@ -4,8 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/theme/theme.dart';
-import 'package:bandspace_mobile/features/dashboard/cubit/dashboard_cubit.dart';
-import 'package:bandspace_mobile/features/dashboard/cubit/dashboard_state.dart';
+import 'package:bandspace_mobile/features/dashboard/cubit/create_project/create_project_cubit.dart';
+import 'package:bandspace_mobile/features/dashboard/cubit/create_project/create_project_state.dart';
 import 'package:bandspace_mobile/features/project_detail/screens/project_detail_screen.dart';
 
 /// Komponent formularza tworzenia nowego projektu wyświetlany jako bottom sheet.
@@ -29,7 +29,17 @@ class _CreateProjectBottomSheetState extends State<CreateProjectBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<DashboardCubit, DashboardState>(
+    return BlocConsumer<CreateProjectCubit, CreateProjectState>(
+      listener: (context, state) {
+        if (state is CreateProjectSuccess) {
+          Navigator.of(context).pop();
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => ProjectDetailScreen.create(state.project),
+            ),
+          );
+        }
+      },
       builder: (context, state) {
         return Container(
           padding: EdgeInsets.only(
@@ -52,10 +62,11 @@ class _CreateProjectBottomSheetState extends State<CreateProjectBottomSheet> {
             children: [
               _buildHeader(),
               const SizedBox(height: 16),
-              if (state.errorMessage != null)
-                _buildErrorMessage(state.errorMessage!),
-              const SizedBox(height: 16),
               _buildForm(context),
+              if (state is CreateProjectFailure) ...[
+                const SizedBox(height: 16),
+                _buildErrorMessage(state.message),
+              ],
               const SizedBox(height: 32),
               _buildButtons(context, state),
             ],
@@ -115,12 +126,12 @@ class _CreateProjectBottomSheetState extends State<CreateProjectBottomSheet> {
   }
 
   /// Buduje przyciski akcji
-  Widget _buildButtons(BuildContext context, DashboardState state) {
+  Widget _buildButtons(BuildContext context, CreateProjectState state) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         TextButton(
-          onPressed: state.status == DashboardStatus.creatingProject
+          onPressed: state is CreateProjectLoading
               ? null
               : () => Navigator.of(context).pop(),
           child: const Text('Anuluj'),
@@ -131,32 +142,16 @@ class _CreateProjectBottomSheetState extends State<CreateProjectBottomSheet> {
           builder: (context, nameEditingValue, child) {
             final name = nameEditingValue.text.trim();
             return ElevatedButton(
-              onPressed:
-                  name.isEmpty ||
-                      state.status == DashboardStatus.creatingProject
+              onPressed: name.isEmpty || state is CreateProjectLoading
                   ? null
                   : () async {
-                      final project = await context
-                          .read<DashboardCubit>()
-                          .createProject(name);
-
-                      if (!context.mounted) return;
-
-                      if (project != null) {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ProjectDetailScreen.create(project),
-                          ),
-                        );
-                      }
+                      context.read<CreateProjectCubit>().createProject(name);
                     },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.buttonPrimary,
                 foregroundColor: Colors.white,
               ),
-              child: state.status == DashboardStatus.creatingProject
+              child: state is CreateProjectLoading
                   ? const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
