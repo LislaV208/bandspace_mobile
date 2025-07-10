@@ -6,8 +6,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:bandspace_mobile/core/theme/app_colors.dart';
 import 'package:bandspace_mobile/core/theme/text_styles.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_cubit.dart';
-import 'package:bandspace_mobile/features/project_detail/widgets/delete_project_dialog.dart';
-import 'package:bandspace_mobile/features/project_detail/widgets/edit_project_dialog.dart';
+import 'package:bandspace_mobile/features/project_detail/widgets/project_details/delete_project_dialog.dart';
+import 'package:bandspace_mobile/features/project_detail/widgets/project_details/edit_project_dialog.dart';
 
 class ManageProjectSheet extends StatelessWidget {
   const ManageProjectSheet({super.key});
