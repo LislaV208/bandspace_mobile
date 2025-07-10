@@ -89,10 +89,11 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
 
     // Nasłuchiwanie na zmianę aktualnej pozycji odtwarzania
     _positionSubscription = _audioPlayer.positionStream.listen((position) {
-      // Aktualizuj pozycję tylko, gdy odtwarzamy, pauzujemy lub jesteśmy gotowi, aby uniknąć skoków
-      if (state.status == PlayerStatus.playing ||
-          state.status == PlayerStatus.paused ||
-          state.status == PlayerStatus.ready) {
+      // Aktualizuj pozycję tylko, gdy odtwarzamy, pauzujemy lub jesteśmy gotowi, ale nie podczas przesuwania
+      if (!state.isSeeking &&
+          (state.status == PlayerStatus.playing ||
+           state.status == PlayerStatus.paused ||
+           state.status == PlayerStatus.ready)) {
         emit(state.copyWith(currentPosition: position));
       }
     });
@@ -183,7 +184,45 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     await _audioPlayer.pause();
   }
 
-  /// Przewija do określonej pozycji w pliku
+  /// Rozpoczyna przesuwanie suwaka - nie wykonuje jeszcze seek()
+  void startSeeking() {
+    emit(state.copyWith(
+      isSeeking: true,
+      seekPosition: Value(state.currentPosition),
+    ));
+  }
+
+  /// Aktualizuje pozycję suwaka podczas przesuwania
+  void updateSeekPosition(double value) {
+    if (!state.isSeeking) return;
+    
+    final newPosition = Duration(
+      milliseconds: (value * state.totalDuration.inMilliseconds).round(),
+    );
+    
+    emit(state.copyWith(
+      seekPosition: Value(newPosition),
+    ));
+  }
+
+  /// Kończy przesuwanie i wykonuje faktyczny seek()
+  Future<void> endSeeking() async {
+    if (!state.isSeeking || state.seekPosition == null) return;
+    
+    final targetPosition = state.seekPosition!;
+    
+    // Zakończ tryb seeking
+    emit(state.copyWith(
+      isSeeking: false,
+      seekPosition: Value(null),
+      currentPosition: targetPosition,
+    ));
+    
+    // Wykonaj faktyczny seek
+    await _audioPlayer.seek(targetPosition);
+  }
+
+  /// Przewija do określonej pozycji w pliku (natychmiastowy seek)
   /// `value` to wartość z zakresu 0.0 - 1.0
   Future<void> seek(double value) async {
     await _audioPlayer.seek(

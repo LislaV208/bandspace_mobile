@@ -98,29 +98,46 @@ class SongFileAudioPlayer extends StatelessWidget {
               Column(
                 children: [
                   Builder(
-                    builder: (context) => SliderTheme(
-                      data: SliderTheme.of(context).copyWith(
-                        trackHeight: 4,
-                        thumbShape: const RoundSliderThumbShape(
-                          enabledThumbRadius: 6,
+                    builder: (context) => GestureDetector(
+                      onPanStart: (details) {
+                        context.read<AudioPlayerCubit>().startSeeking();
+                      },
+                      onPanUpdate: (details) {
+                        final RenderBox box =
+                            context.findRenderObject() as RenderBox;
+                        final localPosition = box.globalToLocal(
+                          details.globalPosition,
+                        );
+                        final progress = (localPosition.dx / box.size.width)
+                            .clamp(0.0, 1.0);
+                        context.read<AudioPlayerCubit>().updateSeekPosition(
+                          progress,
+                        );
+                      },
+                      onPanEnd: (details) {
+                        context.read<AudioPlayerCubit>().endSeeking();
+                      },
+                      child: SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          trackHeight: 4,
+                          thumbShape: const RoundSliderThumbShape(
+                            enabledThumbRadius: 6,
+                          ),
+                          overlayShape: const RoundSliderOverlayShape(
+                            overlayRadius: 12,
+                          ),
+
+                          disabledActiveTrackColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
+                          disabledThumbColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
                         ),
-                        overlayShape: const RoundSliderOverlayShape(
-                          overlayRadius: 12,
+                        child: Slider(
+                          value: progress.clamp(0.0, 1.0),
+                          onChanged: null, // Wyłączamy standardowe onChanged
                         ),
-                        activeTrackColor: Theme.of(context).colorScheme.primary,
-                        inactiveTrackColor: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
-                        thumbColor: Theme.of(context).colorScheme.primary,
-                        overlayColor: Theme.of(
-                          context,
-                        ).colorScheme.primary.withAlpha(51),
-                      ),
-                      child: Slider(
-                        value: progress.clamp(0.0, 1.0),
-                        onChanged: (value) {
-                          context.read<AudioPlayerCubit>().seek(value);
-                        },
                       ),
                     ),
                   ),
@@ -131,7 +148,10 @@ class SongFileAudioPlayer extends StatelessWidget {
                       children: [
                         Text(
                           DurationFormatUtils.formatDuration(
-                            state.currentPosition,
+                            // Podczas seeking pokaż seekPosition, w przeciwnym razie currentPosition
+                            state.isSeeking && state.seekPosition != null
+                                ? state.seekPosition!
+                                : state.currentPosition,
                           ),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(

@@ -49,6 +49,12 @@ class AudioPlayerState extends Equatable {
   /// Pozycja do której został zbuforowany audio (w Duration).
   final Duration bufferedPosition;
 
+  /// Czy użytkownik obecnie przesuwa suwak.
+  final bool isSeeking;
+
+  /// Tymczasowa pozycja suwaka podczas przesuwania.
+  final Duration? seekPosition;
+
   const AudioPlayerState({
     this.status = PlayerStatus.idle,
     this.currentUrl,
@@ -57,11 +63,15 @@ class AudioPlayerState extends Equatable {
     this.errorMessage,
     this.isReady = false,
     this.bufferedPosition = Duration.zero,
+    this.isSeeking = false,
+    this.seekPosition,
   });
 
   double get progress {
     if (totalDuration.inMilliseconds == 0) return 0.0;
-    return currentPosition.inMilliseconds / totalDuration.inMilliseconds;
+    // Podczas przesuwania użyj seekPosition, w przeciwnym razie currentPosition
+    final position = isSeeking && seekPosition != null ? seekPosition! : currentPosition;
+    return position.inMilliseconds / totalDuration.inMilliseconds;
   }
 
   /// Tworzy kopię stanu, modyfikując tylko wybrane pola.
@@ -73,6 +83,8 @@ class AudioPlayerState extends Equatable {
     Value<String?>? errorMessage,
     bool? isReady,
     Duration? bufferedPosition,
+    bool? isSeeking,
+    Value<Duration?>? seekPosition,
   }) {
     return AudioPlayerState(
       status: status ?? this.status,
@@ -84,6 +96,8 @@ class AudioPlayerState extends Equatable {
           : this.errorMessage,
       isReady: isReady ?? this.isReady,
       bufferedPosition: bufferedPosition ?? this.bufferedPosition,
+      isSeeking: isSeeking ?? this.isSeeking,
+      seekPosition: seekPosition != null ? seekPosition.value : this.seekPosition,
     );
   }
 
@@ -96,5 +110,7 @@ class AudioPlayerState extends Equatable {
     errorMessage,
     isReady,
     bufferedPosition,
+    isSeeking,
+    seekPosition,
   ];
 }
