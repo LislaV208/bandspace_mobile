@@ -6,6 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:bandspace_mobile/features/song_detail/cubit/song_files/song_files_cubit.dart';
 import 'package:bandspace_mobile/features/song_detail/cubit/song_files/song_files_state.dart';
 import 'package:bandspace_mobile/features/song_detail/widgets/song_files/song_files_list.dart';
+import 'package:bandspace_mobile/shared/cubits/audio_player/audio_player_cubit.dart';
 
 class SongFilesView extends StatelessWidget {
   const SongFilesView({super.key});
@@ -19,9 +20,11 @@ class SongFilesView extends StatelessWidget {
           SongFilesLoading() => const Center(
             child: CircularProgressIndicator(),
           ),
-          SongFilesLoadSuccess() => SongFilesList(
-            files: state.files,
-            selectedFile: state.selectedFile,
+          SongFilesLoadSuccess() => BlocProvider(
+            create: (context) => AudioPlayerCubit(),
+            child: SongFilesList(
+              state: state,
+            ),
           ),
           SongFilesLoadFailure() => _buildErrorState(
             context,

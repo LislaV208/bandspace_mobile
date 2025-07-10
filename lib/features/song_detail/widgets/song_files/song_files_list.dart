@@ -4,57 +4,77 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/features/song_detail/cubit/song_files/song_files_cubit.dart';
+import 'package:bandspace_mobile/features/song_detail/cubit/song_files/song_files_state.dart';
 import 'package:bandspace_mobile/features/song_detail/widgets/song_files/song_file_audio_player.dart';
 import 'package:bandspace_mobile/features/song_detail/widgets/song_files/song_file_list_item.dart';
-import 'package:bandspace_mobile/shared/models/song_file.dart';
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:bandspace_mobile/shared/cubits/audio_player/audio_player_cubit.dart';
 
 class SongFilesList extends StatelessWidget {
-  final List<SongFile> files;
-  final SongFile? selectedFile;
+  final SongFilesLoadSuccess state;
 
   const SongFilesList({
     super.key,
-    required this.files,
-    required this.selectedFile,
+    required this.state,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () async {
-              await context.read<SongFilesCubit>().refreshSongFiles();
-            },
-            displacement: 0.0,
-            color: Theme.of(context).colorScheme.tertiary,
-            child: files.isEmpty
-                ? _buildEmptyState(context)
-                : Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: ListView(
-                      padding: const EdgeInsets.only(bottom: 56.0),
-                      children: files.map(
-                        (file) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 16.0),
-                            child: SongFileListItem(
-                              songFile: file,
-                              isSelected: selectedFile?.id == file.id,
-                            ),
-                          );
-                        },
-                      ).toList(),
+    return BlocListener<SongFilesCubit, SongFilesState>(
+      listener: (context, state) {
+        if (state is SongFilesFileUrlLoadFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+        if (state is SongFilesFileUrlLoaded) {
+          context.read<AudioPlayerCubit>().loadUrl(state.url);
+        }
+      },
+      child: Column(
+        children: [
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                await context.read<SongFilesCubit>().refreshSongFiles();
+              },
+              displacement: 0.0,
+              color: Theme.of(context).colorScheme.tertiary,
+              child: state.files.isEmpty
+                  ? _buildEmptyState(context)
+                  : Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: ListView(
+                        padding: const EdgeInsets.only(bottom: 56.0),
+                        children: state.files.map(
+                          (file) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: SongFileListItem(
+                                songFile: file,
+                                isSelected:
+                                    state is SongFilesFileSelected &&
+                                    (state as SongFilesFileSelected)
+                                            .selectedFile
+                                            .id ==
+                                        file.id,
+                              ),
+                            );
+                          },
+                        ).toList(),
+                      ),
                     ),
-                  ),
+            ),
           ),
-        ),
-        if (selectedFile != null)
-          SongFileAudioPlayer(
-            currentFile: selectedFile!,
-          ),
-      ],
+          if (state is SongFilesFileSelected)
+            SongFileAudioPlayer(
+              currentFile: (state as SongFilesFileSelected).selectedFile,
+            ),
+        ],
+      ),
     );
   }
 

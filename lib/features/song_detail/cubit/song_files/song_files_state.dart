@@ -19,12 +19,11 @@ class SongFilesLoading extends SongFilesState {
 
 class SongFilesLoadSuccess extends SongFilesState {
   final List<SongFile> files;
-  final SongFile? selectedFile;
 
-  const SongFilesLoadSuccess(this.files, {this.selectedFile});
+  const SongFilesLoadSuccess(this.files);
 
   @override
-  List<Object?> get props => [files, selectedFile];
+  List<Object?> get props => [files];
 }
 
 class SongFilesLoadFailure extends SongFilesState {
@@ -34,4 +33,35 @@ class SongFilesLoadFailure extends SongFilesState {
 
   @override
   List<Object?> get props => [message];
+}
+
+class SongFilesFileSelected extends SongFilesLoadSuccess {
+  final SongFile selectedFile;
+
+  const SongFilesFileSelected(super.files, this.selectedFile);
+
+  @override
+  List<Object?> get props => [selectedFile];
+}
+
+class SongFilesFileUrlLoaded extends SongFilesFileSelected {
+  final String url;
+
+  const SongFilesFileUrlLoaded(super.files, super.selectedFile, this.url);
+
+  @override
+  List<Object?> get props => [files, selectedFile, url];
+}
+
+class SongFilesFileUrlLoadFailure extends SongFilesFileSelected {
+  final String message;
+
+  const SongFilesFileUrlLoadFailure(
+    super.files,
+    super.selectedFile,
+    this.message,
+  );
+
+  @override
+  List<Object?> get props => [files, selectedFile, message];
 }

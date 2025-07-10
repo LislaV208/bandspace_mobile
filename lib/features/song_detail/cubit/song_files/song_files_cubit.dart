@@ -33,15 +33,11 @@ class SongFilesCubit extends Cubit<SongFilesState> {
 
     _filesSubscription =
         projectsRepository.getSongFiles(projectId, songId).listen((files) {
-          SongFile? selectedFile;
+          emit(SongFilesLoadSuccess(files));
 
-          if (state is SongFilesLoadSuccess) {
-            selectedFile = (state as SongFilesLoadSuccess).selectedFile;
+          if (files.isNotEmpty) {
+            selectFile(files.first);
           }
-
-          selectedFile ??= files.isNotEmpty ? files.first : null;
-
-          emit(SongFilesLoadSuccess(files, selectedFile: selectedFile));
         })..onError((error) {
           emit(SongFilesLoadFailure(error.toString()));
         });
@@ -49,5 +45,28 @@ class SongFilesCubit extends Cubit<SongFilesState> {
 
   Future<void> refreshSongFiles() async {
     await projectsRepository.refreshSongFiles(projectId, songId);
+  }
+
+  Future<void> selectFile(SongFile file) async {
+    if (state is SongFilesLoadSuccess) {
+      final currentState = state as SongFilesLoadSuccess;
+      if (currentState.files.contains(file)) {
+        emit(SongFilesFileSelected(currentState.files, file));
+
+        try {
+          final url = await projectsRepository.getSongFileDownloadUrl(
+            projectId,
+            songId,
+            file.fileId,
+          );
+
+          emit(SongFilesFileUrlLoaded(currentState.files, file, url));
+        } catch (e) {
+          emit(
+            SongFilesFileUrlLoadFailure(currentState.files, file, e.toString()),
+          );
+        }
+      }
+    }
   }
 }
