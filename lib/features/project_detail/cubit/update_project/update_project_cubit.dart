@@ -21,6 +21,8 @@ class UpdateProjectCubit extends Cubit<UpdateProjectState> {
         name: name,
       );
 
+      await projectsRepository.refreshProjects();
+
       emit(const UpdateProjectSuccess());
     } catch (e) {
       emit(UpdateProjectFailure(e.toString()));

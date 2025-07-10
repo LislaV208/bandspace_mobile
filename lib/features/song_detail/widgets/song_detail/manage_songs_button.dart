@@ -7,6 +7,7 @@ import 'package:bandspace_mobile/core/widgets/options_bottom_sheet.dart';
 import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_cubit.dart';
 import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_state.dart';
 import 'package:bandspace_mobile/features/song_detail/widgets/song_detail/delete_song_dialog.dart';
+import 'package:bandspace_mobile/features/song_detail/widgets/song_detail/edit_song_dialog.dart';
 
 class ManageSongsButton extends StatelessWidget {
   const ManageSongsButton({super.key});
@@ -48,9 +49,22 @@ class ManageSongsButton extends StatelessWidget {
         BottomSheetOption(
           icon: LucideIcons.pencil,
           title: 'Edytuj utwór',
-          onTap: () {
+          onTap: () async {
+            final cubit = context.read<SongDetailCubit>();
+            cubit.pauseUpdates();
             Navigator.pop(context);
-            // TODO: Implement edit song
+
+            final edited = await EditSongDialog.show(
+              context: context,
+              song: state.song,
+              projectId: cubit.projectId,
+            );
+
+            cubit.resumeUpdates();
+
+            if (edited == true) {
+              cubit.refreshSongDetail();
+            }
           },
         ),
         // BottomSheetOption(

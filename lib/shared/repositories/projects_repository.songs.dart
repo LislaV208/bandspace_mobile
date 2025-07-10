@@ -69,6 +69,42 @@ extension SongsManagement on ProjectsRepository {
     );
   }
 
+  Future<void> refreshSong(int projectId, int songId) async {
+    await refreshSingle<Song>(
+      methodName: 'getSong',
+      parameters: {'projectId': projectId, 'songId': songId},
+      remoteCall: () async {
+        final response = await apiClient.get(
+          '/api/projects/$projectId/songs/$songId',
+        );
+        return _songFromJson(response.data);
+      },
+      fromJson: (json) => _songFromJson(json),
+    );
+  }
+
+  // Aktualizuje utwór w projekcie.
+  // PUT /api/projects/{projectId}/songs/{songId}
+  Future<Song> updateSong(
+    int projectId,
+    int songId,
+    UpdateSongData updateData,
+  ) async {
+    return updateSingle<Song>(
+      methodName: 'getSong',
+      parameters: {'projectId': projectId, 'songId': songId},
+      updateCall: () async {
+        final response = await apiClient.patch(
+          '/api/projects/$projectId/songs/$songId',
+          data: updateData.toJson(),
+        );
+
+        return _songFromJson(response.data);
+      },
+      fromJson: (json) => _songFromJson(json),
+    );
+  }
+
   // Usuwa utwór z projektu.
   // DELETE /api/projects/{projectId}/songs/{songId}
   Future<void> deleteSong(int projectId, int songId) async {

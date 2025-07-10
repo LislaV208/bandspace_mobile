@@ -36,7 +36,7 @@ class NewSongScreen extends StatelessWidget {
             ),
           ),
           subtitle: Text(
-            'Projekt: ${project.name}',
+            project.name,
           ),
         ),
       ),

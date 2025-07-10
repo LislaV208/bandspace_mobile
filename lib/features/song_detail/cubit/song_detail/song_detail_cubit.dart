@@ -18,14 +18,25 @@ class SongDetailCubit extends Cubit<SongDetailState> {
     loadSongDetail();
   }
 
+  var _acceptStreamUpdates = true;
+
   Future<void> loadSongDetail() async {
     projectsRepository
         .getSong(projectId, songId)
         .listen((song) {
+          if (!_acceptStreamUpdates) return;
+
           emit(SongDetailState(song));
         })
         .onError((error) {
           emit(SongDetailLoadFailure(state.song, error.toString()));
         });
   }
+
+  Future<void> refreshSongDetail() async {
+    await projectsRepository.refreshSong(projectId, songId);
+  }
+
+  void pauseUpdates() => _acceptStreamUpdates = false;
+  void resumeUpdates() => _acceptStreamUpdates = true;
 }

@@ -44,7 +44,7 @@ class SongDetailScreen extends StatelessWidget {
                 ),
               ),
               subtitle: Text(
-                'Projekt: ${project.name}',
+                project.name,
               ),
             ),
             actions: const [

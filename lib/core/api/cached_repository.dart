@@ -19,7 +19,8 @@ abstract class CachedRepository extends ApiRepository {
 
   /// Mapa przechowująca BehaviorSubject streams dla reaktywnych pojedynczych elementów.
   /// Klucz: cache key, wartość: BehaviorSubject z danymi.
-  static final Map<String, BehaviorSubject<dynamic>> _reactiveSingleStreams = {};
+  static final Map<String, BehaviorSubject<dynamic>> _reactiveSingleStreams =
+      {};
 
   /// Domyślny czas cache'owania dla tego repozytorium.
   /// Może być nadpisany w konkretnych implementacjach.
@@ -47,7 +48,7 @@ abstract class CachedRepository extends ApiRepository {
       subject.close();
     }
     _reactiveStreams.clear();
-    
+
     // Zamknij wszystkie reaktywne pojedyncze streamy
     for (final subject in _reactiveSingleStreams.values) {
       subject.close();
@@ -284,7 +285,7 @@ abstract class CachedRepository extends ApiRepository {
     // Sprawdź czy już istnieje subject dla tego klucza
     if (!_reactiveSingleStreams.containsKey(cacheKey)) {
       _reactiveSingleStreams[cacheKey] = BehaviorSubject<T>();
-      
+
       // Rozpocznij ładowanie danych
       _loadAndEmitSingleData<T>(
         cacheKey: cacheKey,
@@ -711,10 +712,10 @@ abstract class CachedRepository extends ApiRepository {
     Duration? cacheDuration,
   }) async {
     final cacheKey = _generateCacheKey(methodName, parameters);
-    
+
     // Wykonaj API call
     final updatedItem = await updateCall();
-    
+
     final duration =
         cacheDuration ??
         methodCacheStrategies[methodName] ??
@@ -779,6 +780,39 @@ abstract class CachedRepository extends ApiRepository {
     // Jeśli istnieje reaktywny stream, zaktualizuj go
     if (_reactiveStreams.containsKey(cacheKey)) {
       _reactiveStreams[cacheKey]!.add(freshData);
+    }
+  }
+
+  /// Odświeża cache dla pojedynczego elementu i powiadamia subskrybentów streamu.
+  ///
+  /// Wykonuje API call z forceRefresh=true, co powoduje emission nowych danych
+  /// do wszystkich aktywnych subskrybentów streamu.
+  Future<void> refreshSingle<T>({
+    required String methodName,
+    required Map<String, dynamic> parameters,
+    required Future<T> Function() remoteCall,
+    required T Function(Map<String, dynamic>) fromJson,
+    Duration? cacheDuration,
+  }) async {
+    final cacheKey = _generateCacheKey(methodName, parameters);
+
+    final duration =
+        cacheDuration ??
+        methodCacheStrategies[methodName] ??
+        defaultCacheDuration;
+
+    // Wykonaj API call z forceRefresh - to zaktualizuje cache
+    final freshData = await RemoteCaching.instance.call<T>(
+      cacheKey,
+      remote: remoteCall,
+      fromJson: (json) => fromJson(json as Map<String, dynamic>),
+      cacheDuration: duration,
+      forceRefresh: true,
+    );
+
+    // Jeśli istnieje reaktywny stream, zaktualizuj go
+    if (_reactiveSingleStreams.containsKey(cacheKey)) {
+      _reactiveSingleStreams[cacheKey]!.add(freshData);
     }
   }
 
