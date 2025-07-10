@@ -2,7 +2,6 @@ import 'package:equatable/equatable.dart';
 
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
-import 'package:bandspace_mobile/shared/models/song.dart';
 
 enum ProjectDetailStatus {
   initial,
@@ -18,25 +17,21 @@ class ProjectDetailState extends Equatable {
   final ProjectDetailStatus status;
 
   final Project? project;
-  final List<Song> songs;
   final String? errorMessage;
 
   const ProjectDetailState({
     this.status = ProjectDetailStatus.loading,
-    this.songs = const [],
     this.project,
     this.errorMessage,
   });
 
   ProjectDetailState copyWith({
     ProjectDetailStatus? status,
-    List<Song>? songs,
     Value<Project?>? project,
     Value<String?>? errorMessage,
   }) {
     return ProjectDetailState(
       status: status ?? this.status,
-      songs: songs ?? this.songs,
       project: project != null ? project.value : this.project,
       errorMessage: errorMessage != null
           ? errorMessage.value
@@ -47,7 +42,6 @@ class ProjectDetailState extends Equatable {
   @override
   List<Object?> get props => [
     status,
-    songs,
     project,
     errorMessage,
   ];
