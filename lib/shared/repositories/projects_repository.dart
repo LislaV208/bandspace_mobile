@@ -3,14 +3,17 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 
 import 'package:bandspace_mobile/core/api/cached_repository.dart';
-import 'package:bandspace_mobile/features/song_detail/models/update_song_data.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/project_member.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
 import 'package:bandspace_mobile/shared/models/song_create_data.dart';
+import 'package:bandspace_mobile/shared/models/song_file.dart';
+import 'package:bandspace_mobile/shared/models/update_song_data.dart';
+import 'package:bandspace_mobile/shared/models/update_song_file_data.dart';
 
 part 'projects_repository.songs.dart';
 part 'projects_repository.members.dart';
+part 'projects_repository.files.dart';
 
 class ProjectsRepository extends CachedRepository {
   const ProjectsRepository({

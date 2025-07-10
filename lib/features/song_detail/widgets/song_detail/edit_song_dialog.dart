@@ -6,8 +6,8 @@ import 'package:bandspace_mobile/core/theme/app_colors.dart';
 import 'package:bandspace_mobile/core/theme/text_styles.dart';
 import 'package:bandspace_mobile/features/song_detail/cubit/edit_song/edit_song_cubit.dart';
 import 'package:bandspace_mobile/features/song_detail/cubit/edit_song/edit_song_state.dart';
-import 'package:bandspace_mobile/features/song_detail/models/update_song_data.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
+import 'package:bandspace_mobile/shared/models/update_song_data.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 /// Dialog do edycji utworu

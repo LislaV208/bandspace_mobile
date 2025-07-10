@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+
 import 'package:gap/gap.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/shared/models/song_file.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/shared/models/song_file.dart';
 
 /// Element listy plików utworu
-class SongFileItem extends StatelessWidget {
+class SongFileListItem extends StatelessWidget {
   final SongFile songFile;
   final VoidCallback? onPlay;
   final VoidCallback? onDownload;
@@ -15,7 +16,7 @@ class SongFileItem extends StatelessWidget {
   final bool isLoading;
   final bool isSelected;
 
-  const SongFileItem({
+  const SongFileListItem({
     super.key,
     required this.songFile,
     this.onPlay,

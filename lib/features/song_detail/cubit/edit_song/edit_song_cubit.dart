@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/features/song_detail/cubit/edit_song/edit_song_state.dart';
-import 'package:bandspace_mobile/features/song_detail/models/update_song_data.dart';
+import 'package:bandspace_mobile/shared/models/update_song_data.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 /// Cubit zarządzający procesem edycji utworu
