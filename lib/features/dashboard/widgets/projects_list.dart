@@ -50,7 +50,6 @@ class ProjectsList extends StatelessWidget {
                 Icon(
                   LucideIcons.folderPlus,
                   size: 48,
-                  color: const Color(0xFF9CA3AF),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -58,7 +57,6 @@ class ProjectsList extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF9CA3AF),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -66,7 +64,6 @@ class ProjectsList extends StatelessWidget {
                   'Utwórz swój pierwszy projekt, aby rozpocząć',
                   style: const TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF6B7280),
                   ),
                 ),
               ],

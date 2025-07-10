@@ -3,35 +3,21 @@ part of 'projects_repository.dart';
 extension SongsManagement on ProjectsRepository {
   // Pobiera listę utworów dla danego projektu.
   // GET /api/projects/{projectId}/songs
-  Stream<List<Song>> getSongs(int projectId, {bool forceRefresh = false}) {
-    if (forceRefresh) {
-      return cachedListStream<Song>(
-        methodName: 'getSongs',
-        parameters: {'projectId': projectId},
-        remoteCall: () async {
-          final response = await apiClient.get(
-            '/api/projects/$projectId/songs',
-          );
-
-          final List<dynamic> songsData = response.data;
-          return songsData.map((songData) => _songFromJson(songData)).toList();
-        },
-        fromJson: (json) => _songFromJson(json),
-        forceRefresh: forceRefresh,
-      );
-    }
-
+  Stream<List<Song>> getSongs(int projectId) {
     return reactiveListStream<Song>(
       methodName: 'getSongs',
       parameters: {'projectId': projectId},
-      remoteCall: () async {
-        final response = await apiClient.get(
-          '/api/projects/$projectId/songs',
-        );
+      remoteCall: () async => _fetchSongs(projectId),
+      fromJson: (json) => _songFromJson(json),
+    );
+  }
 
-        final List<dynamic> songsData = response.data;
-        return songsData.map((songData) => _songFromJson(songData)).toList();
-      },
+  // Odświeża listę utworów dla danego projektu.
+  Future<void> refreshSongs(int projectId) async {
+    await refreshList<Song>(
+      listMethodName: 'getSongs',
+      listParameters: {'projectId': projectId},
+      remoteCall: () async => _fetchSongs(projectId),
       fromJson: (json) => _songFromJson(json),
     );
   }
@@ -66,6 +52,15 @@ extension SongsManagement on ProjectsRepository {
       },
       fromJson: (json) => _songFromJson(json),
     );
+  }
+
+  Future<List<Song>> _fetchSongs(int projectId) async {
+    final response = await apiClient.get(
+      '/api/projects/$projectId/songs',
+    );
+
+    final List<dynamic> songsData = response.data;
+    return songsData.map((songData) => _songFromJson(songData)).toList();
   }
 
   Song _songFromJson(Map<String, dynamic> json) {

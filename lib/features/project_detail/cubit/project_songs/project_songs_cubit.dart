@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
-import 'package:bandspace_mobile/features/project_detail/cubit/project_songs_state.dart';
+import 'package:bandspace_mobile/features/project_detail/cubit/project_songs/project_songs_state.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
@@ -14,7 +13,7 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
   ProjectSongsCubit({
     required this.projectsRepository,
     required this.projectId,
-  }) : super(const ProjectSongsState()) {
+  }) : super(const ProjectSongsInitial()) {
     loadSongs();
   }
 
@@ -28,23 +27,17 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
   }
 
   Future<void> loadSongs() async {
-    emit(state.copyWith(status: ProjectSongsStatus.loading));
+    emit(const ProjectSongsLoading());
 
     _songsSubscription =
         projectsRepository.getSongs(projectId).listen((songs) {
-          emit(
-            state.copyWith(
-              status: ProjectSongsStatus.success,
-              songs: songs,
-            ),
-          );
+          emit(ProjectSongsLoadSuccess(songs));
         })..onError((error) {
-          emit(
-            state.copyWith(
-              status: ProjectSongsStatus.error,
-              errorMessage: Value(error.toString()),
-            ),
-          );
+          emit(ProjectSongsLoadFailure(error.toString()));
         });
+  }
+
+  Future<void> refreshSongs() async {
+    await projectsRepository.refreshSongs(projectId);
   }
 }

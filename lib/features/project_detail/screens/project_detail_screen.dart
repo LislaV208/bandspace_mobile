@@ -6,7 +6,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_state.dart';
+import 'package:bandspace_mobile/features/project_detail/cubit/project_songs/project_songs_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/screens/create_song_screen.dart';
+import 'package:bandspace_mobile/features/project_detail/views/project_details_view.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/manage_project_sheet.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
@@ -72,6 +74,13 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             ),
           ),
         ],
+      ),
+      body: BlocProvider(
+        create: (context) => ProjectSongsCubit(
+          projectsRepository: context.read<ProjectsRepository>(),
+          projectId: context.read<ProjectDetailCubit>().state.project.id,
+        ),
+        child: const ProjectDetailsView(),
       ),
       // body: Column(
       //   children: [
