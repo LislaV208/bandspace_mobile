@@ -5,6 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/theme/app_colors.dart';
 import 'package:bandspace_mobile/core/theme/text_styles.dart';
+import 'package:bandspace_mobile/core/widgets/options_bottom_sheet.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/screens/project_members_screen.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/project_details/delete_project_dialog.dart';
@@ -14,16 +15,58 @@ class ManageProjectSheet extends StatelessWidget {
   const ManageProjectSheet({super.key});
 
   static Future<void> show(BuildContext context) async {
-    await showModalBottomSheet(
+    final cubit = context.read<ProjectDetailCubit>();
+
+    await OptionsBottomSheet.show(
       context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) => BlocProvider.value(
-        value: context.read<ProjectDetailCubit>(),
-        child: const ManageProjectSheet(),
-      ),
+      title: 'Zarządzaj projektem',
+      options: [
+        BottomSheetOption(
+          icon: LucideIcons.pencil,
+          title: 'Edytuj projekt',
+          onTap: () async {
+            Navigator.pop(context);
+            EditProjectDialog.show(
+              context: context,
+              project: cubit.state.project,
+            );
+          },
+        ),
+        BottomSheetOption(
+          icon: LucideIcons.share,
+          title: 'Udostępnij',
+          onTap: () {
+            Navigator.pop(context);
+            // TODO: Implement share project
+          },
+        ),
+        BottomSheetOption(
+          icon: LucideIcons.users,
+          title: 'Członkowie',
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    ProjectMembersScreen.create(cubit.state.project),
+              ),
+            );
+          },
+        ),
+        BottomSheetOption(
+          icon: LucideIcons.trash2,
+          title: 'Usuń projekt',
+          onTap: () async {
+            Navigator.pop(context);
+            DeleteProjectDialog.show(
+              context: context,
+              project: cubit.state.project,
+            );
+          },
+          isDestructive: true,
+        ),
+      ],
     );
   }
 
