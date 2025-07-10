@@ -33,7 +33,15 @@ class SongFilesCubit extends Cubit<SongFilesState> {
 
     _filesSubscription =
         projectsRepository.getSongFiles(projectId, songId).listen((files) {
-          emit(SongFilesLoadSuccess(files));
+          SongFile? selectedFile;
+
+          if (state is SongFilesLoadSuccess) {
+            selectedFile = (state as SongFilesLoadSuccess).selectedFile;
+          }
+
+          selectedFile ??= files.isNotEmpty ? files.first : null;
+
+          emit(SongFilesLoadSuccess(files, selectedFile: selectedFile));
         })..onError((error) {
           emit(SongFilesLoadFailure(error.toString()));
         });

@@ -4,43 +4,57 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/features/song_detail/cubit/song_files/song_files_cubit.dart';
+import 'package:bandspace_mobile/features/song_detail/widgets/song_files/song_file_audio_player.dart';
 import 'package:bandspace_mobile/features/song_detail/widgets/song_files/song_file_list_item.dart';
 import 'package:bandspace_mobile/shared/models/song_file.dart';
 
 class SongFilesList extends StatelessWidget {
   final List<SongFile> files;
+  final SongFile? selectedFile;
 
   const SongFilesList({
     super.key,
     required this.files,
+    required this.selectedFile,
   });
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        await context.read<SongFilesCubit>().refreshSongFiles();
-      },
-      displacement: 0.0,
-      color: Theme.of(context).colorScheme.tertiary,
-      child: files.isEmpty
-          ? _buildEmptyState(context)
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: ListView(
-                padding: const EdgeInsets.only(bottom: 56.0),
-                children: files.map(
-                  (project) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0),
-                      child: SongFileListItem(
-                        songFile: project,
-                      ),
-                    );
-                  },
-                ).toList(),
-              ),
-            ),
+    return Column(
+      children: [
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await context.read<SongFilesCubit>().refreshSongFiles();
+            },
+            displacement: 0.0,
+            color: Theme.of(context).colorScheme.tertiary,
+            child: files.isEmpty
+                ? _buildEmptyState(context)
+                : Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: ListView(
+                      padding: const EdgeInsets.only(bottom: 56.0),
+                      children: files.map(
+                        (file) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: SongFileListItem(
+                              songFile: file,
+                              isSelected: selectedFile?.id == file.id,
+                            ),
+                          );
+                        },
+                      ).toList(),
+                    ),
+                  ),
+          ),
+        ),
+        if (selectedFile != null)
+          SongFileAudioPlayer(
+            currentFile: selectedFile!,
+          ),
+      ],
     );
   }
 

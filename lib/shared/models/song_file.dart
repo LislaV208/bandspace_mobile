@@ -1,5 +1,7 @@
+import 'package:equatable/equatable.dart';
+
 /// Model pliku audio powiązanego z utworem
-class SongFile {
+class SongFile extends Equatable {
   final int id;
   final int songId;
   final int fileId;
@@ -15,6 +17,16 @@ class SongFile {
     required this.createdAt,
     required this.fileInfo,
   });
+
+  @override
+  List<Object?> get props => [
+    id,
+    songId,
+    fileId,
+    duration,
+    createdAt,
+    fileInfo,
+  ];
 
   factory SongFile.fromJson(Map<String, dynamic> json) {
     return SongFile(
@@ -36,23 +48,6 @@ class SongFile {
       'created_at': createdAt.toIso8601String(),
       'file': fileInfo.toJson(),
     };
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is SongFile &&
-        other.id == id &&
-        other.songId == songId &&
-        other.fileId == fileId &&
-        other.duration == duration &&
-        other.createdAt == createdAt &&
-        other.fileInfo == fileInfo;
-  }
-
-  @override
-  int get hashCode {
-    return Object.hash(id, songId, fileId, duration, createdAt, fileInfo);
   }
 
   /// Zwraca sformatowany czas trwania w formacie MM:SS
@@ -104,7 +99,11 @@ class AudioFileInfo {
       filename: json['filename'] ?? '',
       fileKey: json['file_key'] ?? '',
       mimeType: json['mime_type'] ?? '',
-      size: json['size'] is int ? json['size'] : (json['size'] != null ? int.tryParse(json['size'].toString()) ?? 0 : 0),
+      size: json['size'] is int
+          ? json['size']
+          : (json['size'] != null
+                ? int.tryParse(json['size'].toString()) ?? 0
+                : 0),
       description: json['description'],
       uploadedBy: json['uploaded_by'] ?? 0,
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
@@ -143,7 +142,17 @@ class AudioFileInfo {
 
   @override
   int get hashCode {
-    return Object.hash(id, filename, fileKey, mimeType, size, description, uploadedBy, createdAt, updatedAt);
+    return Object.hash(
+      id,
+      filename,
+      fileKey,
+      mimeType,
+      size,
+      description,
+      uploadedBy,
+      createdAt,
+      updatedAt,
+    );
   }
 
   /// Zwraca sformatowany rozmiar pliku

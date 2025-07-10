@@ -21,6 +21,7 @@ class SongFilesView extends StatelessWidget {
           ),
           SongFilesLoadSuccess() => SongFilesList(
             files: state.files,
+            selectedFile: state.selectedFile,
           ),
           SongFilesLoadFailure() => _buildErrorState(
             context,

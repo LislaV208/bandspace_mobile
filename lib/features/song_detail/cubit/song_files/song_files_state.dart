@@ -19,11 +19,12 @@ class SongFilesLoading extends SongFilesState {
 
 class SongFilesLoadSuccess extends SongFilesState {
   final List<SongFile> files;
+  final SongFile? selectedFile;
 
-  const SongFilesLoadSuccess(this.files);
+  const SongFilesLoadSuccess(this.files, {this.selectedFile});
 
   @override
-  List<Object?> get props => [files];
+  List<Object?> get props => [files, selectedFile];
 }
 
 class SongFilesLoadFailure extends SongFilesState {
