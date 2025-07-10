@@ -16,30 +16,30 @@ class ProjectSongListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {},
+    return ListTile(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              _buildSongIcon(),
-              const SizedBox(width: 12),
-              Expanded(child: _buildSongInfo()),
-              const SizedBox(width: 12),
-              Icon(
-                LucideIcons.chevronRight,
-                color: AppColors.textSecondary,
-              ),
-            ],
-          ),
+      ),
+      tileColor: AppColors.surface,
+      onTap: () {},
+      leading: _buildSongIcon(),
+      title: Text(
+        song.title,
+        style: AppTextStyles.bodyLarge.copyWith(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.w500,
         ),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        song.timeAgo,
+        style: AppTextStyles.bodySmall.copyWith(
+          color: AppColors.textSecondary,
+        ),
+      ),
+      trailing: Icon(
+        LucideIcons.chevronRight,
       ),
     );
   }
@@ -61,31 +61,6 @@ class ProjectSongListItem extends StatelessWidget {
     );
   }
 
-  /// Buduje informacje o utworze
-  Widget _buildSongInfo() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          song.title,
-          style: AppTextStyles.bodyLarge.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w500,
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          song.timeAgo,
-          style: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.textSecondary,
-          ),
-        ),
-      ],
-    );
-  }
-
   /// Buduje badge z liczbą plików
   // Widget _buildFileCount() {
   //   return Container(
@@ -97,26 +72,6 @@ class ProjectSongListItem extends StatelessWidget {
   //     ),
   //   );
   // }
-
-  /// Buduje przycisk opcji
-  Widget _buildOptionsButton(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _showSongOptions(context),
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Icon(
-          LucideIcons.ellipsisVertical,
-          size: 16,
-          color: AppColors.textSecondary,
-        ),
-      ),
-    );
-  }
 
   /// Pokazuje opcje utworu
   void _showSongOptions(BuildContext context) {
