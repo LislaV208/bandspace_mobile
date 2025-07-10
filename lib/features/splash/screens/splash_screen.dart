@@ -5,6 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 // import 'package:bandspace_mobile/shared/providers/connectivity_cubit.dart';
 // import 'package:bandspace_mobile/shared/services/sync_service.dart';
+import 'package:bandspace_mobile/core/navigation/custom_page_routes.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
@@ -32,13 +33,14 @@ class _SplashScreenState extends State<SplashScreen> {
         // Gdy stan autentykacji zostanie ustalony, przekieruj do odpowiedniego ekranu
         if (state.isAuthStateInitialized) {
           if (state.user != null) {
+            // Niestandardowa animacja dla przejścia splash->dashboard
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => DashboardScreen.create()),
+              FadePageRoute(page: DashboardScreen.create()),
             );
           } else {
             // Użytkownik nie jest zalogowany, przekieruj do AuthScreen
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const AuthScreen()),
+              FadePageRoute(page: const AuthScreen()),
             );
           }
         }
