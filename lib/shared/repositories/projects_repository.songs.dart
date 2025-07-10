@@ -69,6 +69,20 @@ extension SongsManagement on ProjectsRepository {
     );
   }
 
+  // Usuwa utwór z projektu.
+  // DELETE /api/projects/{projectId}/songs/{songId}
+  Future<void> deleteSong(int projectId, int songId) async {
+    await removeFromList<Song>(
+      listMethodName: 'getSongs',
+      listParameters: {'projectId': projectId},
+      deleteCall: () async {
+        await apiClient.delete('/api/projects/$projectId/songs/$songId');
+      },
+      fromJson: (json) => _songFromJson(json),
+      predicate: (song) => song.id == songId,
+    );
+  }
+
   Future<List<Song>> _fetchSongs(int projectId) async {
     final response = await apiClient.get(
       '/api/projects/$projectId/songs',

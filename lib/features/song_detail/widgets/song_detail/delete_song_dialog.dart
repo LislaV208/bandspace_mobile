@@ -2,37 +2,42 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/features/project_detail/cubit/Delete_project/Delete_project_state.dart';
-import 'package:bandspace_mobile/features/project_detail/cubit/delete_project/delete_project_cubit.dart';
-import 'package:bandspace_mobile/shared/models/project.dart';
+import 'package:bandspace_mobile/core/theme/app_colors.dart';
+import 'package:bandspace_mobile/core/theme/text_styles.dart';
+import 'package:bandspace_mobile/features/song_detail/cubit/delete_song/delete_song_cubit.dart';
+import 'package:bandspace_mobile/features/song_detail/cubit/delete_song/delete_song_state.dart';
+import 'package:bandspace_mobile/shared/models/song.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
-/// Dialog do potwierdzenia usunięcia projektu.
-///
-/// Wyświetla ostrzeżenie o nieodwracalności akcji i pozwala
-/// użytkownikowi potwierdzić lub anulować usunięcie.
-class DeleteProjectDialog extends StatelessWidget {
-  const DeleteProjectDialog({
+/// Dialog potwierdzający usunięcie utworu
+class DeleteSongDialog extends StatelessWidget {
+  final Song song;
+  final int projectId;
+
+  const DeleteSongDialog({
     super.key,
-    required this.project,
+    required this.song,
+    required this.projectId,
   });
 
-  final Project project;
-
-  /// Wyświetla dialog usunięcia projektu.
-  static Future<bool?> show({
+  /// Statyczna metoda do wyświetlania dialogu usuwania utworu
+  static Future<void> show({
     required BuildContext context,
-    required Project project,
+    required Song song,
+    required int projectId,
   }) {
-    return showDialog<bool>(
+    return showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => BlocProvider(
-        create: (context) => DeleteProjectCubit(
+        create: (context) => DeleteSongCubit(
           projectsRepository: context.read<ProjectsRepository>(),
-          projectId: project.id,
+          projectId: projectId,
+          songId: song.id,
         ),
-        child: DeleteProjectDialog(
-          project: project,
+        child: DeleteSongDialog(
+          song: song,
+          projectId: projectId,
         ),
       ),
     );
@@ -40,89 +45,189 @@ class DeleteProjectDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<DeleteProjectCubit, DeleteProjectState>(
+    return BlocConsumer<DeleteSongCubit, DeleteSongState>(
       listener: (context, state) {
-        if (state is DeleteProjectSuccess) {
-          // Zamknij dialog
+        if (state is DeleteSongSuccess) {
+          // zamknij dialog
           Navigator.of(context).pop();
-          // Powrót do poprzedniego ekranu
+          // zamknij ekran szczegółów utworu
           Navigator.of(context).pop();
         }
       },
       builder: (context, state) {
         final isDeleting =
-            state is DeleteProjectLoading || state is DeleteProjectSuccess;
+            state is DeleteSongLoading || state is DeleteSongSuccess;
+
         return PopScope(
-          onPopInvokedWithResult: (didPop, result) {},
           canPop: !isDeleting,
           child: AlertDialog(
-            title: const Text('Usuń projekt'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+            backgroundColor: AppColors.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: AppColors.border,
+                width: 1,
+              ),
+            ),
+            title: Row(
               children: [
-                Text(
-                  'Czy na pewno chcesz usunąć projekt "${project.name}"?',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.errorContainer,
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.error.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: AppColors.error.withOpacity(0.3),
+                      width: 1,
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.warning_rounded,
-                        color: Theme.of(context).colorScheme.onErrorContainer,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Ta akcja jest nieodwracalna. Wszystkie dane projektu zostaną trwale usunięte.',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onErrorContainer,
-                              ),
-                        ),
-                      ),
-                    ],
+                  child: Icon(
+                    Icons.delete_outline,
+                    color: AppColors.error,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    'Usuń utwór',
+                    style: AppTextStyles.titleLarge.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
             ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RichText(
+                  text: TextSpan(
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                    children: [
+                      const TextSpan(text: 'Czy na pewno chcesz usunąć utwór '),
+                      TextSpan(
+                        text: '"${song.title}"',
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const TextSpan(text: '?'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Komunikat ostrzegawczy
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppColors.error.withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.warning_outlined,
+                            color: AppColors.error,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Ta operacja jest nieodwracalna. Utwór zostanie trwale usunięty z projektu.',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.error.withOpacity(0.8),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                if (state is DeleteSongFailure) ...[
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: AppColors.error,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 16),
+                      Text(
+                        state.message,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+            actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
             actions: [
+              // Przycisk Anuluj
               TextButton(
                 onPressed: isDeleting
                     ? null
-                    : () => Navigator.of(context).pop(false),
-                child: const Text('Anuluj'),
+                    : () => Navigator.of(context).pop(),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.textSecondary,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+                child: Text(
+                  'Anuluj',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
+
+              const SizedBox(width: 8),
+
+              // Przycisk Usuń
               ElevatedButton(
                 onPressed: isDeleting
                     ? null
-                    : () {
-                        context.read<DeleteProjectCubit>().deleteProject();
-                      },
+                    : () => context.read<DeleteSongCubit>().deleteSong(),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                  foregroundColor: Theme.of(context).colorScheme.onError,
-                  disabledBackgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.error.withValues(alpha: 0.5),
-                  disabledForegroundColor: Theme.of(
-                    context,
-                  ).colorScheme.onError,
+                  backgroundColor: AppColors.error,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: AppColors.error.withOpacity(0.5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 child: isDeleting
                     ? const SizedBox(
-                        width: 16,
-                        height: 16,
+                        width: 20,
+                        height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
@@ -130,7 +235,13 @@ class DeleteProjectDialog extends StatelessWidget {
                           ),
                         ),
                       )
-                    : const Text('Usuń'),
+                    : Text(
+                        'Usuń',
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ],
           ),
