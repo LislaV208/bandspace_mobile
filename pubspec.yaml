@@ -7,7 +7,7 @@ environment:
   sdk: ^3.8.1
 
 dependencies:
-  audioplayers: ^6.5.0
+  just_audio: ^0.10.4
   connectivity_plus: ^6.1.4
   crypto: ^3.0.6
   dio: ^5.8.0+1

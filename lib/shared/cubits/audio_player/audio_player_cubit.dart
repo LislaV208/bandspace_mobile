@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'dart:developer';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:just_audio/just_audio.dart';
 
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 
@@ -15,6 +16,7 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
   StreamSubscription? _playerStateSubscription;
   StreamSubscription? _durationSubscription;
   StreamSubscription? _positionSubscription;
+  StreamSubscription? _bufferedPositionSubscription;
 
   /// Konstruktor nie przyjmuje żadnych zależności biznesowych.
   AudioPlayerCubit()
@@ -23,25 +25,47 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     _listenToPlayerEvents();
   }
 
-  /// Prywatna metoda do nasłuchiwania na wszystkie zdarzenia z paczki `audioplayers`.
+  /// Prywatna metoda do nasłuchiwania na wszystkie zdarzenia z paczki `just_audio`.
   void _listenToPlayerEvents() {
     // Nasłuchiwanie na zmiany stanu (playing, paused, completed)
-    _playerStateSubscription = _audioPlayer.onPlayerStateChanged.listen((
+    _playerStateSubscription = _audioPlayer.playerStateStream.listen((
       playerState,
     ) {
       if (state.status == PlayerStatus.loading) {
         return; // Ignoruj zdarzenia podczas ładowania
       }
 
-      switch (playerState) {
-        case PlayerState.playing:
-          emit(state.copyWith(status: PlayerStatus.playing));
+      log(
+        'AudioPlayerCubit: Player state changed: ${playerState.processingState}',
+      );
+
+      switch (playerState.processingState) {
+        case ProcessingState.idle:
+          emit(
+            state.copyWith(
+              status: PlayerStatus.idle,
+              currentPosition: Duration.zero,
+            ),
+          );
           break;
-        case PlayerState.paused:
-          emit(state.copyWith(status: PlayerStatus.paused));
+        case ProcessingState.loading:
+          emit(state.copyWith(status: PlayerStatus.loading));
           break;
-        case PlayerState.completed:
-          // Po zakończeniu, ustawiamy status `completed` i przewijamy na początek
+        case ProcessingState.buffering:
+          // W just_audio buffering to oddzielny stan - możemy zachować obecny status
+          break;
+        case ProcessingState.ready:
+          // Plik gotowy - ustaw odpowiedni status na podstawie playing
+          final newStatus = playerState.playing
+              ? PlayerStatus.playing
+              : PlayerStatus.ready;
+          emit(
+            state.copyWith(
+              status: newStatus,
+            ),
+          );
+          break;
+        case ProcessingState.completed:
           emit(
             state.copyWith(
               status: PlayerStatus.completed,
@@ -50,31 +74,35 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
           );
           _audioPlayer.seek(Duration.zero);
           break;
-        case PlayerState.stopped:
-          emit(
-            state.copyWith(
-              status: PlayerStatus.idle,
-              currentPosition: Duration.zero,
-            ),
-          );
-          break;
-        default:
-          break;
       }
     });
 
     // Nasłuchiwanie na zmianę całkowitego czasu trwania pliku
-    _durationSubscription = _audioPlayer.onDurationChanged.listen((duration) {
-      emit(state.copyWith(totalDuration: duration));
+    _durationSubscription = _audioPlayer.durationStream.listen((duration) {
+      if (duration != null) {
+        emit(
+          state.copyWith(
+            totalDuration: duration,
+          ),
+        );
+      }
     });
 
     // Nasłuchiwanie na zmianę aktualnej pozycji odtwarzania
-    _positionSubscription = _audioPlayer.onPositionChanged.listen((position) {
-      // Aktualizuj pozycję tylko, gdy odtwarzamy lub pauzujemy, aby uniknąć skoków
+    _positionSubscription = _audioPlayer.positionStream.listen((position) {
+      // Aktualizuj pozycję tylko, gdy odtwarzamy, pauzujemy lub jesteśmy gotowi, aby uniknąć skoków
       if (state.status == PlayerStatus.playing ||
-          state.status == PlayerStatus.paused) {
+          state.status == PlayerStatus.paused ||
+          state.status == PlayerStatus.ready) {
         emit(state.copyWith(currentPosition: position));
       }
+    });
+
+    // Nasłuchiwanie na zmianę pozycji bufferowania
+    _bufferedPositionSubscription = _audioPlayer.bufferedPositionStream.listen((
+      bufferedPosition,
+    ) {
+      emit(state.copyWith(bufferedPosition: bufferedPosition));
     });
   }
 
@@ -100,27 +128,53 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
         currentPosition: Duration.zero,
         totalDuration: Duration.zero,
         errorMessage: Value(null), // Wyczyść poprzednie błędy
+        bufferedPosition: Duration.zero,
       ),
     );
 
     try {
-      await _audioPlayer.setSourceUrl(url);
+      await _audioPlayer.setUrl(url);
       if (playWhenReady) {
-        await _audioPlayer.resume(); // resume() jest bezpieczniejsze niż play()
+        await _audioPlayer.play();
       }
     } catch (e) {
       emit(
         state.copyWith(
           status: PlayerStatus.error,
           errorMessage: Value(e.toString()),
+          bufferedPosition: Duration.zero,
         ),
       );
     }
   }
 
+  /// Przełącza między odtwarzaniem a pauzą.
+  Future<void> togglePlayPause() async {
+    switch (state.status) {
+      case PlayerStatus.playing:
+        await pause();
+        break;
+      case PlayerStatus.paused:
+        await play();
+        break;
+      case PlayerStatus.ready:
+        await play();
+        break;
+      case PlayerStatus.completed:
+        await _audioPlayer.seek(Duration.zero);
+        await play();
+        break;
+      case PlayerStatus.idle:
+      case PlayerStatus.loading:
+      case PlayerStatus.error:
+        // Nie możemy odtworzyć w tych stanach
+        break;
+    }
+  }
+
   /// Rozpoczyna lub wznawia odtwarzanie.
   Future<void> play() async {
-    await _audioPlayer.resume();
+    await _audioPlayer.play();
   }
 
   /// Pauzuje odtwarzanie.
@@ -137,7 +191,9 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
   /// Używane, gdy użytkownik chce całkowicie wyłączyć odtwarzacz.
   Future<void> stop() async {
     await _audioPlayer.stop();
-    emit(const AudioPlayerState()); // Resetuj stan do początkowego
+    emit(
+      const AudioPlayerState(),
+    ); // Resetuj stan do początkowego (isReady: false, bufferedPosition: zero)
   }
 
   /// Metoda wywoływana, gdy Cubit jest niszczony.
@@ -147,6 +203,7 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     _playerStateSubscription?.cancel();
     _durationSubscription?.cancel();
     _positionSubscription?.cancel();
+    _bufferedPositionSubscription?.cancel();
     _audioPlayer.dispose();
     return super.close();
   }

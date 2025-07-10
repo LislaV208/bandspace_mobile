@@ -26,7 +26,7 @@ class SongFileAudioPlayer extends StatelessWidget {
 
     return BlocBuilder<AudioPlayerCubit, AudioPlayerState>(
       builder: (context, state) {
-        final isLoading = state.status == PlayerStatus.loading;
+        final isLoading = state.status != PlayerStatus.ready;
         final isPlaying = state.status == PlayerStatus.playing;
 
         return Container(
@@ -183,7 +183,9 @@ class SongFileAudioPlayer extends StatelessWidget {
                       color: Colors.transparent,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(28),
-                        onTap: () {},
+                        onTap: () {
+                          context.read<AudioPlayerCubit>().togglePlayPause();
+                        },
                         child: Container(
                           width: 56,
                           height: 56,

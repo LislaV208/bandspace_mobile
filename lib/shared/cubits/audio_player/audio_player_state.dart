@@ -10,6 +10,9 @@ enum PlayerStatus {
   /// Trwa proces ładowania i dekodowania pliku audio z sieci.
   loading,
 
+  /// Plik jest załadowany i gotowy do odtworzenia.
+  ready,
+
   /// Plik jest aktywnie odtwarzany.
   playing,
 
@@ -40,12 +43,16 @@ class AudioPlayerState extends Equatable {
   /// Komunikat o błędzie, jeśli wystąpił.
   final String? errorMessage;
 
+  /// Pozycja do której został zbuforowany audio (w Duration).
+  final Duration bufferedPosition;
+
   const AudioPlayerState({
     this.status = PlayerStatus.idle,
     this.currentUrl,
     this.currentPosition = Duration.zero,
     this.totalDuration = Duration.zero,
     this.errorMessage,
+    this.bufferedPosition = Duration.zero,
   });
 
   /// Tworzy kopię stanu, modyfikując tylko wybrane pola.
@@ -55,6 +62,7 @@ class AudioPlayerState extends Equatable {
     Duration? currentPosition,
     Duration? totalDuration,
     Value<String?>? errorMessage,
+    Duration? bufferedPosition,
   }) {
     return AudioPlayerState(
       status: status ?? this.status,
@@ -64,6 +72,7 @@ class AudioPlayerState extends Equatable {
       errorMessage: errorMessage != null
           ? errorMessage.value
           : this.errorMessage,
+      bufferedPosition: bufferedPosition ?? this.bufferedPosition,
     );
   }
 
@@ -74,5 +83,6 @@ class AudioPlayerState extends Equatable {
     currentPosition,
     totalDuration,
     errorMessage,
+    bufferedPosition,
   ];
 }
