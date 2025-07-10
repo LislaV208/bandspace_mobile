@@ -7,7 +7,6 @@ import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_state.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_songs/project_songs_cubit.dart';
-import 'package:bandspace_mobile/features/project_detail/screens/create_song_screen.dart';
 import 'package:bandspace_mobile/features/project_detail/screens/new_song_screen.dart';
 import 'package:bandspace_mobile/features/project_detail/views/project_details_view.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/manage_project_sheet.dart';
@@ -15,7 +14,7 @@ import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 /// Ekran szczegółów projektu z listą utworów
-class ProjectDetailScreen extends StatefulWidget {
+class ProjectDetailScreen extends StatelessWidget {
   const ProjectDetailScreen({super.key});
 
   static Widget create(Project project) {
@@ -27,30 +26,6 @@ class ProjectDetailScreen extends StatefulWidget {
       ),
       child: ProjectDetailScreen(),
     );
-  }
-
-  @override
-  State<ProjectDetailScreen> createState() => _ProjectDetailScreenState();
-}
-
-class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _searchController.addListener(() {
-      setState(() {
-        _searchQuery = _searchController.text;
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   @override
@@ -70,8 +45,18 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             child: TextButton.icon(
               iconAlignment: IconAlignment.end,
               onPressed: () => ManageProjectSheet.show(context),
-              label: const Text('Więcej'),
-              icon: const Icon(LucideIcons.ellipsisVertical),
+              label: const Text(
+                'Zarządzaj',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              icon: const Icon(
+                LucideIcons.settings2,
+                size: 22,
+              ),
             ),
           ),
         ],
@@ -83,21 +68,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         ),
         child: const ProjectDetailsView(),
       ),
-      // body: Column(
-      //   children: [
-      //     _buildSearchBar(),
-      //     const SizedBox(height: 16),
-      //     Expanded(
-      //       child: BlocProvider(
-      //         create: (_) => ProjectSongsCubit(
-      //           projectsRepository: context.read<ProjectsRepository>(),
-      //           projectId: context.read<ProjectDetailCubit>().state.project.id,
-      //         ),
-      //         child: const ProjectSongsList(),
-      //       ),
-      //     ),
-      //   ],
-      // ),
+
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -112,72 +83,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         icon: const Icon(LucideIcons.plus),
         label: const Text('Nowy utwór'),
       ),
-    );
-  }
-
-  /// Buduje pasek wyszukiwania
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16.0,
-        vertical: 4.0,
-      ),
-      child: TextField(
-        controller: _searchController,
-        style: AppTextStyles.bodyMedium.copyWith(
-          color: AppColors.textPrimary,
-        ),
-        decoration: InputDecoration(
-          hintText: 'Szukaj utworów...',
-          hintStyle: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
-          ),
-          prefixIcon: const Icon(
-            LucideIcons.search,
-            color: AppColors.textSecondary,
-          ),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(
-                    LucideIcons.x,
-                    color: AppColors.textSecondary,
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                  },
-                )
-              : null,
-          filled: true,
-          fillColor: AppColors.surfaceDark,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCreateSongFab() {
-    return BlocBuilder<ProjectDetailCubit, ProjectDetailState>(
-      builder: (context, state) {
-        return FloatingActionButton.extended(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => NewSongScreen.create(state.project),
-              ),
-            );
-          },
-          icon: const Icon(LucideIcons.plus),
-          label: const Text('Nowy utwór'),
-        );
-      },
     );
   }
 }
