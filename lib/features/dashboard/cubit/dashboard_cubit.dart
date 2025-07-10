@@ -28,22 +28,32 @@ class DashboardCubit extends Cubit<DashboardState> {
   Future<void> loadProjects() async {
     emit(state.copyWith(status: DashboardStatus.loading));
 
-    projectsSubscription = dashboardRepository.getProjects().listen((
-      projects,
-    ) async {
-      if (state.status == DashboardStatus.creatingProject) {
-        // poczekaj z aktualizacją listy projektów
-        // dla lepszego UX
-        await Future.delayed(const Duration(milliseconds: 200));
-      }
+    projectsSubscription =
+        dashboardRepository.getProjects().listen((
+          projects,
+        ) async {
+          if (state.status == DashboardStatus.creatingProject) {
+            // poczekaj z aktualizacją listy projektów
+            // dla lepszego UX
+            await Future.delayed(const Duration(milliseconds: 200));
+          }
 
-      emit(
-        state.copyWith(
-          status: DashboardStatus.success,
-          projects: projects,
-        ),
-      );
-    });
+          emit(
+            state.copyWith(
+              status: DashboardStatus.success,
+              projects: projects,
+            ),
+          );
+        })..onError(
+          (error, stackTrace) {
+            emit(
+              state.copyWith(
+                status: DashboardStatus.error,
+                errorMessage: Value(error.toString()),
+              ),
+            );
+          },
+        );
   }
 
   Future<void> refreshProjects({
