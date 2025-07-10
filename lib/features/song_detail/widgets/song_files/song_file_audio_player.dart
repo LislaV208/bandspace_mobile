@@ -99,6 +99,17 @@ class SongFileAudioPlayer extends StatelessWidget {
                 children: [
                   Builder(
                     builder: (context) => GestureDetector(
+                      onTapUp: (details) {
+                        // Natychmiastowy seek po tapnięciu
+                        final RenderBox box =
+                            context.findRenderObject() as RenderBox;
+                        final localPosition = box.globalToLocal(
+                          details.globalPosition,
+                        );
+                        final progress = (localPosition.dx / box.size.width)
+                            .clamp(0.0, 1.0);
+                        context.read<AudioPlayerCubit>().seek(progress);
+                      },
                       onPanStart: (details) {
                         context.read<AudioPlayerCubit>().startSeeking();
                       },
