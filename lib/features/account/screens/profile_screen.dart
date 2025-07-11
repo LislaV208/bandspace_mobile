@@ -8,37 +8,9 @@ import 'package:bandspace_mobile/features/account/screens/change_password_screen
 import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
-import 'package:bandspace_mobile/shared/repositories/user_repository.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
-
-  static Widget create() {
-    return BlocProvider(
-      create: (context) => UserProfileCubit(
-        userRepository: context.read<UserRepository>(),
-        // onUserUpdated: (updatedUser) {
-        //   // Aktualizuj dane użytkownika w AuthCubit
-        //   context.read<AuthCubit>().updateUserData(updatedUser);
-        // },
-        // onAccountDeleted: () async {
-        //   // Wyczyść lokalną sesję użytkownika po usunięciu konta (bez wywoływania API logout)
-        //   await context.read<AuthCubit>().clearUserSession();
-
-        //   // Nawiguj bezpośrednio do ekranu logowania, usuwając wszystkie poprzednie ekrany
-        //   if (context.mounted) {
-        //     Navigator.of(
-        //       context,
-        //     ).pushAndRemoveUntil(
-        //       MaterialPageRoute(builder: (context) => const AuthScreen()),
-        //       (route) => false,
-        //     );
-        //   }
-        // },
-      ),
-      child: const ProfileScreen(),
-    );
-  }
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -47,6 +19,19 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
   final FocusNode _nameFocus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+
+    final cubit = context.read<UserProfileCubit>();
+    final state = cubit.state;
+    if (state is UserProfileLoadSuccess) {
+      _nameController.text = state.user.name ?? '';
+    }
+
+    cubit.refreshProfile();
+  }
 
   @override
   void dispose() {
@@ -64,9 +49,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: BlocListener<UserProfileCubit, UserProfileState>(
         listener: (context, state) {
-          if (state is UserProfileLoadSuccess &&
-              state is! UserProfileEditNameSubmitting) {
-            _nameController.text = state.user.name ?? '';
+          if (state is UserProfileLoadSuccess) {
+            if (state is! UserProfileEditNameSubmitting) {
+              _nameController.text = state.user.name ?? '';
+            }
+            if (state is UserProfileEditingName) {
+              _nameFocus.requestFocus();
+            }
           }
 
           if (state is UserProfileEditNameFailure) {
@@ -105,53 +94,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Profile Header
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.person,
-                    size: 40,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                ),
-                const Gap(16),
-                Text(
-                  state.user.name?.isNotEmpty == true
-                      ? state.user.name!
-                      : 'Brak nazwy',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const Gap(4),
-                Text(
-                  state.user.email,
-                  style:
-                      Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-          const Gap(32),
+          // Container(
+          //   padding: const EdgeInsets.all(24),
+          //   decoration: BoxDecoration(
+          //     color: Theme.of(context).colorScheme.primaryContainer,
+          //     borderRadius: BorderRadius.circular(16),
+          //   ),
+          //   child: Column(
+          //     children: [
+          //       Container(
+          //         width: 80,
+          //         height: 80,
+          //         decoration: BoxDecoration(
+          //           color: Theme.of(context).colorScheme.primary,
+          //           shape: BoxShape.circle,
+          //         ),
+          //         child: Icon(
+          //           Icons.person,
+          //           size: 40,
+          //           color: Theme.of(context).colorScheme.onPrimary,
+          //         ),
+          //       ),
+          //       const Gap(16),
+          //       Text(
+          //         state.user.name?.isNotEmpty == true
+          //             ? state.user.name!
+          //             : 'Brak nazwy',
+          //         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+          //           fontWeight: FontWeight.bold,
+          //           color: Theme.of(context).colorScheme.onPrimaryContainer,
+          //         ),
+          //         textAlign: TextAlign.center,
+          //       ),
+          //       const Gap(4),
+          //       Text(
+          //         state.user.email,
+          //         style:
+          //             Theme.of(
+          //               context,
+          //             ).textTheme.bodyMedium?.copyWith(
+          //               color: Theme.of(context).colorScheme.onSurfaceVariant,
+          //             ),
+          //         textAlign: TextAlign.center,
+          //       ),
+          //     ],
+          //   ),
+          // ),
+          // const Gap(32),
 
           // Profile Information
           Container(
@@ -165,7 +154,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    'Informacje osobiste',
+                    'Profil publiczny',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),

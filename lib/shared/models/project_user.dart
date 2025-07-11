@@ -1,18 +1,28 @@
+import 'package:equatable/equatable.dart';
+
 import 'package:bandspace_mobile/shared/models/user.dart';
 
 /// Model danych dla relacji projekt-użytkownik
-class ProjectUser {
+class ProjectUser extends Equatable {
   final int id;
   final int projectId;
   final int userId;
   final User user;
 
-  ProjectUser({
+  const ProjectUser({
     required this.id,
     required this.projectId,
     required this.userId,
     required this.user,
   });
+
+  @override
+  List<Object?> get props => [
+    id,
+    projectId,
+    userId,
+    user,
+  ];
 
   factory ProjectUser.fromJson(Map<String, dynamic> json) {
     return ProjectUser(
@@ -30,20 +40,5 @@ class ProjectUser {
       'user_id': userId,
       'user': user.toMap(),
     };
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is ProjectUser &&
-        other.id == id &&
-        other.projectId == projectId &&
-        other.userId == userId &&
-        other.user == user;
-  }
-
-  @override
-  int get hashCode {
-    return Object.hash(id, projectId, userId, user);
   }
 }

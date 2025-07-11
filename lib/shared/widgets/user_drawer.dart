@@ -8,6 +8,8 @@ import 'package:bandspace_mobile/features/account/screens/profile_screen.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
 import 'package:bandspace_mobile/features/auth/screens/auth_screen.dart';
+import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
+import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
 import 'package:bandspace_mobile/shared/widgets/user_avatar.dart';
 
@@ -60,41 +62,50 @@ class UserDrawer extends StatelessWidget {
       ), // Zwiększony padding
       child: BlocSelector<AuthCubit, AuthState, User?>(
         selector: (state) => state.user,
-        builder: (context, user) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (user != null)
-                UserAvatar(
-                  size: 64,
-                ),
-              const SizedBox(width: 16), // Zwiększony odstęp
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      user?.name ?? user?.email ?? 'Użytkownik',
-                      style: AppTextStyles.titleMedium.copyWith(
-                        color: AppColors.textPrimary,
-                      ), // Lekko mniejszy niż titleLarge
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
+        builder: (context, authUser) {
+          return BlocSelector<UserProfileCubit, UserProfileState, User?>(
+            selector: (state) =>
+                state is UserProfileLoadSuccess ? state.user : null,
+            builder: (context, profileUser) {
+              final user = profileUser ?? authUser;
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  UserAvatar(
+                    size: 64,
+                  ),
+                  const SizedBox(width: 16), // Zwiększony odstęp
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          user?.name ?? user?.email ?? 'Użytkownik',
+                          style: AppTextStyles.titleMedium.copyWith(
+                            color: AppColors.textPrimary,
+                          ), // Lekko mniejszy niż titleLarge
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                        if (user?.name != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            user?.email ?? 'Brak adresu email',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ],
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      user?.email ?? 'Brak adresu email',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                ],
+              );
+            },
           );
         },
       ),
@@ -111,7 +122,7 @@ class UserDrawer extends StatelessWidget {
           title: 'Profil',
           onTap: () {
             Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => ProfileScreen.create()),
+              MaterialPageRoute(builder: (context) => ProfileScreen()),
             );
           },
         ),

@@ -36,7 +36,6 @@ class UserProfileCubit extends Cubit<UserProfileState> {
 
   /// Odświeża profil użytkownika
   Future<void> refreshProfile() async {
-    emit(const UserProfileLoading());
     await userRepository.refreshProfile();
   }
 
@@ -56,7 +55,7 @@ class UserProfileCubit extends Cubit<UserProfileState> {
       emit(UserProfileEditNameSubmitting(user));
 
       try {
-        await userRepository.updateProfile(name: name);
+        await userRepository.updateProfile(name: name.isNotEmpty ? name : null);
 
         await refreshProfile();
       } catch (e) {

@@ -23,6 +23,8 @@ class User extends Equatable {
     };
   }
 
+  Map<String, dynamic> toJson() => toMap();
+
   @override
   List<Object?> get props => [id, email, name];
 }
