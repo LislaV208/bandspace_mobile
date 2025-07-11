@@ -17,7 +17,7 @@ class MemberListItem extends StatelessWidget {
     final subtitle = member.name?.isNotEmpty == true ? member.email : null;
 
     return ListTile(
-      leading: UserAvatar(user: member, size: 40, borderWidth: 1),
+      leading: UserAvatar(user: member, size: 40),
       title: MemberInfo(displayName: displayName, subtitle: subtitle),
     );
   }

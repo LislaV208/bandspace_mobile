@@ -29,12 +29,6 @@ class UserAvatar extends StatelessWidget {
   /// Rozmiar awatara w pikselach
   final double size;
 
-  /// Szerokość obramowania
-  final double borderWidth;
-
-  /// Kolor obramowania
-  final Color? borderColor;
-
   /// Kolor tła awatara (opcjonalny - będzie wygenerowany automatycznie)
   final Color? backgroundColor;
 
@@ -51,8 +45,6 @@ class UserAvatar extends StatelessWidget {
     this.name,
     this.email,
     this.size = 40,
-    this.borderWidth = 0,
-    this.borderColor,
     this.backgroundColor,
     this.textStyle,
     this.onTap,
@@ -66,22 +58,20 @@ class UserAvatar extends StatelessWidget {
         final effectiveUser = user ?? stateUser;
         final effectiveName = name ?? effectiveUser?.name;
         final effectiveEmail = email ?? effectiveUser?.email ?? '';
-        
+
         final Widget avatarWidget = Container(
           width: size,
           height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: borderWidth > 0
-                ? Border.all(
-                    color: borderColor ?? AppColors.primary,
-                    width: borderWidth,
-                  )
-                : null,
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(size / 2),
-            child: _buildAvatarContent(effectiveUser, effectiveName, effectiveEmail),
+            child: _buildAvatarContent(
+              effectiveUser,
+              effectiveName,
+              effectiveEmail,
+            ),
           ),
         );
 
@@ -101,14 +91,18 @@ class UserAvatar extends StatelessWidget {
       return Image.network(
         avatarUrl!,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _buildAvatarPlaceholder(user, name, email),
+        errorBuilder: (context, error, stackTrace) =>
+            _buildAvatarPlaceholder(user, name, email),
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
           return Center(
             child: CircularProgressIndicator(
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.primary,
+              ),
               value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                  ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
                   : null,
             ),
           );
@@ -124,13 +118,16 @@ class UserAvatar extends StatelessWidget {
   Widget _buildAvatarPlaceholder(User? user, String? name, String email) {
     return Container(
       decoration: BoxDecoration(
-        color: backgroundColor ?? (user != null ? _generateBackgroundColor(user) : AppColors.accent),
+        color:
+            backgroundColor ??
+            (user != null ? _generateBackgroundColor(user) : AppColors.accent),
         borderRadius: BorderRadius.circular(size / 2),
       ),
       child: Center(
         child: Text(
           _getInitials(user, name, email),
-          style: textStyle ??
+          style:
+              textStyle ??
               TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -145,7 +142,7 @@ class UserAvatar extends StatelessWidget {
   String _getInitials(User? user, String? name, String email) {
     // Użyj podaną nazwę lub nazwę z obiektu User
     final effectiveName = name ?? user?.name;
-    
+
     // Najpierw sprawdź czy name jest dostępne i nie jest puste
     if (effectiveName != null && effectiveName.trim().isNotEmpty) {
       final names = effectiveName.trim().split(' ');

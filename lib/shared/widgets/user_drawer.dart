@@ -67,7 +67,6 @@ class UserDrawer extends StatelessWidget {
               if (user != null)
                 UserAvatar(
                   size: 64,
-                  borderWidth: 1.5,
                 ),
               const SizedBox(width: 16), // Zwiększony odstęp
               Expanded(
