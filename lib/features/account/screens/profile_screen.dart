@@ -49,7 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Profil'),
       ),
       body: BlocListener<UserProfileCubit, UserProfileState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state is UserProfileLoadSuccess) {
             if (state is! UserProfileEditNameSubmitting) {
               _nameController.text = state.user.name ?? '';
@@ -69,7 +69,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
 
           if (state is UserProfileDeleteSuccess) {
-            context.read<AuthCubit>().logout();
+            await context.read<AuthCubit>().logout();
+            if (!context.mounted) return;
+            await context.read<AuthCubit>().clearUserSession();
+            if (!context.mounted) return;
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) => const AuthScreen()),
               (route) => false,
