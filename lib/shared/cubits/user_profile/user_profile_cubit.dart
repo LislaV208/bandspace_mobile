@@ -63,4 +63,20 @@ class UserProfileCubit extends Cubit<UserProfileState> {
       }
     }
   }
+
+  Future<void> deleteAccount() async {
+    if (state is UserProfileLoadSuccess) {
+      final currentState = state as UserProfileLoadSuccess;
+      final user = currentState.user;
+
+      emit(UserProfileDeleteLoading(user));
+
+      try {
+        await userRepository.deleteProfile();
+        emit(const UserProfileDeleteSuccess());
+      } catch (e) {
+        emit(UserProfileDeleteFailure(user, e.toString()));
+      }
+    }
+  }
 }

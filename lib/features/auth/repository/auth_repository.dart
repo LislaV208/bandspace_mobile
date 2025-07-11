@@ -243,7 +243,7 @@ class AuthRepository extends ApiRepository {
       );
 
       final response = await apiClient.patch(
-        '/api/users/me',
+        '/api/auth/change-password',
         data: request.toJson(),
       );
 

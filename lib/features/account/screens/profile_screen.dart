@@ -6,6 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/features/account/screens/change_password_screen.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
+import 'package:bandspace_mobile/features/auth/screens/auth_screen.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 
@@ -59,6 +60,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
 
           if (state is UserProfileEditNameFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            );
+          }
+
+          if (state is UserProfileDeleteSuccess) {
+            context.read<AuthCubit>().logout();
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const AuthScreen()),
+              (route) => false,
+            );
+          }
+
+          if (state is UserProfileDeleteFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
@@ -335,20 +353,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const Divider(height: 1),
 
                 // Delete Account
-                ListTile(
-                  leading: Icon(
-                    Icons.delete_forever,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  title: Text(
-                    'Usuń konto',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
-                  subtitle: const Text('Ta operacja jest nieodwracalna'),
-                  trailing: const Icon(Icons.chevron_right),
-                  // onTap: () => _showDeleteAccountDialog(context),
+                BlocBuilder<UserProfileCubit, UserProfileState>(
+                  builder: (context, state) {
+                    final isDeleting = state is UserProfileDeleteLoading;
+
+                    return ListTile(
+                      leading: Icon(
+                        Icons.delete_forever,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      title: Text(
+                        'Usuń konto',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                      subtitle: const Text('Ta operacja jest nieodwracalna'),
+                      trailing: isDeleting
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.chevron_right),
+                      onTap: isDeleting
+                          ? null
+                          : () => _showDeleteAccountDialog(context),
+                    );
+                  },
                 ),
               ],
             ),
@@ -365,6 +397,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Usuń konto'),
+        content: const Text(
+          'Czy na pewno chcesz usunąć swoje konto? Ta operacja jest nieodwracalna '
+          'i spowoduje trwałe usunięcie wszystkich twoich danych.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Anuluj'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.read<UserProfileCubit>().deleteAccount();
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Usuń konto'),
           ),
         ],
       ),

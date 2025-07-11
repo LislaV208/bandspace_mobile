@@ -51,3 +51,20 @@ class UserProfileEditNameFailure extends UserProfileLoadSuccess {
   @override
   List<Object?> get props => [user, message];
 }
+
+class UserProfileDeleteLoading extends UserProfileLoadSuccess {
+  const UserProfileDeleteLoading(super.user);
+}
+
+class UserProfileDeleteSuccess extends UserProfileState {
+  const UserProfileDeleteSuccess();
+}
+
+class UserProfileDeleteFailure extends UserProfileLoadSuccess {
+  final String message;
+
+  const UserProfileDeleteFailure(super.user, this.message);
+
+  @override
+  List<Object?> get props => [user, message];
+}

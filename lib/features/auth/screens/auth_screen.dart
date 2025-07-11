@@ -9,6 +9,7 @@ import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
 import 'package:bandspace_mobile/features/auth/screens/reset_password_screen.dart';
 import 'package:bandspace_mobile/features/dashboard/screens/dashboard_screen.dart';
+import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 
 class AuthScreen extends StatelessWidget {
   const AuthScreen({super.key});
@@ -45,6 +46,7 @@ class _AuthScreenContent extends StatelessWidget {
         // Obsługa nawigacji po udanym logowaniu/rejestracji
         if (state.user != null) {
           // Nawigacja do DashboardScreen
+          context.read<UserProfileCubit>().loadProfile();
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => DashboardScreen.create()),
           );
