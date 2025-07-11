@@ -64,8 +64,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: BlocListener<UserProfileCubit, UserProfileState>(
         listener: (context, state) {
-          if (state is UserProfileLoadSuccess) {
+          if (state is UserProfileLoadSuccess &&
+              state is! UserProfileEditNameSubmitting) {
             _nameController.text = state.user.name ?? '';
+          }
+
+          if (state is UserProfileEditNameFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            );
           }
         },
         child: BlocBuilder<UserProfileCubit, UserProfileState>(
@@ -179,10 +189,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       TextFormField(
                         controller: _nameController,
                         focusNode: _nameFocus,
-                        readOnly: true,
+                        readOnly: state is! UserProfileEditingName,
                         decoration: InputDecoration(
                           hintText: 'Uzupełnij swoją nazwę',
+                          suffixIcon: switch (state) {
+                            UserProfileEditingName() => IconButton(
+                              icon: const Icon(Icons.check),
+                              onPressed: () {
+                                context
+                                    .read<UserProfileCubit>()
+                                    .submitEditingName(
+                                      _nameController.text.trim(),
+                                    );
+                              },
+                            ),
+                            UserProfileEditNameSubmitting() => Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            _ => IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () {
+                                context
+                                    .read<UserProfileCubit>()
+                                    .startEditingName();
+                              },
+                            ),
+                          },
+                          focusedBorder: state is UserProfileEditingName
+                              ? Theme.of(
+                                  context,
+                                ).inputDecorationTheme.focusedBorder
+                              : Theme.of(
+                                  context,
+                                ).inputDecorationTheme.border,
                         ),
+                        onFieldSubmitted: (value) {
+                          context.read<UserProfileCubit>().submitEditingName(
+                            value.trim(),
+                          );
+                        },
+                        textInputAction: TextInputAction.done,
+                        onEditingComplete: () {
+                          context.read<UserProfileCubit>().submitEditingName(
+                            _nameController.text.trim(),
+                          );
+                        },
                       ),
                     ],
                   ),

@@ -34,3 +34,20 @@ class UserProfileLoadFailure extends UserProfileState {
   @override
   List<Object?> get props => [message];
 }
+
+class UserProfileEditingName extends UserProfileLoadSuccess {
+  const UserProfileEditingName(super.user);
+}
+
+class UserProfileEditNameSubmitting extends UserProfileLoadSuccess {
+  const UserProfileEditNameSubmitting(super.user);
+}
+
+class UserProfileEditNameFailure extends UserProfileLoadSuccess {
+  final String message;
+
+  const UserProfileEditNameFailure(super.user, this.message);
+
+  @override
+  List<Object?> get props => [user, message];
+}

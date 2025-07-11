@@ -41,4 +41,29 @@ class UserProfileCubit extends Cubit<UserProfileState> {
     emit(const UserProfileLoading());
     await userRepository.refreshProfile();
   }
+
+  void startEditingName() {
+    if (state is UserProfileLoadSuccess) {
+      final currentState = state as UserProfileLoadSuccess;
+      final user = currentState.user;
+      emit(UserProfileEditingName(user));
+    }
+  }
+
+  Future<void> submitEditingName(String name) async {
+    if (state is UserProfileEditingName) {
+      final currentState = state as UserProfileEditingName;
+      final user = currentState.user;
+
+      emit(UserProfileEditNameSubmitting(user));
+
+      try {
+        await userRepository.updateProfile(name: name);
+
+        await refreshProfile();
+      } catch (e) {
+        emit(UserProfileEditNameFailure(user, e.toString()));
+      }
+    }
+  }
 }
