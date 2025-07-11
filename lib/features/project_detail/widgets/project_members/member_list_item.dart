@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:bandspace_mobile/features/project_detail/widgets/project_members/member_info.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
-import 'package:bandspace_mobile/shared/widgets/member_avatar.dart';
+import 'package:bandspace_mobile/shared/widgets/user_avatar.dart';
 
 class MemberListItem extends StatelessWidget {
   final User member;

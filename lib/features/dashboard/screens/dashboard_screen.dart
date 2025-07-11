@@ -7,8 +7,8 @@ import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_cubi
 import 'package:bandspace_mobile/features/dashboard/views/projects_view.dart';
 import 'package:bandspace_mobile/features/dashboard/widgets/create_project_bottom_sheet.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
-import 'package:bandspace_mobile/shared/widgets/member_avatar.dart';
 import 'package:bandspace_mobile/shared/widgets/user_drawer.dart';
+import 'package:bandspace_mobile/shared/widgets/user_avatar.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});

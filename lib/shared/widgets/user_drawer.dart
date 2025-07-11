@@ -9,7 +9,7 @@ import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
 import 'package:bandspace_mobile/features/auth/screens/auth_screen.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
-import 'package:bandspace_mobile/shared/widgets/member_avatar.dart';
+import 'package:bandspace_mobile/shared/widgets/user_avatar.dart';
 
 ///
 /// Zawiera informacje o użytkowniku oraz opcje nawigacji.
