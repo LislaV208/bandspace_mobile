@@ -32,7 +32,7 @@ class _AuthScreenContent extends StatelessWidget {
 
   void _openResetPasswordModal(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const ResetPasswordScreen()),
+      MaterialPageRoute(builder: (context) => ResetPasswordScreen.create()),
     );
   }
 
