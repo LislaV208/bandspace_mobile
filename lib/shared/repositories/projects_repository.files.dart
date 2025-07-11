@@ -1,57 +1,40 @@
 part of 'projects_repository.dart';
 
 extension FilesManagement on ProjectsRepository {
-  // Pobiera listę plików dla danego utworu.
-  // GET /api/projects/{projectId}/songs/{songId}/files
-  Stream<List<SongFile>> getSongFiles(int projectId, int songId) {
-    return reactiveListStream<SongFile>(
-      methodName: 'getSongFiles',
-      parameters: {'projectId': projectId, 'songId': songId},
-      remoteCall: () async => _fetchSongFiles(projectId, songId),
-      fromJson: (json) => _songFileFromJson(json),
-    );
-  }
-
-  // Odświeża listę plików dla danego utworu.
-  Future<void> refreshSongFiles(int projectId, int songId) async {
-    await refreshList<SongFile>(
-      listMethodName: 'getSongFiles',
-      listParameters: {'projectId': projectId, 'songId': songId},
-      remoteCall: () async => _fetchSongFiles(projectId, songId),
-      fromJson: (json) => _songFileFromJson(json),
-    );
-  }
-
-  // Pobiera metadane pliku.
-  // GET /api/projects/{projectId}/songs/{songId}/files/{fileId}
-  Stream<SongFile> getSongFile(int projectId, int songId, int fileId) {
-    return reactiveStream<SongFile>(
+  // Pobiera plik dla danego utworu.
+  // GET /api/projects/{projectId}/songs/{songId}/file
+  Stream<SongFile?> getSongFile(int projectId, int songId) {
+    return reactiveStream<SongFile?>(
       methodName: 'getSongFile',
-      parameters: {'projectId': projectId, 'songId': songId, 'fileId': fileId},
-      remoteCall: () async {
-        final response = await apiClient.get(
-          '/api/projects/$projectId/songs/$songId/files/$fileId',
-        );
-        return _songFileFromJson(response.data);
-      },
+      parameters: {'projectId': projectId, 'songId': songId},
+      remoteCall: () async => _fetchSongFile(projectId, songId),
+      fromJson: (json) => _songFileFromJson(json),
+    );
+  }
+
+  // Odświeża plik dla danego utworu.
+  Future<void> refreshSongFile(int projectId, int songId) async {
+    await refreshSingle<SongFile?>(
+      methodName: 'getSongFile',
+      parameters: {'projectId': projectId, 'songId': songId},
+      remoteCall: () async => _fetchSongFile(projectId, songId),
       fromJson: (json) => _songFileFromJson(json),
     );
   }
 
   // Aktualizuje metadane pliku.
-  // PATCH /api/projects/{projectId}/songs/{songId}/files/{fileId}
+  // PATCH /api/projects/{projectId}/songs/{songId}/file
   Future<SongFile> updateSongFile(
     int projectId,
     int songId,
-    int fileId,
     UpdateSongFileData updateData,
   ) async {
     return updateSingle<SongFile>(
       methodName: 'getSongFile',
-      parameters: {'projectId': projectId, 'songId': songId, 'fileId': fileId},
+      parameters: {'projectId': projectId, 'songId': songId},
       updateCall: () async {
         final response = await apiClient.patch(
-          '/api/projects/$projectId/songs/$songId/files/$fileId',
+          '/api/projects/$projectId/songs/$songId/file',
           data: updateData.toJson(),
         );
 
@@ -62,42 +45,52 @@ extension FilesManagement on ProjectsRepository {
   }
 
   // Usuwa plik z utworu.
-  // DELETE /api/projects/{projectId}/songs/{songId}/files/{fileId}
-  Future<void> deleteSongFile(int projectId, int songId, int fileId) async {
-    await removeFromList<SongFile>(
-      listMethodName: 'getSongFiles',
-      listParameters: {'projectId': projectId, 'songId': songId},
-      deleteCall: () async {
+  // DELETE /api/projects/{projectId}/songs/{songId}/file
+  Future<void> deleteSongFile(int projectId, int songId) async {
+    await updateSingle<SongFile?>(
+      methodName: 'getSongFile',
+      parameters: {'projectId': projectId, 'songId': songId},
+      updateCall: () async {
         await apiClient.delete(
-          '/api/projects/$projectId/songs/$songId/files/$fileId',
+          '/api/projects/$projectId/songs/$songId/file',
         );
+        return null;
       },
-      fromJson: (json) => _songFileFromJson(json),
-      predicate: (file) => file.id == fileId,
+      fromJson: (json) => null,
     );
   }
 
   // Pobiera URL do pobrania pliku.
-  // GET /api/projects/{projectId}/songs/{songId}/files/{fileId}/download-url
+  // GET /api/projects/{projectId}/songs/{songId}/file/download-url
   Future<String> getSongFileDownloadUrl(
     int projectId,
     int songId,
-    int fileId,
   ) async {
     final response = await apiClient.get(
-      '/api/projects/$projectId/songs/$songId/files/$fileId/download-url',
+      '/api/projects/$projectId/songs/$songId/file/download-url',
     );
 
     return response.data['url'];
   }
 
-  Future<List<SongFile>> _fetchSongFiles(int projectId, int songId) async {
-    final response = await apiClient.get(
-      '/api/projects/$projectId/songs/$songId/files',
-    );
+  Future<SongFile?> _fetchSongFile(int projectId, int songId) async {
+    try {
+      print(
+        'Repository: Fetching song file for project: $projectId, song: $songId',
+      ); // Debug log
+      final response = await apiClient.get(
+        '/api/projects/$projectId/songs/$songId/file',
+      );
 
-    final List<dynamic> filesData = response.data;
-    return filesData.map((fileData) => _songFileFromJson(fileData)).toList();
+      print('Repository: Response status: ${response.statusCode}'); // Debug log
+      print('Repository: Response data: ${response.data}'); // Debug log
+
+      return _songFileFromJson(response.data);
+    } catch (e) {
+      print('Repository: Error fetching song file: $e'); // Debug log
+      // Jeśli plik nie istnieje, zwracamy null
+      return null;
+    }
   }
 
   SongFile _songFileFromJson(Map<String, dynamic> json) {

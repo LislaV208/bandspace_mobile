@@ -4,8 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_cubit.dart';
 import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_state.dart';
-import 'package:bandspace_mobile/features/song_detail/cubit/song_files/song_files_cubit.dart';
-import 'package:bandspace_mobile/features/song_detail/views/song_files_view.dart';
+import 'package:bandspace_mobile/features/song_detail/cubit/song_file/song_file_cubit.dart';
+import 'package:bandspace_mobile/features/song_detail/views/song_file_view.dart';
 import 'package:bandspace_mobile/features/song_detail/widgets/song_detail/manage_songs_button.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
@@ -57,12 +57,12 @@ class SongDetailScreen extends StatelessWidget {
             ],
           ),
           body: BlocProvider(
-            create: (context) => SongFilesCubit(
+            create: (context) => SongFileCubit(
               projectsRepository: context.read<ProjectsRepository>(),
               projectId: project.id,
               songId: state.song.id,
             ),
-            child: const SongFilesView(),
+            child: const SongFileView(),
           ),
         );
       },

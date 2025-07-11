@@ -29,6 +29,19 @@ class SongFile extends Equatable {
   ];
 
   factory SongFile.fromJson(Map<String, dynamic> json) {
+    // Nowy format API - pojedynczy plik
+    if (json.containsKey('filename') && !json.containsKey('file')) {
+      return SongFile(
+        id: json['id'],
+        songId: json['song_id'] ?? 0, // Może nie być w response
+        fileId: json['id'], // Używamy tego samego id
+        duration: json['duration'],
+        createdAt: DateTime.parse(json['created_at']),
+        fileInfo: AudioFileInfo.fromJson(json), // Przekazujemy cały json
+      );
+    }
+    
+    // Stary format API - zagnieżdżona struktura
     return SongFile(
       id: json['id'],
       songId: json['song_id'],
