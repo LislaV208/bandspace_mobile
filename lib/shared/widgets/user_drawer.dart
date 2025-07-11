@@ -119,7 +119,7 @@ class UserDrawer extends StatelessWidget {
       children: [
         _buildMenuItem(
           icon: LucideIcons.user,
-          title: 'Profil',
+          title: 'Konto',
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(builder: (context) => ProfileScreen()),
