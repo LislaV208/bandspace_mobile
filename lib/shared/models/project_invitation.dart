@@ -46,14 +46,14 @@ class ProjectInvitation extends Equatable {
       status: _statusFromString(json['status']),
       expiresAt: DateTime.parse(json['expires_at']),
       createdAt: DateTime.parse(json['created_at']),
-      updatedAt: json['updated_at'] != null 
-          ? DateTime.parse(json['updated_at']) 
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
           : null,
-      project: json['project'] != null 
-          ? Project.fromJson(json['project']) 
+      project: json['project'] != null
+          ? Project.fromJson(json['project'])
           : null,
-      invitedByUser: json['invitedBy'] != null 
-          ? User.fromJson(json['invitedBy']) 
+      invitedByUser: json['invitedBy'] != null
+          ? User.fromMap(json['invitedBy'])
           : null,
     );
   }
@@ -70,7 +70,7 @@ class ProjectInvitation extends Equatable {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
       'project': project?.toJson(),
-      'invitedBy': invitedByUser?.toJson(),
+      'invitedBy': invitedByUser?.toMap(),
     };
   }
 
@@ -136,16 +136,16 @@ class ProjectInvitation extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        projectId,
-        invitedBy,
-        email,
-        token,
-        status,
-        expiresAt,
-        createdAt,
-        updatedAt,
-        project,
-        invitedByUser,
-      ];
+    id,
+    projectId,
+    invitedBy,
+    email,
+    token,
+    status,
+    expiresAt,
+    createdAt,
+    updatedAt,
+    project,
+    invitedByUser,
+  ];
 }

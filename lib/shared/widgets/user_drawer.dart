@@ -112,29 +112,8 @@ class UserDrawer extends StatelessWidget {
           title: 'Profil',
           onTap: () {
             Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              MaterialPageRoute(builder: (context) => ProfileScreen.create()),
             );
-          },
-        ),
-        _buildMenuItem(
-          icon: LucideIcons.settings,
-          title: 'Ustawienia',
-          onTap: () {
-            // Implementacja nawigacji do ustawień
-          },
-        ),
-        _buildMenuItem(
-          icon: LucideIcons.messageCircleQuestionMark,
-          title: 'Pomoc',
-          onTap: () {
-            // Implementacja nawigacji do pomocy
-          },
-        ),
-        _buildMenuItem(
-          icon: LucideIcons.info,
-          title: 'O aplikacji',
-          onTap: () {
-            // Implementacja nawigacji do informacji o aplikacji
           },
         ),
       ],

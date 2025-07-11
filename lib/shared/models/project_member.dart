@@ -28,9 +28,9 @@ class ProjectMember extends Equatable {
           ? DateTime.parse(json['joined_at']).toLocal()
           : null,
       invitedBy: json['invited_by'] != null
-          ? User.fromJson(json['invited_by'])
+          ? User.fromMap(json['invited_by'])
           : null,
-      user: User.fromJson(json['user']),
+      user: User.fromMap(json['user']),
     );
   }
 
@@ -40,8 +40,8 @@ class ProjectMember extends Equatable {
       'project_id': projectId,
       'user_id': userId,
       'joined_at': joinedAt?.toIso8601String(),
-      'invited_by': invitedBy?.toJson(),
-      'user': user.toJson(),
+      'invited_by': invitedBy?.toMap(),
+      'user': user.toMap(),
     };
   }
 
