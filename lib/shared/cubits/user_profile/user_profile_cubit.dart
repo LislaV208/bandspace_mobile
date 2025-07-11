@@ -12,9 +12,7 @@ class UserProfileCubit extends Cubit<UserProfileState> {
 
   UserProfileCubit({
     required this.userRepository,
-  }) : super(const UserProfileInitial()) {
-    loadProfile();
-  }
+  }) : super(const UserProfileInitial());
 
   late StreamSubscription<User> _profileSubscription;
 

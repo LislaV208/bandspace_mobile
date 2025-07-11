@@ -11,6 +11,7 @@ import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
 import 'package:bandspace_mobile/features/auth/screens/auth_screen.dart';
 import 'package:bandspace_mobile/features/dashboard/screens/dashboard_screen.dart';
+import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 
 /// Ekran ładowania wyświetlany podczas sprawdzania stanu logowania użytkownika.
 class SplashScreen extends StatefulWidget {
@@ -34,6 +35,7 @@ class _SplashScreenState extends State<SplashScreen> {
         if (state.isAuthStateInitialized) {
           if (state.user != null) {
             // Niestandardowa animacja dla przejścia splash->dashboard
+            context.read<UserProfileCubit>().loadProfile();
             Navigator.of(context).pushReplacement(
               FadePageRoute(page: DashboardScreen.create()),
             );
