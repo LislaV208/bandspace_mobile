@@ -4,11 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/features/account/cubit/user_profile/user_profile_cubit.dart';
-import 'package:bandspace_mobile/features/account/cubit/user_profile/user_profile_state.dart';
-import 'package:bandspace_mobile/features/account/repository/user_repository.dart';
 import 'package:bandspace_mobile/features/account/screens/change_password_screen.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
+import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
+import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
+import 'package:bandspace_mobile/shared/repositories/user_repository.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/features/account/cubit/user_profile/user_profile_state.dart';
-import 'package:bandspace_mobile/features/account/repository/user_repository.dart';
+import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
+import 'package:bandspace_mobile/shared/repositories/user_repository.dart';
 
 /// Cubit zarządzający stanem profilu użytkownika
 class UserProfileCubit extends Cubit<UserProfileState> {
