@@ -13,7 +13,8 @@ class ChangePasswordScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ChangePasswordCubit(authRepository: context.read<AuthRepository>()),
+      create: (context) =>
+          ChangePasswordCubit(authRepository: context.read<AuthRepository>()),
       child: const _ChangePasswordContent(),
     );
   }
@@ -27,18 +28,17 @@ class _ChangePasswordContent extends StatelessWidget {
     final cubit = context.read<ChangePasswordCubit>();
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text('Zmiana hasła'),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
       ),
       body: BlocListener<ChangePasswordCubit, ChangePasswordState>(
         listener: (context, state) {
           if (state.successMessage != null) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.successMessage!), backgroundColor: Theme.of(context).colorScheme.primary),
+              SnackBar(
+                content: Text(state.successMessage!),
+                backgroundColor: Theme.of(context).colorScheme.primary,
+              ),
             );
             // Opcjonalnie można zamknąć ekran po udanej zmianie hasła
             Navigator.of(context).pop();
@@ -51,9 +51,12 @@ class _ChangePasswordContent extends StatelessWidget {
             children: [
               Text(
                 'Wprowadź swoje aktualne hasło oraz nowe hasło, które chcesz ustawić.',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style:
+                    Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
               ),
               const Gap(32),
 
@@ -73,14 +76,23 @@ class _ChangePasswordContent extends StatelessWidget {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error, size: 20),
+                              Icon(
+                                Icons.error_outline,
+                                color: Theme.of(context).colorScheme.error,
+                                size: 20,
+                              ),
                               const Gap(12),
                               Expanded(
                                 child: Text(
                                   state.errorMessage!,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.error),
+                                  style:
+                                      Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
+                                      ),
                                 ),
                               ),
                             ],
@@ -95,7 +107,8 @@ class _ChangePasswordContent extends StatelessWidget {
                         labelText: 'Aktualne hasło',
                         hintText: 'Wprowadź swoje aktualne hasło',
                         obscureText: !state.showCurrentPassword,
-                        onToggleVisibility: cubit.toggleCurrentPasswordVisibility,
+                        onToggleVisibility:
+                            cubit.toggleCurrentPasswordVisibility,
                         prefixIcon: Icons.lock_outline,
                       ),
                       const Gap(16),
@@ -121,26 +134,36 @@ class _ChangePasswordContent extends StatelessWidget {
                         labelText: 'Potwierdź nowe hasło',
                         hintText: 'Wprowadź ponownie nowe hasło',
                         obscureText: !state.showConfirmPassword,
-                        onToggleVisibility: cubit.toggleConfirmPasswordVisibility,
+                        onToggleVisibility:
+                            cubit.toggleConfirmPasswordVisibility,
                         prefixIcon: Icons.lock_person,
                       ),
                       const Gap(32),
 
                       // Change Password Button
                       FilledButton(
-                        onPressed: state.isLoading ? null : cubit.changePassword,
-                        style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
-                        child:
-                            state.isLoading
-                                ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                                : const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [Icon(Icons.check, size: 20), Gap(8), Text('Zmień hasło')],
+                        onPressed: state.isLoading
+                            ? null
+                            : cubit.changePassword,
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: state.isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
                                 ),
+                              )
+                            : const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.check, size: 20),
+                                  Gap(8),
+                                  Text('Zmień hasło'),
+                                ],
+                              ),
                       ),
                     ],
                   );
@@ -166,7 +189,12 @@ class _ChangePasswordContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(labelText, style: Theme.of(context).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600)),
+        Text(
+          labelText,
+          style: Theme.of(
+            context,
+          ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
         const Gap(8),
         TextFormField(
           controller: controller,
@@ -174,7 +202,10 @@ class _ChangePasswordContent extends StatelessWidget {
           obscureText: obscureText,
           decoration: InputDecoration(
             hintText: hintText,
-            prefixIcon: Icon(prefixIcon, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            prefixIcon: Icon(
+              prefixIcon,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             suffixIcon: IconButton(
               icon: Icon(
                 obscureText ? Icons.visibility : Icons.visibility_off,
@@ -184,15 +215,22 @@ class _ChangePasswordContent extends StatelessWidget {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.outline,
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.outline,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 2,
+              ),
             ),
             filled: true,
             fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
