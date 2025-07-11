@@ -337,7 +337,9 @@ abstract class CachedRepository extends ApiRepository {
       final freshResult = await RemoteCaching.instance.call<T>(
         cacheKey,
         remote: remoteCall,
-        fromJson: (json) => fromJson(json as Map<String, dynamic>),
+        fromJson: (json) {
+          return fromJson(json as Map<String, dynamic>);
+        },
         cacheDuration: duration,
         forceRefresh: true,
       );

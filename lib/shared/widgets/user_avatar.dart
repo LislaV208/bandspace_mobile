@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
+import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
+import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
 
 /// Uniwersalny komponent avatara użytkownika.
@@ -54,32 +56,38 @@ class UserAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocSelector<AuthCubit, AuthState, User?>(
       selector: (state) => state.user,
-      builder: (context, stateUser) {
-        final effectiveUser = user ?? stateUser;
-        final effectiveName = name ?? effectiveUser?.name;
-        final effectiveEmail = email ?? effectiveUser?.email ?? '';
+      builder: (context, authUser) {
+        return BlocSelector<UserProfileCubit, UserProfileState, User?>(
+          selector: (state) =>
+              state is UserProfileLoadSuccess ? state.user : null,
+          builder: (context, stateUser) {
+            final effectiveUser = user ?? stateUser ?? authUser;
+            final effectiveName = name ?? effectiveUser?.name;
+            final effectiveEmail = email ?? effectiveUser?.email ?? '';
 
-        final Widget avatarWidget = Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(size / 2),
-            child: _buildAvatarContent(
-              effectiveUser,
-              effectiveName,
-              effectiveEmail,
-            ),
-          ),
+            final Widget avatarWidget = Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(size / 2),
+                child: _buildAvatarContent(
+                  effectiveUser,
+                  effectiveName,
+                  effectiveEmail,
+                ),
+              ),
+            );
+
+            if (onTap != null) {
+              return GestureDetector(onTap: onTap, child: avatarWidget);
+            }
+
+            return avatarWidget;
+          },
         );
-
-        if (onTap != null) {
-          return GestureDetector(onTap: onTap, child: avatarWidget);
-        }
-
-        return avatarWidget;
       },
     );
   }
