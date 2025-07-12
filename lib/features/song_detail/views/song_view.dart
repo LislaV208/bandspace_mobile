@@ -22,26 +22,60 @@ class SongView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Spacer(),
-        _buildAlbumArt(context),
-        const SizedBox(height: 48),
-        _buildSongInfo(context, project, state.song),
-        const SizedBox(height: 64),
-        _buildProgressBar(context),
-        const SizedBox(height: 48),
-        _buildControls(context),
-        const Spacer(),
-      ],
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final availableHeight = constraints.maxHeight;
+
+          // Responsywne spacing bazowane na wysokości ekranu
+          final smallSpacing = availableHeight * 0.02; // 2% wysokości
+          final mediumSpacing = availableHeight * 0.04; // 4% wysokości
+          final largeSpacing = availableHeight * 0.06; // 6% wysokości
+
+          return Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: screenWidth * 0.05, // 5% szerokości jako margin
+              vertical: smallSpacing,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // Górny spacer - elastyczny ale z limitem
+                SizedBox(height: smallSpacing.clamp(8.0, 24.0)),
+
+                _buildAlbumArt(context, screenWidth),
+
+                SizedBox(height: mediumSpacing.clamp(16.0, 48.0)),
+
+                _buildSongInfo(context, project, state.song),
+
+                SizedBox(height: largeSpacing.clamp(24.0, 64.0)),
+
+                _buildProgressBar(context),
+
+                SizedBox(height: mediumSpacing.clamp(16.0, 48.0)),
+
+                _buildControls(context),
+
+                // Dolny spacer - elastyczny ale z limitem
+                SizedBox(height: smallSpacing.clamp(8.0, 24.0)),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildAlbumArt(BuildContext context) {
+  Widget _buildAlbumArt(BuildContext context, double screenWidth) {
+    // Responsywny rozmiar - maksymalnie 70% szerokości ekranu, ale nie więcej niż 320px
+    final size = (screenWidth * 0.7).clamp(200.0, 320.0);
+
     return Container(
-      width: 280,
-      height: 280,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         gradient: LinearGradient(
