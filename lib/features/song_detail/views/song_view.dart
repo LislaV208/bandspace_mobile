@@ -24,53 +24,60 @@ class SongView extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
-    return PopScope(
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          context.read<AudioPlayerCubit>().stop();
-        }
+    return BlocListener<SongDetailCubit, SongDetailState>(
+      listener: (context, state) {
+        context.read<AudioPlayerCubit>().playTrackAt(
+          state.songs.indexOf(state.currentSong),
+        );
       },
-      child: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final availableHeight = constraints.maxHeight;
+      child: PopScope(
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) {
+            context.read<AudioPlayerCubit>().stop();
+          }
+        },
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final availableHeight = constraints.maxHeight;
 
-            // Responsywne spacing bazowane na wysokości ekranu
-            final smallSpacing = availableHeight * 0.02; // 2% wysokości
-            final mediumSpacing = availableHeight * 0.04; // 4% wysokości
-            final largeSpacing = availableHeight * 0.06; // 6% wysokości
+              // Responsywne spacing bazowane na wysokości ekranu
+              final smallSpacing = availableHeight * 0.02; // 2% wysokości
+              final mediumSpacing = availableHeight * 0.04; // 4% wysokości
+              final largeSpacing = availableHeight * 0.06; // 6% wysokości
 
-            return Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: screenWidth * 0.05, // 5% szerokości jako margin
-                vertical: smallSpacing,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // Górny spacer - elastyczny ale z limitem
-                  SizedBox(height: smallSpacing.clamp(8.0, 24.0)),
+              return Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: screenWidth * 0.05, // 5% szerokości jako margin
+                  vertical: smallSpacing,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Górny spacer - elastyczny ale z limitem
+                    SizedBox(height: smallSpacing.clamp(8.0, 24.0)),
 
-                  _buildAlbumArt(context, screenWidth),
+                    _buildAlbumArt(context, screenWidth),
 
-                  SizedBox(height: mediumSpacing.clamp(16.0, 48.0)),
+                    SizedBox(height: mediumSpacing.clamp(16.0, 48.0)),
 
-                  _buildSongInfo(context, project),
+                    _buildSongInfo(context, project),
 
-                  SizedBox(height: largeSpacing.clamp(24.0, 64.0)),
+                    SizedBox(height: largeSpacing.clamp(24.0, 64.0)),
 
-                  _buildProgressBar(context),
+                    _buildProgressBar(context),
 
-                  SizedBox(height: mediumSpacing.clamp(16.0, 48.0)),
+                    SizedBox(height: mediumSpacing.clamp(16.0, 48.0)),
 
-                  _buildControls(context),
+                    _buildControls(context),
 
-                  // Dolny spacer - elastyczny ale z limitem
-                  SizedBox(height: smallSpacing.clamp(8.0, 24.0)),
-                ],
-              ),
-            );
-          },
+                    // Dolny spacer - elastyczny ale z limitem
+                    SizedBox(height: smallSpacing.clamp(8.0, 24.0)),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -211,7 +218,7 @@ class SongView extends StatelessWidget {
             children: [
               IconButton(
                 onPressed: () {
-                  // TODO: Previous track
+                  context.read<SongDetailCubit>().previousSong();
                 },
                 icon: const Icon(LucideIcons.skipBack),
                 iconSize: 32,
@@ -261,7 +268,7 @@ class SongView extends StatelessWidget {
               ),
               IconButton(
                 onPressed: () {
-                  // TODO: Next track
+                  context.read<SongDetailCubit>().nextSong();
                 },
                 icon: const Icon(LucideIcons.skipForward),
                 iconSize: 32,
