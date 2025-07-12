@@ -11,7 +11,6 @@ class Song extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
   final File file;
-  final String downloadUrl;
   final Duration? duration;
   final int? bpm;
   final String? lyrics;
@@ -23,7 +22,6 @@ class Song extends Equatable {
     required this.createdAt,
     required this.updatedAt,
     required this.file,
-    required this.downloadUrl,
     this.duration,
     this.bpm,
     this.lyrics,
@@ -37,7 +35,6 @@ class Song extends Equatable {
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
       file: File.fromJson(json['file']),
-      downloadUrl: json['downloadUrl'],
       duration: json['duration'] != null
           ? Duration(milliseconds: json['duration'])
           : null,
@@ -54,7 +51,6 @@ class Song extends Equatable {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'file': file.toJson(),
-      'downloadUrl': downloadUrl,
       'duration': duration?.inMilliseconds,
       'bpm': bpm,
       'lyrics': lyrics,
@@ -69,7 +65,6 @@ class Song extends Equatable {
     createdAt,
     updatedAt,
     file,
-    downloadUrl,
     duration,
     bpm,
     lyrics,

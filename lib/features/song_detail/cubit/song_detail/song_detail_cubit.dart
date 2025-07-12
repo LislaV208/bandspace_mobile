@@ -15,19 +15,64 @@ class SongDetailCubit extends Cubit<SongDetailState> {
     required this.songId,
     required List<Song> songs,
     required Song currentSong,
-  }) : super(SongDetailState(songs, currentSong));
+  }) : super(SongDetailInitial(songs, currentSong)) {
+    _downloadUrls();
+  }
 
   void nextSong() {
-    final currentIndex = state.songs.indexOf(state.currentSong);
-    final nextIndex = (currentIndex + 1) % state.songs.length;
-    final nextSong = state.songs[nextIndex];
-    emit(SongDetailState(state.songs, nextSong));
+    final currentState = state as SongDetailReady;
+    final currentIndex = currentState.songs.indexOf(currentState.currentSong);
+    final nextIndex = (currentIndex + 1) % currentState.songs.length;
+    final nextSong = currentState.songs[nextIndex];
+
+    emit(
+      SongDetailReady(
+        currentState.songs,
+        nextSong,
+      ),
+    );
   }
 
   void previousSong() {
-    final currentIndex = state.songs.indexOf(state.currentSong);
-    final previousIndex = (currentIndex - 1) % state.songs.length;
-    final previousSong = state.songs[previousIndex];
-    emit(SongDetailState(state.songs, previousSong));
+    final currentState = state as SongDetailReady;
+    final currentIndex = currentState.songs.indexOf(currentState.currentSong);
+    final previousIndex = (currentIndex - 1) % currentState.songs.length;
+    final previousSong = currentState.songs[previousIndex];
+
+    emit(
+      SongDetailReady(
+        currentState.songs,
+        previousSong,
+      ),
+    );
+  }
+
+  void setReady() {
+    emit(SongDetailReady(state.songs, state.currentSong));
+  }
+
+  Future<void> _downloadUrls() async {
+    try {
+      emit(SongDetailLoadUrls(state.songs, state.currentSong));
+      final downloadUrls = await projectsRepository.getPlaylistDownloadUrls(
+        projectId,
+      );
+
+      emit(
+        SongDetailLoadUrlsSuccess(
+          state.songs,
+          state.currentSong,
+          downloadUrls,
+        ),
+      );
+    } catch (e) {
+      emit(
+        SongDetailLoadUrlsFailure(
+          state.songs,
+          state.currentSong,
+          e.toString(),
+        ),
+      );
+    }
   }
 }

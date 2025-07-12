@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bandspace_mobile/shared/models/song_download_url.dart';
 import 'package:dio/dio.dart';
 
 import 'package:bandspace_mobile/core/api/cached_repository.dart';

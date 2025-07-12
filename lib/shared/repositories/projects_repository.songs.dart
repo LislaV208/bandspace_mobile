@@ -83,13 +83,21 @@ extension SongsManagement on ProjectsRepository {
     );
   }
 
-  Future<String> getSongDownloadUrl(int projectId, int songId) async {
+  Future<List<SongDownloadUrl>> getPlaylistDownloadUrls(int projectId) async {
     final response = await apiClient.get(
-      '/api/projects/$projectId/songs/$songId/download-url',
+      '/api/projects/$projectId/songs/download-urls',
     );
 
-    return response.data['url'];
+    final List<dynamic> data = response.data;
+    return data.map((json) => SongDownloadUrl.fromJson(json)).toList();
   }
+  // Future<String> getSongDownloadUrl(int projectId, int songId) async {
+  //   final response = await apiClient.get(
+  //     '/api/projects/$projectId/songs/$songId/download-url',
+  //   );
+
+  //   return response.data['url'];
+  // }
 
   // Aktualizuje utwór w projekcie.
   // PUT /api/projects/{projectId}/songs/{songId}

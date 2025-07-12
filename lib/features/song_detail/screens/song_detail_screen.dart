@@ -28,11 +28,7 @@ class SongDetailScreen extends StatelessWidget {
           ),
         ),
         BlocProvider(
-          create: (context) => AudioPlayerCubit()
-            ..loadPlaylist(
-              songs.map((song) => song.downloadUrl).toList(),
-              initialIndex: songs.indexOf(selectedSong),
-            ),
+          create: (context) => AudioPlayerCubit(),
         ),
       ],
       child: SongDetailScreen(
