@@ -117,8 +117,14 @@ class SongView extends StatelessWidget {
                 ),
                 child: Slider(
                   value: progress,
+                  onChangeStart: (value) {
+                    context.read<AudioPlayerCubit>().startSeeking();
+                  },
                   onChanged: (value) {
-                    context.read<AudioPlayerCubit>().seek(value);
+                    context.read<AudioPlayerCubit>().updateSeekPosition(value);
+                  },
+                  onChangeEnd: (value) {
+                    context.read<AudioPlayerCubit>().endSeeking();
                   },
                 ),
               ),
@@ -130,7 +136,7 @@ class SongView extends StatelessWidget {
                   children: [
                     Text(
                       DurationFormatUtils.formatDuration(
-                        audioState.currentPosition,
+                        audioState.seekPosition ?? audioState.currentPosition,
                       ),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),

@@ -92,8 +92,8 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
       // Aktualizuj pozycję tylko, gdy odtwarzamy, pauzujemy lub jesteśmy gotowi, ale nie podczas przesuwania
       if (!state.isSeeking &&
           (state.status == PlayerStatus.playing ||
-           state.status == PlayerStatus.paused ||
-           state.status == PlayerStatus.ready)) {
+              state.status == PlayerStatus.paused ||
+              state.status == PlayerStatus.ready)) {
         emit(state.copyWith(currentPosition: position));
       }
     });
@@ -186,38 +186,44 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
 
   /// Rozpoczyna przesuwanie suwaka - nie wykonuje jeszcze seek()
   void startSeeking() {
-    emit(state.copyWith(
-      isSeeking: true,
-      seekPosition: Value(state.currentPosition),
-    ));
+    emit(
+      state.copyWith(
+        isSeeking: true,
+        seekPosition: Value(state.currentPosition),
+      ),
+    );
   }
 
   /// Aktualizuje pozycję suwaka podczas przesuwania
   void updateSeekPosition(double value) {
     if (!state.isSeeking) return;
-    
+
     final newPosition = Duration(
       milliseconds: (value * state.totalDuration.inMilliseconds).round(),
     );
-    
-    emit(state.copyWith(
-      seekPosition: Value(newPosition),
-    ));
+
+    emit(
+      state.copyWith(
+        seekPosition: Value(newPosition),
+      ),
+    );
   }
 
   /// Kończy przesuwanie i wykonuje faktyczny seek()
   Future<void> endSeeking() async {
     if (!state.isSeeking || state.seekPosition == null) return;
-    
+
     final targetPosition = state.seekPosition!;
-    
+
     // Zakończ tryb seeking
-    emit(state.copyWith(
-      isSeeking: false,
-      seekPosition: Value(null),
-      currentPosition: targetPosition,
-    ));
-    
+    emit(
+      state.copyWith(
+        isSeeking: false,
+        seekPosition: Value(null),
+        currentPosition: targetPosition,
+      ),
+    );
+
     // Wykonaj faktyczny seek
     await _audioPlayer.seek(targetPosition);
   }
