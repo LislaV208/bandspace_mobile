@@ -49,19 +49,6 @@ class SongDetailScreen extends StatelessWidget {
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(
-            // title: ListTile(
-            //   contentPadding: EdgeInsets.zero,
-            //   title: Text(
-            //     state.song.title,
-            //     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            //       color: Theme.of(context).colorScheme.onSurface,
-            //       fontWeight: FontWeight.w600,
-            //     ),
-            //   ),
-            //   subtitle: Text(
-            //     project.name,
-            //   ),
-            // ),
             actions: const [
               Padding(
                 padding: EdgeInsets.only(right: 8.0),
@@ -69,6 +56,7 @@ class SongDetailScreen extends StatelessWidget {
               ),
             ],
           ),
+          resizeToAvoidBottomInset: false,
           body: switch (state) {
             SongDetailInitial() => const SizedBox(),
             SongDetailLoading() => const Center(

@@ -46,6 +46,7 @@ class ProjectDetailScreen extends StatelessWidget {
           ),
         ],
       ),
+      resizeToAvoidBottomInset: false,
       body: BlocProvider(
         create: (context) => ProjectSongsCubit(
           projectsRepository: context.read<ProjectsRepository>(),
