@@ -3,33 +3,36 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_cubit.dart';
-import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_state.dart';
 import 'package:bandspace_mobile/features/song_detail/views/song_view.dart';
 import 'package:bandspace_mobile/features/song_detail/widgets/song_detail/manage_songs_button.dart';
 import 'package:bandspace_mobile/shared/cubits/audio_player/audio_player_cubit.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
-import 'package:bandspace_mobile/shared/widgets/load_failure_view.dart';
 
 class SongDetailScreen extends StatelessWidget {
   final Project project;
 
   const SongDetailScreen({super.key, required this.project});
 
-  static Widget create(Project project, Song song) {
+  static Widget create(Project project, List<Song> songs, Song selectedSong) {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
           create: (context) => SongDetailCubit(
             projectsRepository: context.read<ProjectsRepository>(),
             projectId: project.id,
-            songId: song.id,
-            initialSong: song,
+            songId: selectedSong.id,
+            songs: songs,
+            currentSong: selectedSong,
           ),
         ),
         BlocProvider(
-          create: (context) => AudioPlayerCubit(),
+          create: (context) => AudioPlayerCubit()
+            ..loadPlaylist(
+              songs.map((song) => song.downloadUrl).toList(),
+              initialIndex: songs.indexOf(selectedSong),
+            ),
         ),
       ],
       child: SongDetailScreen(
@@ -40,43 +43,19 @@ class SongDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<SongDetailCubit, SongDetailState>(
-      listener: (context, state) {
-        if (state is SongFileUrlLoadSuccess) {
-          context.read<AudioPlayerCubit>().loadUrl(state.url);
-        }
-      },
-      builder: (context, state) {
-        return Scaffold(
-          appBar: AppBar(
-            actions: const [
-              Padding(
-                padding: EdgeInsets.only(right: 8.0),
-                child: ManageSongsButton(),
-              ),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 8.0),
+            child: ManageSongsButton(),
           ),
-          resizeToAvoidBottomInset: false,
-          body: switch (state) {
-            SongDetailInitial() => const SizedBox(),
-            SongDetailLoading() => const Center(
-              child: CircularProgressIndicator(),
-            ),
-            SongDetailLoadFailure() => LoadFailureView(
-              title: 'Wystąpił błąd podczas ładowania utworu',
-              errorMessage: state.message,
-              onRetry: () => context.read<SongDetailCubit>().refreshSongDetail(
-                showLoading: true,
-              ),
-            ),
-            SongDetailLoadSuccess() => SongView(
-              project: project,
-              state: state,
-            ),
-            _ => const SizedBox(),
-          },
-        );
-      },
+        ],
+      ),
+      resizeToAvoidBottomInset: false,
+      body: SongView(
+        project: project,
+      ),
     );
   }
 }

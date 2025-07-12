@@ -11,7 +11,7 @@ class Song extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
   final File file;
-  final String? downloadUrl;
+  final String downloadUrl;
   final Duration? duration;
   final int? bpm;
   final String? lyrics;
@@ -23,7 +23,7 @@ class Song extends Equatable {
     required this.createdAt,
     required this.updatedAt,
     required this.file,
-    this.downloadUrl,
+    required this.downloadUrl,
     this.duration,
     this.bpm,
     this.lyrics,
@@ -32,7 +32,7 @@ class Song extends Equatable {
   factory Song.fromJson(Map<String, dynamic> json) {
     return Song(
       id: json['id'],
-      title: json['title'] ?? '',
+      title: json['title'],
       createdBy: User.fromMap(json['createdBy']),
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),

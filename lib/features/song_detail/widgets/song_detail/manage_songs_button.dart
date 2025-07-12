@@ -51,19 +51,16 @@ class ManageSongsButton extends StatelessWidget {
           title: 'Edytuj utwór',
           onTap: () async {
             final cubit = context.read<SongDetailCubit>();
-            cubit.pauseUpdates();
             Navigator.pop(context);
 
             final edited = await EditSongDialog.show(
               context: context,
-              song: state.song,
+              song: state.currentSong,
               projectId: cubit.projectId,
             );
 
-            cubit.resumeUpdates();
-
             if (edited == true) {
-              cubit.refreshSongDetail();
+              // TODO: Implement refresh song detail
             }
           },
         ),
@@ -83,7 +80,7 @@ class ManageSongsButton extends StatelessWidget {
 
             DeleteSongDialog.show(
               context: context,
-              song: state.song,
+              song: state.currentSong,
               projectId: cubit.projectId,
             );
           },

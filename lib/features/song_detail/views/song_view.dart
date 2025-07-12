@@ -3,21 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_cubit.dart';
 import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_state.dart';
 import 'package:bandspace_mobile/shared/cubits/audio_player/audio_player_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/audio_player/audio_player_state.dart';
+import 'package:bandspace_mobile/shared/cubits/audio_player/player_status.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
 import 'package:bandspace_mobile/shared/utils/duration_format_utils.dart';
 
 class SongView extends StatelessWidget {
   final Project project;
-  final SongDetailLoadSuccess state;
 
   const SongView({
     super.key,
     required this.project,
-    required this.state,
   });
 
   @override
@@ -55,7 +55,7 @@ class SongView extends StatelessWidget {
 
                   SizedBox(height: mediumSpacing.clamp(16.0, 48.0)),
 
-                  _buildSongInfo(context, project, state.song),
+                  _buildSongInfo(context, project),
 
                   SizedBox(height: largeSpacing.clamp(24.0, 64.0)),
 
@@ -109,19 +109,24 @@ class SongView extends StatelessWidget {
     );
   }
 
-  Widget _buildSongInfo(BuildContext context, Project project, Song song) {
+  Widget _buildSongInfo(BuildContext context, Project project) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32.0),
       child: Column(
         children: [
-          Text(
-            song.title,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          BlocSelector<SongDetailCubit, SongDetailState, Song>(
+            selector: (state) => state.currentSong,
+            builder: (context, song) {
+              return Text(
+                song.title,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              );
+            },
           ),
           const SizedBox(height: 8),
           Text(

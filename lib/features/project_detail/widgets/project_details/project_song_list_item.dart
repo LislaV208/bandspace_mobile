@@ -11,10 +11,12 @@ import 'package:bandspace_mobile/shared/utils/date_format_utils.dart';
 
 /// Komponent elementu listy utworów
 class ProjectSongListItem extends StatelessWidget {
+  final List<Song> songsList;
   final Song song;
 
   const ProjectSongListItem({
     super.key,
+    required this.songsList,
     required this.song,
   });
 
@@ -31,6 +33,7 @@ class ProjectSongListItem extends StatelessWidget {
           MaterialPageRoute(
             builder: (_) => SongDetailScreen.create(
               context.read<ProjectDetailCubit>().state.project,
+              songsList,
               song,
             ),
           ),

@@ -5,37 +5,42 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio/just_audio.dart';
 
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
+import 'package:bandspace_mobile/shared/cubits/audio_player/player_status.dart';
 
 import 'audio_player_state.dart';
 
-/// Cubit zarządzający stanem odtwarzacza audio.
-/// Jest to generyczny, reużywalny komponent, niezależny od logiki biznesowej aplikacji.
+/// Cubit zarządzający stanem odtwarzacza audio z obsługą playlist.
+/// Niezależna implementacja z własnym AudioPlayer i pełną funkcjonalnością playlist.
 class AudioPlayerCubit extends Cubit<AudioPlayerState> {
   final AudioPlayer _audioPlayer;
-  
-  /// Dostęp do AudioPlayer dla klas dziedziczących
-  AudioPlayer get audioPlayer => _audioPlayer;
 
+  // Subskrypcje dla podstawowych funkcji audio (skopiowane z AudioPlayerCubit)
   StreamSubscription? _playerStateSubscription;
   StreamSubscription? _durationSubscription;
   StreamSubscription? _positionSubscription;
   StreamSubscription? _bufferedPositionSubscription;
+
+  // Subskrypcje dla funkcji playlist
+  StreamSubscription? _currentIndexSubscription;
+  StreamSubscription? _sequenceStateSubscription;
 
   /// Konstruktor nie przyjmuje żadnych zależności biznesowych.
   AudioPlayerCubit()
     : _audioPlayer = AudioPlayer(),
       super(const AudioPlayerState()) {
     _listenToPlayerEvents();
+    _listenToPlaylistEvents();
   }
 
   /// Prywatna metoda do nasłuchiwania na wszystkie zdarzenia z paczki `just_audio`.
+  /// Skopiowane z AudioPlayerCubit i dostosowane do PlaylistAudioPlayerState.
   void _listenToPlayerEvents() {
     // Nasłuchiwanie na zmiany stanu (playing, paused, completed)
     _playerStateSubscription = _audioPlayer.playerStateStream.listen((
       playerState,
     ) {
       log(
-        'AudioPlayerCubit: Player state changed: ${playerState.processingState}',
+        'PlaylistAudioPlayerCubit: Player state changed: ${playerState.processingState}',
       );
 
       switch (playerState.processingState) {
@@ -67,12 +72,17 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
           );
           break;
         case ProcessingState.completed:
-          emit(
-            state.copyWith(
-              status: PlayerStatus.completed,
-              currentPosition: Duration.zero,
-            ),
-          );
+          // Automatyczne przechodzenie do następnego utworu po zakończeniu (tylko w trybie playlist)
+          if (state.hasPlaylist && state.canPlayNext) {
+            _handleTrackCompleted();
+          } else {
+            emit(
+              state.copyWith(
+                status: PlayerStatus.completed,
+                currentPosition: Duration.zero,
+              ),
+            );
+          }
           break;
       }
     });
@@ -108,11 +118,54 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     });
   }
 
+  /// Nasłuchuje na zdarzenia specyficzne dla playlist
+  void _listenToPlaylistEvents() {
+    // Nasłuchiwanie na zmiany indeksu w playlist
+    _currentIndexSubscription = _audioPlayer.currentIndexStream.listen((index) {
+      if (state.hasPlaylist) {
+        emit(state.copyWith(currentIndex: Value(index)));
+
+        // Aktualizuj currentUrl na podstawie nowego indeksu
+        if (index != null && index < state.playlist.length) {
+          emit(state.copyWith(currentUrl: Value(state.playlist[index])));
+        }
+      }
+    });
+
+    // Nasłuchiwanie na zmiany sekwencji (playlist)
+    _sequenceStateSubscription = _audioPlayer.sequenceStateStream.listen((
+      sequenceState,
+    ) {
+      emit(
+        state.copyWith(
+          isShuffleEnabled: sequenceState.shuffleModeEnabled,
+          loopMode: _audioPlayer.loopMode,
+        ),
+      );
+    });
+  }
+
+  /// Obsługuje zakończenie utworu w trybie playlist
+  void _handleTrackCompleted() async {
+    switch (state.loopMode) {
+      case LoopMode.one:
+        // Odtwórz ten sam utwór ponownie
+        await _audioPlayer.seek(Duration.zero);
+        await _audioPlayer.play();
+        break;
+      default:
+        // Przejdź do następnego utworu
+        await playNext();
+        break;
+    }
+  }
+
   // =======================================================
-  // ===          PUBLICZNE API CUBITA                   ===
+  // ===          PUBLICZNE API POJEDYNCZYCH PLIKÓW      ===
   // =======================================================
 
   /// Ładuje nowy plik audio z podanego URL i opcjonalnie rozpoczyna odtwarzanie.
+  /// Skopiowane z AudioPlayerCubit z dodanym czyszczeniem playlist.
   Future<void> loadUrl(String url, {bool playWhenReady = false}) async {
     // Jeśli próbujemy załadować ten sam plik, który jest już załadowany,
     // po prostu wznawiamy odtwarzanie.
@@ -123,15 +176,22 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
       return;
     }
 
+    // Wyczyść playlist gdy ładujemy pojedynczy plik
     emit(
       state.copyWith(
         status: PlayerStatus.loading,
         currentUrl: Value(url),
         currentPosition: Duration.zero,
         totalDuration: Duration.zero,
-        errorMessage: Value(null), // Wyczyść poprzednie błędy
+        errorMessage: Value(null),
         isReady: false,
         bufferedPosition: Duration.zero,
+        // Wyczyść playlist
+        playlist: [],
+        currentIndex: Value(null),
+        hasPlaylist: false,
+        isShuffleEnabled: false,
+        loopMode: LoopMode.off,
       ),
     );
 
@@ -153,6 +213,7 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
   }
 
   /// Przełącza między odtwarzaniem a pauzą.
+  /// Skopiowane z AudioPlayerCubit.
   Future<void> togglePlayPause() async {
     switch (state.status) {
       case PlayerStatus.playing:
@@ -246,7 +307,180 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     await _audioPlayer.stop();
     emit(
       const AudioPlayerState(),
-    ); // Resetuj stan do początkowego (isReady: false, bufferedPosition: zero)
+    ); // Resetuj stan do początkowego
+  }
+
+  // =======================================================
+  // ===          PUBLICZNE API PLAYLIST                 ===
+  // =======================================================
+
+  /// Ładuje playlist z podanych URL-i
+  Future<void> loadPlaylist(
+    List<String> urls, {
+    int? initialIndex,
+    bool playWhenReady = false,
+  }) async {
+    if (urls.isEmpty) {
+      await clearPlaylist();
+      return;
+    }
+
+    try {
+      // Tworzenie AudioSource dla każdego URL
+      final audioSources = urls
+          .map((url) => AudioSource.uri(Uri.parse(url)))
+          .toList();
+
+      // Aktualizuj stan z nową playlist
+      emit(
+        state.copyWith(
+          status: PlayerStatus.loading,
+          playlist: urls,
+          currentIndex: Value(initialIndex ?? 0),
+          hasPlaylist: true,
+          errorMessage: Value(null),
+          isReady: false,
+        ),
+      );
+
+      // Załaduj playlist w just_audio
+      await _audioPlayer.setAudioSources(
+        audioSources,
+        initialIndex: initialIndex ?? 0,
+        initialPosition: Duration.zero,
+      );
+
+      if (playWhenReady) {
+        await _audioPlayer.play();
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: PlayerStatus.error,
+          errorMessage: Value(e.toString()),
+          isReady: false,
+        ),
+      );
+    }
+  }
+
+  /// Przechodzi do następnego utworu w playlist
+  Future<void> playNext() async {
+    if (!state.hasPlaylist || !state.canPlayNext) return;
+
+    try {
+      await _audioPlayer.seekToNext();
+    } catch (e) {
+      log('Error playing next track: $e');
+    }
+  }
+
+  /// Przechodzi do poprzedniego utworu w playlist
+  Future<void> playPrevious() async {
+    if (!state.hasPlaylist || !state.canPlayPrevious) return;
+
+    try {
+      await _audioPlayer.seekToPrevious();
+    } catch (e) {
+      log('Error playing previous track: $e');
+    }
+  }
+
+  /// Przechodzi do konkretnego utworu w playlist
+  Future<void> playTrackAt(int index) async {
+    if (!state.hasPlaylist || index < 0 || index >= state.playlist.length) {
+      return;
+    }
+
+    try {
+      await _audioPlayer.seek(Duration.zero, index: index);
+    } catch (e) {
+      log('Error playing track at index $index: $e');
+    }
+  }
+
+  /// Włącza/wyłącza tryb shuffle
+  Future<void> setShuffleMode(bool enabled) async {
+    try {
+      await _audioPlayer.setShuffleModeEnabled(enabled);
+      emit(state.copyWith(isShuffleEnabled: enabled));
+    } catch (e) {
+      log('Error setting shuffle mode: $e');
+    }
+  }
+
+  /// Ustawia tryb zapętlenia
+  Future<void> setLoopMode(LoopMode loopMode) async {
+    try {
+      await _audioPlayer.setLoopMode(loopMode);
+      emit(state.copyWith(loopMode: loopMode));
+    } catch (e) {
+      log('Error setting loop mode: $e');
+    }
+  }
+
+  /// Dodaje nowy utwór do playlist
+  Future<void> addToPlaylist(String url, {int? atIndex}) async {
+    if (!state.hasPlaylist) return;
+
+    try {
+      final audioSource = AudioSource.uri(Uri.parse(url));
+
+      if (atIndex != null) {
+        await _audioPlayer.insertAudioSource(atIndex, audioSource);
+      } else {
+        await _audioPlayer.addAudioSource(audioSource);
+      }
+
+      // Aktualizuj lokalną listę URL-i
+      final newPlaylist = List<String>.from(state.playlist);
+      if (atIndex != null && atIndex >= 0 && atIndex <= newPlaylist.length) {
+        newPlaylist.insert(atIndex, url);
+      } else {
+        newPlaylist.add(url);
+      }
+
+      emit(state.copyWith(playlist: newPlaylist));
+    } catch (e) {
+      log('Error adding to playlist: $e');
+    }
+  }
+
+  /// Usuwa utwór z playlist
+  Future<void> removeFromPlaylist(int index) async {
+    if (!state.hasPlaylist || index < 0 || index >= state.playlist.length) {
+      return;
+    }
+
+    try {
+      await _audioPlayer.removeAudioSourceAt(index);
+
+      // Aktualizuj lokalną listę URL-i
+      final newPlaylist = List<String>.from(state.playlist);
+      newPlaylist.removeAt(index);
+
+      if (newPlaylist.isEmpty) {
+        await clearPlaylist();
+      } else {
+        emit(state.copyWith(playlist: newPlaylist));
+      }
+    } catch (e) {
+      log('Error removing from playlist: $e');
+    }
+  }
+
+  /// Czyści playlist i powraca do trybu pojedynczego pliku
+  Future<void> clearPlaylist() async {
+    await _audioPlayer.stop();
+    emit(
+      state.copyWith(
+        playlist: [],
+        currentIndex: Value(null),
+        hasPlaylist: false,
+        isShuffleEnabled: false,
+        loopMode: LoopMode.off,
+      ),
+    );
   }
 
   /// Metoda wywoływana, gdy Cubit jest niszczony.
@@ -257,6 +491,8 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     _durationSubscription?.cancel();
     _positionSubscription?.cancel();
     _bufferedPositionSubscription?.cancel();
+    _currentIndexSubscription?.cancel();
+    _sequenceStateSubscription?.cancel();
     _audioPlayer.dispose();
     return super.close();
   }
