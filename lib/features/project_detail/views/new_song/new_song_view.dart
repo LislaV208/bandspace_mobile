@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -53,6 +54,16 @@ class _NewSongViewState extends State<NewSongView> {
 
         if (state is NewSongUploadSuccess) {
           Navigator.pop(context);
+        }
+
+        if (state is NewSongUploadFailure) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
         }
       },
       builder: (context, state) {

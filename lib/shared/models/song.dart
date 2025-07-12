@@ -1,26 +1,48 @@
+import 'package:equatable/equatable.dart';
+
+import 'package:bandspace_mobile/shared/models/file.dart';
+import 'package:bandspace_mobile/shared/models/user.dart';
+
 /// Model danych utworu muzycznego
-class Song {
+class Song extends Equatable {
   final int id;
   final String title;
+  final User createdBy;
   final DateTime createdAt;
-  final int fileCount;
-  final bool isPrivate;
+  final DateTime updatedAt;
+  final File file;
+  final String? downloadUrl;
+  final Duration? duration;
+  final int? bpm;
+  final String? lyrics;
 
-  Song({
+  const Song({
     required this.id,
     required this.title,
+    required this.createdBy,
     required this.createdAt,
-    required this.fileCount,
-    this.isPrivate = false,
+    required this.updatedAt,
+    required this.file,
+    this.downloadUrl,
+    this.duration,
+    this.bpm,
+    this.lyrics,
   });
 
   factory Song.fromJson(Map<String, dynamic> json) {
     return Song(
       id: json['id'],
       title: json['title'] ?? '',
-      createdAt: DateTime.parse(json['created_at']),
-      fileCount: json['file_count'] ?? 0,
-      isPrivate: json['is_private'] ?? false,
+      createdBy: User.fromMap(json['createdBy']),
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
+      file: File.fromJson(json['file']),
+      downloadUrl: json['downloadUrl'],
+      duration: json['duration'] != null
+          ? Duration(milliseconds: json['duration'])
+          : null,
+      bpm: json['bpm'],
+      lyrics: json['lyrics'],
     );
   }
 
@@ -28,67 +50,28 @@ class Song {
     return {
       'id': id,
       'title': title,
-      'created_at': createdAt.toIso8601String(),
-      'file_count': fileCount,
-      'is_private': isPrivate,
+      'createdBy': createdBy.toMap(),
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+      'file': file.toJson(),
+      'downloadUrl': downloadUrl,
+      'duration': duration?.inMilliseconds,
+      'bpm': bpm,
+      'lyrics': lyrics,
     };
   }
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Song &&
-        other.id == id &&
-        other.title == title &&
-        other.createdAt == createdAt &&
-        other.fileCount == fileCount &&
-        other.isPrivate == isPrivate;
-  }
-
-  @override
-  int get hashCode {
-    return Object.hash(id, title, createdAt, fileCount, isPrivate);
-  }
-
-  /// Zwraca czas utworzenia w formacie względnym
-  String get timeAgo {
-    final now = DateTime.now();
-    final difference = now.difference(createdAt);
-
-    if (difference.inDays > 30) {
-      final months = (difference.inDays / 30).floor();
-      return '$months ${_getMonthText(months)} temu';
-    } else if (difference.inDays > 0) {
-      return '${difference.inDays} ${_getDayText(difference.inDays)} temu';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} ${_getHourText(difference.inHours)} temu';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} ${_getMinuteText(difference.inMinutes)} temu';
-    } else {
-      return 'przed chwilą';
-    }
-  }
-
-  String _getMonthText(int count) {
-    if (count == 1) return 'miesiąc';
-    if (count >= 2 && count <= 4) return 'miesiące';
-    return 'miesięcy';
-  }
-
-  String _getDayText(int count) {
-    if (count == 1) return 'dzień';
-    return 'dni';
-  }
-
-  String _getHourText(int count) {
-    if (count == 1) return 'godzinę';
-    if (count >= 2 && count <= 4) return 'godziny';
-    return 'godzin';
-  }
-
-  String _getMinuteText(int count) {
-    if (count == 1) return 'minutę';
-    if (count >= 2 && count <= 4) return 'minuty';
-    return 'minut';
-  }
+  List<Object?> get props => [
+    id,
+    title,
+    createdBy,
+    createdAt,
+    updatedAt,
+    file,
+    downloadUrl,
+    duration,
+    bpm,
+    lyrics,
+  ];
 }

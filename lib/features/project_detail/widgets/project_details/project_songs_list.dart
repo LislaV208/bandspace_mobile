@@ -21,7 +21,7 @@ class ProjectSongsList extends StatelessWidget {
 
     return Column(
       children: [
-        const ProjectSongsSearch(),
+        if (songs.isNotEmpty) const ProjectSongsSearch(),
         const SizedBox(height: 16),
         Expanded(
           child: RefreshIndicator(

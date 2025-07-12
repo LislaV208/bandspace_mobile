@@ -7,6 +7,7 @@ import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_cubit.dart';
 import 'package:bandspace_mobile/features/song_detail/screens/song_detail_screen.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
+import 'package:bandspace_mobile/shared/utils/date_format_utils.dart';
 
 /// Komponent elementu listy utworów
 class ProjectSongListItem extends StatelessWidget {
@@ -46,7 +47,7 @@ class ProjectSongListItem extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Text(
-        song.timeAgo,
+        DateFormatUtils.formatRelativeTime(song.createdAt),
         style: AppTextStyles.bodySmall.copyWith(
           color: AppColors.textSecondary,
         ),
@@ -67,7 +68,7 @@ class ProjectSongListItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Icon(
-        song.isPrivate ? LucideIcons.lock : LucideIcons.music,
+        LucideIcons.music,
         size: 20,
         color: AppColors.accent,
       ),
