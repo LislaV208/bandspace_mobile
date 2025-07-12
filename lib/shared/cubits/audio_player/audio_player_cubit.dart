@@ -12,6 +12,9 @@ import 'audio_player_state.dart';
 /// Jest to generyczny, reużywalny komponent, niezależny od logiki biznesowej aplikacji.
 class AudioPlayerCubit extends Cubit<AudioPlayerState> {
   final AudioPlayer _audioPlayer;
+  
+  /// Dostęp do AudioPlayer dla klas dziedziczących
+  AudioPlayer get audioPlayer => _audioPlayer;
 
   StreamSubscription? _playerStateSubscription;
   StreamSubscription? _durationSubscription;

@@ -70,7 +70,9 @@ class AudioPlayerState extends Equatable {
   double get progress {
     if (totalDuration.inMilliseconds == 0) return 0.0;
     // Podczas przesuwania użyj seekPosition, w przeciwnym razie currentPosition
-    final position = isSeeking && seekPosition != null ? seekPosition! : currentPosition;
+    final position = isSeeking && seekPosition != null
+        ? seekPosition!
+        : currentPosition;
     return position.inMilliseconds / totalDuration.inMilliseconds;
   }
 
@@ -97,7 +99,9 @@ class AudioPlayerState extends Equatable {
       isReady: isReady ?? this.isReady,
       bufferedPosition: bufferedPosition ?? this.bufferedPosition,
       isSeeking: isSeeking ?? this.isSeeking,
-      seekPosition: seekPosition != null ? seekPosition.value : this.seekPosition,
+      seekPosition: seekPosition != null
+          ? seekPosition.value
+          : this.seekPosition,
     );
   }
 
