@@ -70,7 +70,6 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
               currentPosition: Duration.zero,
             ),
           );
-          _audioPlayer.seek(Duration.zero);
           break;
       }
     });
