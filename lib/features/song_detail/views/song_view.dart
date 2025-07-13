@@ -12,13 +12,44 @@ import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_det
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
 
-class SongView extends StatelessWidget {
+class SongView extends StatefulWidget {
   final Project project;
 
   const SongView({
     super.key,
     required this.project,
   });
+
+  @override
+  State<SongView> createState() => _SongViewState();
+}
+
+class _SongViewState extends State<SongView> {
+  static const _minBottomHeight = 68.0;
+
+  final _currentBottomHeight = _minBottomHeight;
+
+  final _draggableScrollableController = DraggableScrollableController();
+
+  Color getColor(int pixels) {
+    if (pixels > _minBottomHeight + 1) {
+      return Colors.blue;
+    } else {
+      return Colors.red;
+    }
+  }
+
+  double normalizeValue(
+    double value,
+    double originalMin,
+    double originalMax,
+  ) {
+    double originalRange = originalMax - originalMin;
+    if (originalRange == 0) {
+      return 0.0;
+    }
+    return (value - originalMin) / originalRange;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,42 +92,246 @@ class SongView extends StatelessWidget {
           child: SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final availableHeight = constraints.maxHeight;
+                final maxHeight = constraints.maxHeight;
+                final playerHeight = maxHeight - _minBottomHeight;
 
-                // Responsywne spacing bazowane na wysokości ekranu
-                final smallSpacing = availableHeight * 0.02; // 2% wysokości
-                final mediumSpacing = availableHeight * 0.04; // 4% wysokości
-                final largeSpacing = availableHeight * 0.06; // 6% wysokości
+                final minDraggableScrollSize =
+                    1 -
+                    normalizeValue(
+                      maxHeight - _minBottomHeight,
+                      0,
+                      maxHeight,
+                    );
 
-                return Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: screenWidth * 0.05, // 5% szerokości jako margin
-                    vertical: smallSpacing,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      // Górny spacer - elastyczny ale z limitem
-                      SizedBox(height: smallSpacing.clamp(8.0, 24.0)),
+                final maxDraggableScrollSize =
+                    1 -
+                    normalizeValue(
+                      _minBottomHeight,
+                      0,
+                      maxHeight,
+                    );
+                print('playerBasePercentage: $minDraggableScrollSize');
+                return Stack(
+                  children: [
+                    SizedBox(
+                      height: playerHeight,
+                      child: ListenableBuilder(
+                        listenable: _draggableScrollableController,
+                        builder: (context, _) {
+                          final percentageScrolled =
+                              _draggableScrollableController.isAttached
+                              ? normalizeValue(
+                                  _draggableScrollableController.pixels
+                                      .roundToDouble(),
+                                  _minBottomHeight,
+                                  maxHeight - _minBottomHeight,
+                                )
+                              : 0.0;
 
-                      _buildAlbumArt(context, screenWidth),
+                          return Stack(
+                            children: [
+                              Opacity(
+                                opacity: percentageScrolled,
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    _draggableScrollableController.animateTo(
+                                      0.0,
+                                      duration: const Duration(
+                                        milliseconds: 300,
+                                      ),
+                                      curve: Curves.easeInOut,
+                                    );
+                                  },
+                                  child: Row(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 20.0,
+                                        ),
+                                        child: _buildAlbumArtSmall(
+                                          context,
+                                          percentageScrolled,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: _buildSongInfoSmall(
+                                          context,
+                                          widget.project,
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          right: 16.0,
+                                        ),
+                                        child:
+                                            BlocBuilder<
+                                              AudioPlayerCubit,
+                                              AudioPlayerState
+                                            >(
+                                              builder: (context, state) {
+                                                final isPlaying =
+                                                    state.status ==
+                                                    PlayerStatus.playing;
+                                                return IconButton(
+                                                  onPressed: () {
+                                                    context
+                                                        .read<
+                                                          AudioPlayerCubit
+                                                        >()
+                                                        .togglePlayPause();
+                                                  },
+                                                  icon: Icon(
+                                                    isPlaying
+                                                        ? LucideIcons.pause
+                                                        : LucideIcons.play,
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Opacity(
+                                opacity: 1 - percentageScrolled,
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    _buildAlbumArt(
+                                      context,
+                                      screenWidth,
+                                      percentageScrolled,
+                                    ),
+                                    _buildSongInfo(context, widget.project),
+                                    _buildProgressBar(context),
+                                    _buildControls(context),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                    DraggableScrollableSheet(
+                      controller: _draggableScrollableController,
+                      initialChildSize: minDraggableScrollSize,
+                      minChildSize: minDraggableScrollSize,
+                      maxChildSize: maxDraggableScrollSize,
+                      snap: true,
+                      snapAnimationDuration: const Duration(milliseconds: 200),
+                      builder: (context, scrollController) {
+                        return SingleChildScrollView(
+                          controller: scrollController,
+                          child: ListenableBuilder(
+                            listenable: _draggableScrollableController,
+                            builder: (context, _) {
+                              final percentageScrolled = normalizeValue(
+                                _draggableScrollableController.pixels
+                                    .roundToDouble(),
+                                _minBottomHeight,
+                                maxHeight - _minBottomHeight,
+                              );
 
-                      SizedBox(height: mediumSpacing.clamp(16.0, 48.0)),
-
-                      _buildSongInfo(context, project),
-
-                      SizedBox(height: largeSpacing.clamp(24.0, 64.0)),
-
-                      _buildProgressBar(context),
-
-                      SizedBox(height: mediumSpacing.clamp(16.0, 48.0)),
-
-                      _buildControls(context),
-
-                      // Dolny spacer - elastyczny ale z limitem
-                      SizedBox(height: smallSpacing.clamp(8.0, 24.0)),
-                    ],
-                  ),
+                              return Container(
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.surface
+                                      .withValues(alpha: percentageScrolled),
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(
+                                      percentageScrolled * 16,
+                                    ),
+                                    topRight: Radius.circular(
+                                      percentageScrolled * 16,
+                                    ),
+                                  ),
+                                ),
+                                height: maxHeight - _minBottomHeight,
+                                child: Column(
+                                  children: [
+                                    SizedBox(
+                                      height: _minBottomHeight,
+                                      child: Center(
+                                        child: TextButton.icon(
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: Theme.of(
+                                              context,
+                                            ).colorScheme.onSurfaceVariant,
+                                            disabledForegroundColor: Theme.of(
+                                              context,
+                                            ).colorScheme.onSurfaceVariant,
+                                          ),
+                                          onPressed: percentageScrolled >= 0.9
+                                              ? null
+                                              : () {
+                                                  _draggableScrollableController
+                                                      .animateTo(
+                                                        1.0,
+                                                        duration:
+                                                            const Duration(
+                                                              milliseconds: 400,
+                                                            ),
+                                                        curve: Curves.easeInOut,
+                                                      );
+                                                },
+                                          label: const Text('WIĘCEJ UTWORÓW'),
+                                          icon: const Icon(
+                                            LucideIcons.listMusic,
+                                            // size: 16,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Opacity(
+                                        opacity: percentageScrolled,
+                                        child: Column(
+                                          children: [
+                                            const Divider(),
+                                            Expanded(
+                                              child:
+                                                  BlocBuilder<
+                                                    SongDetailCubit,
+                                                    SongDetailState
+                                                  >(
+                                                    builder: (context, state) {
+                                                      return ListView.builder(
+                                                        itemCount:
+                                                            state.songs.length,
+                                                        itemBuilder:
+                                                            (context, index) {
+                                                              return ListTile(
+                                                                leading: Icon(
+                                                                  LucideIcons
+                                                                      .music,
+                                                                ),
+                                                                title: Text(
+                                                                  state
+                                                                      .songs[index]
+                                                                      .title,
+                                                                ),
+                                                              );
+                                                            },
+                                                      );
+                                                    },
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 );
               },
             ),
@@ -106,9 +341,17 @@ class SongView extends StatelessWidget {
     );
   }
 
-  Widget _buildAlbumArt(BuildContext context, double screenWidth) {
+  Widget _buildAlbumArt(
+    BuildContext context,
+    double screenWidth,
+    double percentageScrolled,
+  ) {
     // Responsywny rozmiar - maksymalnie 70% szerokości ekranu, ale nie więcej niż 320px
-    final size = (screenWidth * 0.7).clamp(200.0, 320.0);
+    // final size = (screenWidth * 0.7).clamp(200.0, 320.0);
+    final size = ((screenWidth * 0.7) * (1 - percentageScrolled)).clamp(
+      54.0,
+      320.0,
+    );
 
     return Container(
       width: size,
@@ -125,7 +368,9 @@ class SongView extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+            color: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -133,7 +378,46 @@ class SongView extends StatelessWidget {
       ),
       child: Icon(
         LucideIcons.music,
-        size: 80,
+        size: (80 * (1 - percentageScrolled)).clamp(24.0, 80.0),
+        color: Colors.white.withValues(alpha: 0.9),
+      ),
+    );
+  }
+
+  Widget _buildAlbumArtSmall(
+    BuildContext context,
+    double percentageScrolled,
+  ) {
+    // Responsywny rozmiar - maksymalnie 70% szerokości ekranu, ale nie więcej niż 320px
+
+    final size = (50 * (percentageScrolled));
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+            Theme.of(context).colorScheme.secondary.withValues(alpha: 0.6),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Icon(
+        LucideIcons.music,
+        size: (24 * (percentageScrolled)),
         color: Colors.white.withValues(alpha: 0.9),
       ),
     );
@@ -167,6 +451,33 @@ class SongView extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSongInfoSmall(BuildContext context, Project project) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        BlocSelector<SongDetailCubit, SongDetailState, Song>(
+          selector: (state) => state.currentSong,
+          builder: (context, song) {
+            return Text(
+              song.title,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            );
+          },
+        ),
+        Text(
+          project.name,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 
