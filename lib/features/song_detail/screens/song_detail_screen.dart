@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:bandspace_mobile/core/cubits/audio_player/audio_player_cubit.dart';
 import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_cubit.dart';
 import 'package:bandspace_mobile/features/song_detail/views/song_view.dart';
 import 'package:bandspace_mobile/features/song_detail/widgets/song_detail/manage_songs_button.dart';
-import 'package:bandspace_mobile/shared/cubits/audio_player/audio_player_cubit.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';

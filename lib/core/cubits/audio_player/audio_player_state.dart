@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:just_audio/just_audio.dart';
 
+import 'package:bandspace_mobile/core/cubits/audio_player/player_status.dart';
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
-import 'package:bandspace_mobile/shared/cubits/audio_player/player_status.dart';
 
 /// Stan odtwarzacza audio.
 class AudioPlayerState extends Equatable {

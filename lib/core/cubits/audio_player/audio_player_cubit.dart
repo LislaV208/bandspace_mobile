@@ -4,8 +4,8 @@ import 'dart:developer';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio/just_audio.dart';
 
+import 'package:bandspace_mobile/core/cubits/audio_player/player_status.dart';
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
-import 'package:bandspace_mobile/shared/cubits/audio_player/player_status.dart';
 
 import 'audio_player_state.dart';
 

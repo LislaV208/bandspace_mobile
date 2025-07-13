@@ -4,10 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/core/utils/date_format_utils.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_cubit.dart';
 import 'package:bandspace_mobile/features/song_detail/screens/song_detail_screen.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
-import 'package:bandspace_mobile/shared/utils/date_format_utils.dart';
 
 /// Komponent elementu listy utworów
 class ProjectSongListItem extends StatelessWidget {

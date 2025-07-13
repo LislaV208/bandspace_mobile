@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:bandspace_mobile/core/cubits/audio_player/audio_player_cubit.dart';
+import 'package:bandspace_mobile/core/cubits/audio_player/audio_player_state.dart';
+import 'package:bandspace_mobile/core/cubits/audio_player/player_status.dart';
+import 'package:bandspace_mobile/core/utils/duration_format_utils.dart';
 import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_cubit.dart';
 import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_state.dart';
-import 'package:bandspace_mobile/shared/cubits/audio_player/audio_player_cubit.dart';
-import 'package:bandspace_mobile/shared/cubits/audio_player/audio_player_state.dart';
-import 'package:bandspace_mobile/shared/cubits/audio_player/player_status.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
-import 'package:bandspace_mobile/shared/utils/duration_format_utils.dart';
 
 class SongView extends StatelessWidget {
   final Project project;
