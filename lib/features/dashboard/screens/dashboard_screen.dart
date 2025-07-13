@@ -6,11 +6,11 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_cubit.dart';
 import 'package:bandspace_mobile/features/dashboard/views/projects_view.dart';
 import 'package:bandspace_mobile/features/dashboard/widgets/create_project_bottom_sheet.dart';
+import 'package:bandspace_mobile/features/dashboard/widgets/user_drawer.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 import 'package:bandspace_mobile/shared/widgets/user_avatar.dart';
-import 'package:bandspace_mobile/shared/widgets/user_drawer.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
