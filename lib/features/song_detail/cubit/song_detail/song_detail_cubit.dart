@@ -19,34 +19,6 @@ class SongDetailCubit extends Cubit<SongDetailState> {
     _downloadUrls();
   }
 
-  void nextSong() {
-    final currentState = state as SongDetailReady;
-    final currentIndex = currentState.songs.indexOf(currentState.currentSong);
-    final nextIndex = (currentIndex + 1) % currentState.songs.length;
-    final nextSong = currentState.songs[nextIndex];
-
-    emit(
-      SongDetailReady(
-        currentState.songs,
-        nextSong,
-      ),
-    );
-  }
-
-  void previousSong() {
-    final currentState = state as SongDetailReady;
-    final currentIndex = currentState.songs.indexOf(currentState.currentSong);
-    final previousIndex = (currentIndex - 1) % currentState.songs.length;
-    final previousSong = currentState.songs[previousIndex];
-
-    emit(
-      SongDetailReady(
-        currentState.songs,
-        previousSong,
-      ),
-    );
-  }
-
   void selectSong(Song song) {
     final currentState = state as SongDetailReady;
     emit(

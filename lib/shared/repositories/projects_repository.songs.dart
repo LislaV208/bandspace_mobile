@@ -90,13 +90,6 @@ extension SongsManagement on ProjectsRepository {
 
     return SongListDownloadUrls.fromJson(response.data);
   }
-  // Future<String> getSongDownloadUrl(int projectId, int songId) async {
-  //   final response = await apiClient.get(
-  //     '/api/projects/$projectId/songs/$songId/download-url',
-  //   );
-
-  //   return response.data['url'];
-  // }
 
   // Aktualizuje utwór w projekcie.
   // PUT /api/projects/{projectId}/songs/{songId}
