@@ -48,6 +48,9 @@ class AudioPlayerState extends Equatable {
   /// Czy playlist jest załadowana
   final bool hasPlaylist;
 
+  /// Postęp pobierania aktualnego pliku (0.0 - 1.0)
+  final double downloadProgress;
+
   const AudioPlayerState({
     this.status = PlayerStatus.idle,
     this.currentUrl,
@@ -63,6 +66,7 @@ class AudioPlayerState extends Equatable {
     this.isShuffleEnabled = false,
     this.loopMode = LoopMode.off,
     this.hasPlaylist = false,
+    this.downloadProgress = 0.0,
   });
 
   double get progress {
@@ -124,6 +128,7 @@ class AudioPlayerState extends Equatable {
     bool? isShuffleEnabled,
     LoopMode? loopMode,
     bool? hasPlaylist,
+    double? downloadProgress,
   }) {
     return AudioPlayerState(
       status: status ?? this.status,
@@ -146,6 +151,7 @@ class AudioPlayerState extends Equatable {
       isShuffleEnabled: isShuffleEnabled ?? this.isShuffleEnabled,
       loopMode: loopMode ?? this.loopMode,
       hasPlaylist: hasPlaylist ?? this.hasPlaylist,
+      downloadProgress: downloadProgress ?? this.downloadProgress,
     );
   }
 
@@ -165,5 +171,6 @@ class AudioPlayerState extends Equatable {
     isShuffleEnabled,
     loopMode,
     hasPlaylist,
+    downloadProgress,
   ];
 }

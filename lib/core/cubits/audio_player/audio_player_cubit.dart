@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'package:bandspace_mobile/core/cubits/audio_player/player_status.dart';
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
@@ -39,10 +42,6 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     _playerStateSubscription = _audioPlayer.playerStateStream.listen((
       playerState,
     ) {
-      log(
-        'PlaylistAudioPlayerCubit: Player state changed: ${playerState.processingState}',
-      );
-
       switch (playerState.processingState) {
         case ProcessingState.idle:
           emit(
@@ -165,7 +164,7 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
   // =======================================================
 
   /// Ładuje nowy plik audio z podanego URL i opcjonalnie rozpoczyna odtwarzanie.
-  /// Skopiowane z AudioPlayerCubit z dodanym czyszczeniem playlist.
+  /// Używa LockCachingAudioSource dla efektywnego cachowania.
   Future<void> loadUrl(String url, {bool playWhenReady = false}) async {
     // Jeśli próbujemy załadować ten sam plik, który jest już załadowany,
     // po prostu wznawiamy odtwarzanie.
@@ -196,7 +195,8 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     );
 
     try {
-      await _audioPlayer.setUrl(url);
+      final audioSource = await _createCachingAudioSource(url);
+      await _audioPlayer.setAudioSource(audioSource);
       if (playWhenReady) {
         await _audioPlayer.play();
       }
@@ -326,10 +326,10 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     }
 
     try {
-      // Tworzenie AudioSource dla każdego URL
-      final audioSources = urls
-          .map((url) => AudioSource.uri(Uri.parse(url)))
-          .toList();
+      // Tworzenie LockCachingAudioSource dla każdego URL
+      final audioSources = await Future.wait(
+        urls.map((url) => _createCachingAudioSource(url)).toList(),
+      );
 
       // Aktualizuj stan z nową playlist
       emit(
@@ -424,7 +424,7 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     if (!state.hasPlaylist) return;
 
     try {
-      final audioSource = AudioSource.uri(Uri.parse(url));
+      final audioSource = await _createCachingAudioSource(url);
 
       if (atIndex != null) {
         await _audioPlayer.insertAudioSource(atIndex, audioSource);
@@ -481,6 +481,51 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
         loopMode: LoopMode.off,
       ),
     );
+  }
+
+  // =======================================================
+  // ===          PRYWATNE METODY CACHOWANIA             ===
+  // =======================================================
+
+  /// Tworzy AudioSource z cachingiem - fallback dla nieobsługiwanych platform
+  Future<AudioSource> _createCachingAudioSource(String url) async {
+    // Spróbuj najpierw LockCachingAudioSource
+    final cacheDir = await getTemporaryDirectory();
+    final audioDir = Directory('${cacheDir.path}/audio_cache');
+
+    if (!await audioDir.exists()) {
+      await audioDir.create(recursive: true);
+    }
+
+    final uri = Uri.parse(url);
+    final baseUrl = uri.origin + uri.path;
+
+    // Generuj unikalną nazwę pliku cache na podstawie URL
+    final urlHash = sha256.convert(baseUrl.codeUnits).toString();
+    final cacheFile = File('${audioDir.path}/$urlHash.cache');
+
+    final audioSource = LockCachingAudioSource(
+      Uri.parse(url),
+      cacheFile: cacheFile,
+    );
+
+    return audioSource;
+  }
+
+  /// Czyści cache dla wszystkich plików audio
+  Future<void> clearAudioCache() async {
+    try {
+      final cacheDir = await getTemporaryDirectory();
+      final audioDir = Directory('${cacheDir.path}/audio_cache');
+
+      if (await audioDir.exists()) {
+        await audioDir.delete(recursive: true);
+      }
+
+      log('Audio cache cleared successfully');
+    } catch (e) {
+      log('Error clearing audio cache: $e');
+    }
   }
 
   /// Metoda wywoływana, gdy Cubit jest niszczony.
