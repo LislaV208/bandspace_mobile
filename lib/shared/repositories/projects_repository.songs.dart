@@ -83,13 +83,12 @@ extension SongsManagement on ProjectsRepository {
     );
   }
 
-  Future<List<SongDownloadUrl>> getPlaylistDownloadUrls(int projectId) async {
+  Future<SongListDownloadUrls> getPlaylistDownloadUrls(int projectId) async {
     final response = await apiClient.get(
       '/api/projects/$projectId/songs/download-urls',
     );
 
-    final List<dynamic> data = response.data;
-    return data.map((json) => SongDownloadUrl.fromJson(json)).toList();
+    return SongListDownloadUrls.fromJson(response.data);
   }
   // Future<String> getSongDownloadUrl(int projectId, int songId) async {
   //   final response = await apiClient.get(

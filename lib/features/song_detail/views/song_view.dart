@@ -46,7 +46,7 @@ class _SongViewState extends State<SongView> {
         }
         if (state is SongDetailLoadUrlsSuccess) {
           context.read<AudioPlayerCubit>().loadPlaylist(
-            state.downloadUrls.map((url) => url.url).toList(),
+            state.downloadUrls.songUrls.map((item) => item.url).toList(),
             initialIndex: state.songs.indexOf(state.currentSong),
           );
         }

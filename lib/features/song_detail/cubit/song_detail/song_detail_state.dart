@@ -35,7 +35,7 @@ class SongDetailLoadUrlsFailure extends SongDetailState {
 }
 
 class SongDetailLoadUrlsSuccess extends SongDetailState {
-  final List<SongDownloadUrl> downloadUrls;
+  final SongListDownloadUrls downloadUrls;
 
   const SongDetailLoadUrlsSuccess(
     super.songs,
