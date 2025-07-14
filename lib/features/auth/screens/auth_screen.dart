@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:bandspace_mobile/core/storage/shared_preferences_storage.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
@@ -20,7 +21,7 @@ class AuthScreen extends StatelessWidget {
   }
 }
 
-class _AuthScreenContent extends StatelessWidget {
+class _AuthScreenContent extends StatefulWidget {
   // Animation configuration (approximating Svelte's quintOut)
   static const Duration _elementTransitionDuration = Duration(
     milliseconds: 300,
@@ -30,10 +31,22 @@ class _AuthScreenContent extends StatelessWidget {
 
   const _AuthScreenContent();
 
+  @override
+  State<_AuthScreenContent> createState() => _AuthScreenContentState();
+}
+
+class _AuthScreenContentState extends State<_AuthScreenContent> {
   void _openResetPasswordModal(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => ResetPasswordScreen.create()),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    context.read<SharedPreferencesStorage>().clear();
   }
 
   @override
@@ -99,7 +112,8 @@ class _AuthScreenContent extends StatelessWidget {
                       children: [
                         // Animated Header Text
                         AnimatedSwitcher(
-                          duration: _elementTransitionDuration,
+                          duration:
+                              _AuthScreenContent._elementTransitionDuration,
                           transitionBuilder:
                               (Widget child, Animation<double> animation) {
                                 final offsetAnimation =
@@ -112,7 +126,8 @@ class _AuthScreenContent extends StatelessWidget {
                                     ).animate(
                                       CurvedAnimation(
                                         parent: animation,
-                                        curve: _elementTransitionCurve,
+                                        curve: _AuthScreenContent
+                                            ._elementTransitionCurve,
                                       ),
                                     );
                                 return SlideTransition(
@@ -232,8 +247,9 @@ class _AuthScreenContent extends StatelessWidget {
 
                         // Confirm Password (Animated for Register View)
                         AnimatedContainer(
-                          duration: _elementTransitionDuration,
-                          curve: _elementTransitionCurve,
+                          duration:
+                              _AuthScreenContent._elementTransitionDuration,
+                          curve: _AuthScreenContent._elementTransitionCurve,
                           height: isLoginView
                               ? 0
                               : 80, // Approximate height of field + padding
@@ -243,8 +259,9 @@ class _AuthScreenContent extends StatelessWidget {
                             maxHeight:
                                 80, // Ensure it doesn't take too much space when visible
                             child: AnimatedOpacity(
-                              duration: _elementTransitionDuration,
-                              curve: _elementTransitionCurve,
+                              duration:
+                                  _AuthScreenContent._elementTransitionDuration,
+                              curve: _AuthScreenContent._elementTransitionCurve,
                               opacity: isLoginView ? 0.0 : 1.0,
                               child: Transform.translate(
                                 offset: Offset(0, isLoginView ? -10 : 0),
@@ -300,7 +317,8 @@ class _AuthScreenContent extends StatelessWidget {
                                   ),
                                 )
                               : AnimatedSwitcher(
-                                  duration: _elementTransitionDuration,
+                                  duration: _AuthScreenContent
+                                      ._elementTransitionDuration,
                                   transitionBuilder:
                                       (
                                         Widget child,
@@ -380,7 +398,8 @@ class _AuthScreenContent extends StatelessWidget {
 
                         // Toggle Login/Register
                         AnimatedSwitcher(
-                          duration: _elementTransitionDuration,
+                          duration:
+                              _AuthScreenContent._elementTransitionDuration,
                           transitionBuilder:
                               (Widget child, Animation<double> animation) {
                                 return FadeTransition(

@@ -28,10 +28,9 @@ class SongDetailCubit extends Cubit<SongDetailState> {
   }
 
   void selectSong(Song song) {
-    final currentState = state as SongDetailReady;
     emit(
       SongDetailReady(
-        currentState.songs,
+        state.songs,
         song,
       ),
     );
