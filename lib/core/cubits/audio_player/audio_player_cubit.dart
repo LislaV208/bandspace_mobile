@@ -67,7 +67,6 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
             state.copyWith(
               status: newStatus,
               isReady: true,
-              isLoadingFromServer: false,
             ),
           );
           break;
@@ -176,9 +175,6 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
       return;
     }
 
-    // Sprawdź czy plik jest w cache
-    final isFromServer = !await _isAudioCached(url);
-
     // Wyczyść playlist gdy ładujemy pojedynczy plik
     emit(
       state.copyWith(
@@ -189,7 +185,6 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
         errorMessage: Value(null),
         isReady: false,
         bufferedPosition: Duration.zero,
-        isLoadingFromServer: isFromServer,
         // Wyczyść playlist
         playlist: [],
         currentIndex: Value(null),
@@ -212,7 +207,6 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
           errorMessage: Value(e.toString()),
           isReady: false,
           bufferedPosition: Duration.zero,
-          isLoadingFromServer: false,
         ),
       );
     }
@@ -332,11 +326,6 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     }
 
     try {
-      // Sprawdź czy pierwszy utwór (lub utwór o initialIndex) jest w cache
-      final firstTrackIndex = initialIndex ?? 0;
-      final firstTrackUrl = urls[firstTrackIndex];
-      final isFromServer = !await _isAudioCached(firstTrackUrl);
-
       // Tworzenie LockCachingAudioSource dla każdego URL
       final audioSources = await Future.wait(
         urls.map((url) => _createCachingAudioSource(url)).toList(),
@@ -347,11 +336,10 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
         state.copyWith(
           status: PlayerStatus.loading,
           playlist: urls,
-          currentIndex: Value(firstTrackIndex),
+          currentIndex: Value(initialIndex ?? 0),
           hasPlaylist: true,
           errorMessage: Value(null),
           isReady: false,
-          isLoadingFromServer: isFromServer,
         ),
       );
 
@@ -371,7 +359,6 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
           status: PlayerStatus.error,
           errorMessage: Value(e.toString()),
           isReady: false,
-          isLoadingFromServer: false,
         ),
       );
     }
@@ -499,25 +486,6 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
   // =======================================================
   // ===          PRYWATNE METODY CACHOWANIA             ===
   // =======================================================
-
-  /// Sprawdza czy plik audio jest już w cache
-  Future<bool> _isAudioCached(String url) async {
-    try {
-      final cacheDir = await getTemporaryDirectory();
-      final audioDir = Directory('${cacheDir.path}/audio_cache');
-
-      final uri = Uri.parse(url);
-      final baseUrl = uri.origin + uri.path;
-
-      // Generuj unikalną nazwę pliku cache na podstawie URL
-      final urlHash = sha256.convert(baseUrl.codeUnits).toString();
-      final cacheFile = File('${audioDir.path}/$urlHash.cache');
-
-      return await cacheFile.exists();
-    } catch (e) {
-      return false;
-    }
-  }
 
   /// Tworzy AudioSource z cachingiem - fallback dla nieobsługiwanych platform
   Future<AudioSource> _createCachingAudioSource(String url) async {
