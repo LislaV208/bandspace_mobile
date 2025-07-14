@@ -52,24 +52,16 @@ class PlayerControlsWidget extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: !audioState.isReady
-                    ? const Padding(
-                        padding: EdgeInsets.all(20.0),
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : IconButton(
-                        onPressed: () {
-                          context.read<AudioPlayerCubit>().togglePlayPause();
-                        },
-                        icon: Icon(
-                          isPlaying ? LucideIcons.pause : LucideIcons.play,
-                        ),
-                        iconSize: 32,
-                        color: Colors.white,
-                      ),
+                child: IconButton(
+                  onPressed: () {
+                    context.read<AudioPlayerCubit>().togglePlayPause();
+                  },
+                  icon: Icon(
+                    isPlaying ? LucideIcons.pause : LucideIcons.play,
+                  ),
+                  iconSize: 32,
+                  color: Colors.white,
+                ),
               ),
               IconButton(
                 onPressed: () {
