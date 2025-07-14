@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/cubits/audio_player/audio_player_cubit.dart';
 import 'package:bandspace_mobile/core/cubits/audio_player/audio_player_state.dart';
 import 'package:bandspace_mobile/core/cubits/audio_player/player_status.dart';
-import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_cubit.dart';
 
 class PlayerControlsWidget extends StatelessWidget {
   const PlayerControlsWidget({super.key});
@@ -23,7 +23,7 @@ class PlayerControlsWidget extends StatelessWidget {
             children: [
               IconButton(
                 onPressed: () {
-                  context.read<SongDetailCubit>().previousSong();
+                  context.read<AudioPlayerCubit>().playPrevious();
                 },
                 icon: const Icon(LucideIcons.skipBack),
                 iconSize: 32,
@@ -44,10 +44,9 @@ class PlayerControlsWidget extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withValues(alpha: 0.4),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.4),
                       blurRadius: 15,
                       offset: const Offset(0, 8),
                     ),
@@ -74,7 +73,7 @@ class PlayerControlsWidget extends StatelessWidget {
               ),
               IconButton(
                 onPressed: () {
-                  context.read<SongDetailCubit>().nextSong();
+                  context.read<AudioPlayerCubit>().playNext();
                 },
                 icon: const Icon(LucideIcons.skipForward),
                 iconSize: 32,

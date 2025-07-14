@@ -46,7 +46,7 @@ class SongListWidget extends StatelessWidget {
                           isCurrentSong: isCurrentSong,
                           isPlaying: isPlaying,
                           onTap: () {
-                            context.read<SongDetailCubit>().selectSong(song);
+                            context.read<AudioPlayerCubit>().playTrackAt(index);
                           },
                         );
                       },

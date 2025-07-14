@@ -61,6 +61,21 @@ class _SongViewState extends State<SongView> {
           if (state.isReady) {
             context.read<SongDetailCubit>().setReady();
           }
+
+          final currentIndex = state.currentIndex;
+          if (currentIndex != null) {
+            final songUnderIndex = context
+                .read<SongDetailCubit>()
+                .state
+                .songs[currentIndex];
+            final currentSong = context
+                .read<SongDetailCubit>()
+                .state
+                .currentSong;
+            if (songUnderIndex != currentSong) {
+              context.read<SongDetailCubit>().selectSong(songUnderIndex);
+            }
+          }
         },
         child: PopScope(
           onPopInvokedWithResult: (didPop, result) {
@@ -74,11 +89,17 @@ class _SongViewState extends State<SongView> {
                 final maxHeight = constraints.maxHeight;
                 final playerHeight = maxHeight - _minBottomHeight;
 
-                final minDraggableScrollSize = PlayerMathUtils
-                    .calculateMinDraggableScrollSize(maxHeight, _minBottomHeight);
+                final minDraggableScrollSize =
+                    PlayerMathUtils.calculateMinDraggableScrollSize(
+                      maxHeight,
+                      _minBottomHeight,
+                    );
 
-                final maxDraggableScrollSize = PlayerMathUtils
-                    .calculateMaxDraggableScrollSize(_minBottomHeight, maxHeight);
+                final maxDraggableScrollSize =
+                    PlayerMathUtils.calculateMaxDraggableScrollSize(
+                      _minBottomHeight,
+                      maxHeight,
+                    );
 
                 return Stack(
                   children: [
@@ -87,7 +108,8 @@ class _SongViewState extends State<SongView> {
                       child: ListenableBuilder(
                         listenable: _draggableScrollableController,
                         builder: (context, _) {
-                          final percentageScrolled = _draggableScrollableController.isAttached
+                          final percentageScrolled =
+                              _draggableScrollableController.isAttached
                               ? PlayerMathUtils.calculatePercentageScrolled(
                                   _draggableScrollableController.pixels,
                                   _minBottomHeight,
@@ -131,12 +153,12 @@ class _SongViewState extends State<SongView> {
                           child: ListenableBuilder(
                             listenable: _draggableScrollableController,
                             builder: (context, _) {
-                              final percentageScrolled = PlayerMathUtils
-                                  .calculatePercentageScrolled(
-                                _draggableScrollableController.pixels,
-                                _minBottomHeight,
-                                maxHeight,
-                              );
+                              final percentageScrolled =
+                                  PlayerMathUtils.calculatePercentageScrolled(
+                                    _draggableScrollableController.pixels,
+                                    _minBottomHeight,
+                                    maxHeight,
+                                  );
 
                               return Container(
                                 decoration: BoxDecoration(
