@@ -51,6 +51,9 @@ class AudioPlayerState extends Equatable {
   /// Postęp pobierania aktualnego pliku (0.0 - 1.0)
   final double downloadProgress;
 
+  /// Czy utwór jest ładowany z serwera (nie z cache)
+  final bool isLoadingFromServer;
+
   const AudioPlayerState({
     this.status = PlayerStatus.idle,
     this.currentUrl,
@@ -67,6 +70,7 @@ class AudioPlayerState extends Equatable {
     this.loopMode = LoopMode.off,
     this.hasPlaylist = false,
     this.downloadProgress = 0.0,
+    this.isLoadingFromServer = false,
   });
 
   double get progress {
@@ -129,6 +133,7 @@ class AudioPlayerState extends Equatable {
     LoopMode? loopMode,
     bool? hasPlaylist,
     double? downloadProgress,
+    bool? isLoadingFromServer,
   }) {
     return AudioPlayerState(
       status: status ?? this.status,
@@ -152,6 +157,7 @@ class AudioPlayerState extends Equatable {
       loopMode: loopMode ?? this.loopMode,
       hasPlaylist: hasPlaylist ?? this.hasPlaylist,
       downloadProgress: downloadProgress ?? this.downloadProgress,
+      isLoadingFromServer: isLoadingFromServer ?? this.isLoadingFromServer,
     );
   }
 
@@ -172,5 +178,6 @@ class AudioPlayerState extends Equatable {
     loopMode,
     hasPlaylist,
     downloadProgress,
+    isLoadingFromServer,
   ];
 }

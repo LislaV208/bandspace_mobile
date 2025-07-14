@@ -50,13 +50,24 @@ class MiniPlayerWidget extends StatelessWidget {
               child: BlocBuilder<AudioPlayerCubit, AudioPlayerState>(
                 builder: (context, state) {
                   final isPlaying = state.status == PlayerStatus.playing;
+                  final isLoadingFromServer =
+                      state.status == PlayerStatus.loading &&
+                      state.isLoadingFromServer;
                   return IconButton(
                     onPressed: () {
                       context.read<AudioPlayerCubit>().togglePlayPause();
                     },
-                    icon: Icon(
-                      isPlaying ? LucideIcons.pause : LucideIcons.play,
-                    ),
+                    icon: isLoadingFromServer
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Icon(
+                            isPlaying ? LucideIcons.pause : LucideIcons.play,
+                          ),
                   );
                 },
               ),

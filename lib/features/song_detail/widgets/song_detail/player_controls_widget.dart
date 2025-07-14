@@ -15,6 +15,9 @@ class PlayerControlsWidget extends StatelessWidget {
     return BlocBuilder<AudioPlayerCubit, AudioPlayerState>(
       builder: (context, audioState) {
         final isPlaying = audioState.status == PlayerStatus.playing;
+        final isLoadingFromServer =
+            audioState.status == PlayerStatus.loading &&
+            audioState.isLoadingFromServer;
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32.0),
@@ -56,9 +59,18 @@ class PlayerControlsWidget extends StatelessWidget {
                   onPressed: () {
                     context.read<AudioPlayerCubit>().togglePlayPause();
                   },
-                  icon: Icon(
-                    isPlaying ? LucideIcons.pause : LucideIcons.play,
-                  ),
+                  icon: isLoadingFromServer
+                      ? const SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 3,
+                          ),
+                        )
+                      : Icon(
+                          isPlaying ? LucideIcons.pause : LucideIcons.play,
+                        ),
                   iconSize: 32,
                   color: Colors.white,
                 ),
