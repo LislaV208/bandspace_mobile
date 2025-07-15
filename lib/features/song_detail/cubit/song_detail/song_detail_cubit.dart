@@ -1,22 +1,21 @@
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/core/storage/shared_preferences_storage.dart';
 import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_state.dart';
+import 'package:bandspace_mobile/features/song_detail/song_list_urls_cache_storage.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
 import 'package:bandspace_mobile/shared/models/song_download_url.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 class SongDetailCubit extends Cubit<SongDetailState> {
-  final SharedPreferencesStorage sharedPreferencesStorage;
+  final SongListUrlsCacheStorage songListUrlsCacheStorage;
   final ProjectsRepository projectsRepository;
   final int projectId;
   final int songId;
 
   SongDetailCubit({
-    required this.sharedPreferencesStorage,
+    required this.songListUrlsCacheStorage,
     required this.projectsRepository,
     required this.projectId,
     required this.songId,
@@ -42,59 +41,37 @@ class SongDetailCubit extends Cubit<SongDetailState> {
 
   Future<void> _downloadUrls() async {
     try {
-      final key = '${projectId}_urls';
-      final data = await sharedPreferencesStorage.getString(key);
-
       var refreshUrls = true;
 
-      log('Data: $data');
+      final urls = await songListUrlsCacheStorage.getSongListUrls(projectId);
+      final urlsValid = _validateUrls(urls);
 
-      if (data != null) {
-        final downloadUrls = SongListDownloadUrls.fromJson(jsonDecode(data));
-        log('Expires at: ${downloadUrls.expiresAt}');
-        final areExpired = downloadUrls.expiresAt.isBefore(DateTime.now());
-        log('Are expired: $areExpired');
-        final isLengthValid =
-            downloadUrls.songUrls.length == state.songs.length;
-        log('Is length valid: $isLengthValid');
-
-        if (!areExpired && isLengthValid) {
-          refreshUrls = false;
-          log('Urls are still valid');
-          emit(
-            SongDetailLoadUrlsSuccess(
-              state.songs,
-              state.currentSong,
-              downloadUrls,
-            ),
-          );
-        }
+      if (urlsValid) {
+        refreshUrls = false;
+        emit(
+          SongDetailLoadUrlsSuccess(
+            state.songs,
+            state.currentSong,
+            urls!,
+          ),
+        );
       }
 
-      log('Refresh urls: $refreshUrls');
-
       if (refreshUrls) {
-        await sharedPreferencesStorage.remove(key);
-
         emit(SongDetailLoadUrls(state.songs, state.currentSong));
-        final downloadUrls = await projectsRepository.getPlaylistDownloadUrls(
+        final newUrls = await projectsRepository.getPlaylistDownloadUrls(
           projectId,
         );
-
-        log('Downloaded urls: ${downloadUrls.songUrls}');
 
         emit(
           SongDetailLoadUrlsSuccess(
             state.songs,
             state.currentSong,
-            downloadUrls,
+            newUrls,
           ),
         );
 
-        await sharedPreferencesStorage.setString(
-          key,
-          jsonEncode(downloadUrls.toJson()),
-        );
+        songListUrlsCacheStorage.saveSongListUrls(projectId, newUrls);
       }
     } catch (e) {
       emit(
@@ -105,5 +82,21 @@ class SongDetailCubit extends Cubit<SongDetailState> {
         ),
       );
     }
+  }
+
+  bool _validateUrls(SongListDownloadUrls? urls) {
+    if (urls == null) return false;
+
+    final expired = urls.expiresAt.isBefore(DateTime.now());
+    if (expired) return false;
+
+    final songsDifference = state.songs
+      ..removeWhere(
+        (song) => urls.songUrls.any((su) => song.id == su.songId),
+      );
+
+    if (songsDifference.isNotEmpty) return false;
+
+    return true;
   }
 }

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/cubits/audio_player/audio_player_cubit.dart';
-import 'package:bandspace_mobile/core/storage/shared_preferences_storage.dart';
 import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_cubit.dart';
+import 'package:bandspace_mobile/features/song_detail/song_list_urls_cache_storage.dart';
 import 'package:bandspace_mobile/features/song_detail/views/song_view.dart';
 import 'package:bandspace_mobile/features/song_detail/widgets/song_detail/manage_songs_button.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
@@ -21,7 +21,7 @@ class SongDetailScreen extends StatelessWidget {
       providers: [
         BlocProvider(
           create: (context) => SongDetailCubit(
-            sharedPreferencesStorage: context.read<SharedPreferencesStorage>(),
+            songListUrlsCacheStorage: context.read<SongListUrlsCacheStorage>(),
             projectsRepository: context.read<ProjectsRepository>(),
             projectId: project.id,
             songId: selectedSong.id,
