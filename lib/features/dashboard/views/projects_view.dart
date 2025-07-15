@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:bandspace_mobile/core/widgets/load_failure_view.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_cubit.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_state.dart';
 import 'package:bandspace_mobile/features/dashboard/widgets/projects_list.dart';
@@ -37,25 +38,11 @@ class ProjectsView extends StatelessWidget {
                 ProjectsLoadSuccess() => ProjectsList(
                   projects: state.projects,
                 ),
-                ProjectsLoadFailure() => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withAlpha(25), // 0.1 * 255 = 25
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Colors.red.withAlpha(76),
-                        ), // 0.3 * 255 = 76
-                      ),
-                      child: Text(
-                        state.message,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ),
+                ProjectsLoadFailure() => LoadFailureView(
+                  title: 'Bład pobierania projektów',
+                  errorMessage: state.message,
+                  onRetry: () =>
+                      context.read<ProjectsCubit>().refreshProjects(),
                 ),
                 ProjectsState() => const SizedBox(),
               };

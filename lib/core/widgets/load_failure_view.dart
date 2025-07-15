@@ -47,7 +47,7 @@ class LoadFailureView extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             if (onRetry != null)
-              OutlinedButton(
+              ElevatedButton(
                 onPressed: onRetry,
                 child: const Text('Spróbuj ponownie'),
               ),
