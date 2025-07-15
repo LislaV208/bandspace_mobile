@@ -72,38 +72,5 @@ class ProjectsList extends StatelessWidget {
         ),
       ],
     );
-
-    // return const Center(
-    //   child: Padding(
-    //     padding: EdgeInsets.symmetric(vertical: 32.0),
-    //     child: Column(
-    //       mainAxisAlignment: MainAxisAlignment.center,
-    //       children: [
-    //         Icon(
-    //           LucideIcons.folderPlus,
-    //           size: 48,
-    //           color: Color(0xFF9CA3AF),
-    //         ),
-    //         SizedBox(height: 16),
-    //         Text(
-    //           'Nie masz jeszcze żadnych projektów',
-    //           style: TextStyle(
-    //             fontSize: 18,
-    //             fontWeight: FontWeight.w500,
-    //             color: Color(0xFF9CA3AF),
-    //           ),
-    //         ),
-    //         SizedBox(height: 8),
-    //         Text(
-    //           'Utwórz swój pierwszy projekt, aby rozpocząć',
-    //           style: TextStyle(
-    //             fontSize: 14,
-    //             color: Color(0xFF6B7280),
-    //           ),
-    //         ),
-    //       ],
-    //     ),
-    //   ),
-    // );
   }
 }

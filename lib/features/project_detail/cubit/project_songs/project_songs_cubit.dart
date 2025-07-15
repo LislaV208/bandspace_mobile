@@ -37,8 +37,15 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
         });
   }
 
-  Future<void> refreshSongs() async {
-    await projectsRepository.refreshSongs(projectId);
+  Future<void> refreshSongs({bool showLoading = false}) async {
+    if (showLoading) {
+      emit(const ProjectSongsLoading());
+    }
+    try {
+      await projectsRepository.refreshSongs(projectId);
+    } catch (e) {
+      emit(ProjectSongsLoadFailure(e.toString()));
+    }
   }
 
   Future<void> filterSongs(String query) async {
