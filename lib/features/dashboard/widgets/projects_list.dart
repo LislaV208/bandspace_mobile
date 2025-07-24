@@ -1,40 +1,96 @@
 import 'package:flutter/material.dart';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_cubit.dart';
+import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_state.dart';
 import 'package:bandspace_mobile/features/dashboard/widgets/project_list_item.dart';
-import 'package:bandspace_mobile/shared/models/project.dart';
 
 class ProjectsList extends StatelessWidget {
-  final List<Project> projects;
+  final ProjectsLoadSuccess state;
 
-  const ProjectsList({super.key, required this.projects});
+  const ProjectsList({super.key, required this.state});
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        await context.read<ProjectsCubit>().refreshProjects();
-      },
-      displacement: 0.0,
-      color: Theme.of(context).colorScheme.tertiary,
-      child: projects.isEmpty
-          ? _buildEmptyState()
-          : ListView(
-              padding: const EdgeInsets.only(bottom: 56.0),
-              children: projects.map(
-                (project) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: ProjectListItem(
-                      project: project,
+    final projects = state.projects;
+
+    if (projects.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 56.0),
+      children: [
+        AnimatedCrossFade(
+          sizeCurve: Curves.easeInOut,
+          firstCurve: Curves.easeIn,
+          secondCurve: Curves.easeOut,
+          duration: const Duration(milliseconds: 300),
+          firstChild: Padding(
+            padding: const EdgeInsets.only(bottom: 20.0),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: state is ProjectsRefreshFailure
+                  ? ListTile(
+                      dense: true,
+                      title: Text(
+                        'Brak połączenia z internetem',
+                      ),
+                      textColor: Theme.of(context).colorScheme.onErrorContainer,
+                      tileColor: Theme.of(context).colorScheme.errorContainer,
+                      leading: Icon(
+                        Icons.error_outline,
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                      subtitle: Text(
+                        'Dane mogą być nieaktualne',
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 12,
+                      children: [
+                        SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.0,
+                          ),
+                        ),
+                        Text('Odświeżanie danych...'),
+                      ],
                     ),
-                  );
-                },
-              ).toList(),
             ),
+          ),
+          secondChild: const SizedBox(),
+          crossFadeState:
+              state is ProjectsRefreshing || state is ProjectsRefreshFailure
+              ? CrossFadeState.showFirst
+              : CrossFadeState.showSecond,
+        ),
+        ...projects.map(
+          (project) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: ProjectListItem(
+                project: project,
+              ),
+            );
+          },
+        ),
+      ],
+      // children: projects.map(
+      //   (project) {
+      //     return Padding(
+      //       padding: const EdgeInsets.only(bottom: 16.0),
+      //       child: ProjectListItem(
+      //         project: project,
+      //       ),
+      //     );
+      //   },
+      // ).toList(),
     );
   }
 

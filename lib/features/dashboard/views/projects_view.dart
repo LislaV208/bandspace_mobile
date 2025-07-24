@@ -15,38 +15,69 @@ class ProjectsView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Moje projekty',
-          style: Theme.of(context).textTheme.headlineLarge,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Zarządzaj i organizuj swoje projekty muzyczne',
-        ),
-        const SizedBox(height: 32),
-        Expanded(
-          child: BlocBuilder<ProjectsCubit, ProjectsState>(
-            builder: (context, state) {
-              return switch (state) {
-                ProjectsInitial() => const SizedBox(),
-                ProjectsLoading() => const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(32.0),
-                    child: CircularProgressIndicator(),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Moje projekty',
+                    style: Theme.of(context).textTheme.headlineLarge,
                   ),
-                ),
-                ProjectsLoadSuccess() => ProjectsList(
-                  projects: state.projects,
-                ),
-                ProjectsLoadFailure() => LoadFailureView(
-                  title: 'Bład pobierania projektów',
-                  errorMessage: state.message,
-                  onRetry: () =>
-                      context.read<ProjectsCubit>().refreshProjects(),
-                ),
-                ProjectsState() => const SizedBox(),
-              };
-            },
+                  const SizedBox(height: 4),
+                  Text(
+                    'Zarządzaj i organizuj swoje projekty muzyczne',
+                  ),
+                ],
+              ),
+              BlocBuilder<ProjectsCubit, ProjectsState>(
+                builder: (context, state) {
+                  return Visibility(
+                    visible: state is ProjectsLoadSuccess,
+                    child: IconButton(
+                      onPressed: () {
+                        context.read<ProjectsCubit>().refreshProjects();
+                      },
+                      icon: AnimatedRotation(
+                        duration: const Duration(milliseconds: 200),
+                        turns: state is ProjectsRefreshing ? 0.4 : 0,
+                        child: Icon(Icons.refresh),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: BlocBuilder<ProjectsCubit, ProjectsState>(
+              builder: (context, state) {
+                return switch (state) {
+                  ProjectsInitial() => const SizedBox(),
+                  ProjectsLoading() => const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                  ProjectsLoadSuccess() => ProjectsList(state: state),
+                  ProjectsLoadFailure() => LoadFailureView(
+                    title: 'Bład pobierania projektów',
+                    errorMessage: state.message,
+                    onRetry: () =>
+                        context.read<ProjectsCubit>().refreshProjects(),
+                  ),
+                  ProjectsState() => const SizedBox(),
+                };
+              },
+            ),
           ),
         ),
       ],

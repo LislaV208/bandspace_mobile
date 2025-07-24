@@ -64,10 +64,7 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: ProjectsView(),
-                ),
+                child: ProjectsView(),
               ),
             ],
           ),

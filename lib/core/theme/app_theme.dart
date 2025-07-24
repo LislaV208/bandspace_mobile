@@ -47,9 +47,12 @@ class _AppColors {
   ); // Jaśniejszy niebieski dla zaznaczenia
 
   // Kolory statusów
-  static const Color error = Colors.redAccent;
-  static const Color errorBackground = Color(
-    0x33FF0000,
+  static const Color error = Color.fromARGB(255, 255, 224, 224);
+  static const Color errorBackground = Color.fromARGB(
+    99,
+    255,
+    0,
+    0,
   ); // Czerwony z alpha 0.2
   static const Color errorBorder = Color(0x80FF0000); // Czerwony z alpha 0.5
   static const Color success = Color(0xFF10B981); // emerald-500

@@ -35,6 +35,16 @@ class ProjectsLoadFailure extends ProjectsState {
   List<Object?> get props => [message];
 }
 
+class ProjectsRefreshing extends ProjectsLoadSuccess {
+  const ProjectsRefreshing(super.projects);
+}
+
+class ProjectsRefreshFailure extends ProjectsLoadSuccess {
+  final String message;
+
+  const ProjectsRefreshFailure(super.projects, this.message);
+}
+
 class ProjectsCreatingProjectState extends ProjectsLoadSuccess {
   const ProjectsCreatingProjectState(super.projects);
 }

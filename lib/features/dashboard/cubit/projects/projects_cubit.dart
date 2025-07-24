@@ -44,7 +44,17 @@ class ProjectsCubit extends Cubit<ProjectsState> {
   }
 
   Future<void> refreshProjects() async {
-    await projectsRepository.refreshProjects();
+    final currentState = state;
+
+    if (currentState is ProjectsLoadSuccess) {
+      try {
+        emit(ProjectsRefreshing(currentState.projects));
+        await Future.delayed(const Duration(milliseconds: 300));
+        await projectsRepository.refreshProjects();
+      } catch (e) {
+        emit(ProjectsRefreshFailure(currentState.projects, e.toString()));
+      }
+    }
   }
 
   void pauseUpdates() => _acceptStreamUpdates = false;
