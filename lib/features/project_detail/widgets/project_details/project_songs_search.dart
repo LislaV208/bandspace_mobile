@@ -34,42 +34,47 @@ class _ProjectSongsSearchState extends State<ProjectSongsSearch> {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: _searchController,
-      style: AppTextStyles.bodyMedium.copyWith(
-        color: AppColors.textPrimary,
-      ),
-      decoration: InputDecoration(
-        hintText: 'Szukaj utworów...',
-        hintStyle: AppTextStyles.bodyMedium.copyWith(
-          color: AppColors.textSecondary,
-        ),
-        prefixIcon: const Icon(
-          LucideIcons.search,
-          color: AppColors.textSecondary,
-        ),
-        suffixIcon: _searchController.text.isNotEmpty
-            ? IconButton(
-                icon: const Icon(
-                  LucideIcons.x,
-                  color: AppColors.textSecondary,
-                ),
-                onPressed: () {
-                  _searchController.clear();
-                },
-              )
-            : null,
-        filled: true,
-        fillColor: AppColors.surfaceDark,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
-      ),
+    return ValueListenableBuilder(
+      valueListenable: _searchController,
+      builder: (context, value, child) {
+        return TextField(
+          controller: _searchController,
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.textPrimary,
+          ),
+          decoration: InputDecoration(
+            hintText: 'Szukaj utworów...',
+            hintStyle: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
+            prefixIcon: const Icon(
+              LucideIcons.search,
+              color: AppColors.textSecondary,
+            ),
+            suffixIcon: _searchController.text.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(
+                      LucideIcons.x,
+                      color: AppColors.textSecondary,
+                    ),
+                    onPressed: () {
+                      _searchController.clear();
+                    },
+                  )
+                : null,
+            filled: true,
+            fillColor: AppColors.surfaceDark,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+          ),
+        );
+      },
     );
   }
 }

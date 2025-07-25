@@ -27,30 +27,55 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
   }
 
   Future<void> loadSongs() async {
-    emit(const ProjectSongsLoading());
+    final response = await projectsRepository.getSongs(projectId);
+    final cached = response.cached;
+    final stream = response.stream;
+
+    if (cached != null) {
+      emit(ProjectSongsReady(cached));
+    } else {
+      emit(const ProjectSongsLoading());
+    }
 
     _songsSubscription =
-        projectsRepository.getSongs(projectId).listen((songs) {
-          emit(ProjectSongsLoadSuccess(songs));
+        stream.listen((songs) {
+          emit(ProjectSongsReady(songs));
         })..onError((error) {
-          emit(ProjectSongsLoadFailure(error.toString()));
+          final currentState = state;
+          if (currentState is ProjectSongsReady) {
+            emit(
+              ProjectSongsRefreshFailure(currentState.songs, error.toString()),
+            );
+          } else {
+            emit(ProjectSongsLoadFailure(error.toString()));
+          }
         });
   }
 
-  Future<void> refreshSongs({bool showLoading = false}) async {
-    if (showLoading) {
-      emit(const ProjectSongsLoading());
-    }
-    try {
-      await projectsRepository.refreshSongs(projectId);
-    } catch (e) {
-      emit(ProjectSongsLoadFailure(e.toString()));
+  Future<void> refreshSongs() async {
+    final currentState = state;
+
+    if (currentState is ProjectSongsReady) {
+      try {
+        emit(ProjectSongsRefreshing(currentState.songs));
+        await Future.delayed(const Duration(milliseconds: 500));
+        await projectsRepository.refreshSongs(projectId);
+      } catch (e) {
+        emit(ProjectSongsRefreshFailure(currentState.songs, e.toString()));
+      }
+    } else if (currentState is ProjectSongsLoadFailure) {
+      try {
+        emit(const ProjectSongsLoading());
+        await projectsRepository.refreshSongs(projectId);
+      } catch (e) {
+        emit(ProjectSongsLoadFailure(e.toString()));
+      }
     }
   }
 
   Future<void> filterSongs(String query) async {
-    if (state is ProjectSongsLoadSuccess) {
-      final currentState = state as ProjectSongsLoadSuccess;
+    if (state is ProjectSongsReady) {
+      final currentState = state as ProjectSongsReady;
       final filteredSongs = currentState.songs.where((song) {
         return song.title.toLowerCase().contains(query.toLowerCase());
       }).toList();

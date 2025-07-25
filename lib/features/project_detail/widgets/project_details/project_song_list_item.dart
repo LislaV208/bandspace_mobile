@@ -22,41 +22,68 @@ class ProjectSongListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      shape: RoundedRectangleBorder(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => SongDetailScreen.create(
+                context.read<ProjectDetailCubit>().state.project,
+                songsList,
+                song,
+              ),
+            ),
+          );
+        },
         borderRadius: BorderRadius.circular(12),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: _buildContent(context),
+        ),
       ),
-      tileColor: AppColors.surface,
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => SongDetailScreen.create(
-              context.read<ProjectDetailCubit>().state.project,
-              songsList,
-              song,
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Row(
+        children: [
+          _buildSongIcon(),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  song.title,
+                  style: AppTextStyles.bodyLarge.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  DateFormatUtils.formatRelativeTime(song.createdAt),
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
             ),
           ),
-        );
-      },
-      leading: _buildSongIcon(),
-      title: Text(
-        song.title,
-        style: AppTextStyles.bodyLarge.copyWith(
-          color: AppColors.textPrimary,
-          fontWeight: FontWeight.w500,
-        ),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Text(
-        DateFormatUtils.formatRelativeTime(song.createdAt),
-        style: AppTextStyles.bodySmall.copyWith(
-          color: AppColors.textSecondary,
-        ),
-      ),
-      trailing: Icon(
-        LucideIcons.chevronRight,
+          Icon(
+            LucideIcons.chevronRight,
+            color: AppColors.textSecondary,
+          ),
+        ],
       ),
     );
   }

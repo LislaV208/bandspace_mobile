@@ -9,7 +9,7 @@ import 'package:bandspace_mobile/features/project_detail/widgets/project_details
 import 'package:bandspace_mobile/features/project_detail/widgets/project_details/project_songs_search.dart';
 
 class ProjectSongsList extends StatelessWidget {
-  final ProjectSongsLoadSuccess state;
+  final ProjectSongsReady state;
 
   const ProjectSongsList({super.key, required this.state});
 
@@ -19,34 +19,90 @@ class ProjectSongsList extends StatelessWidget {
         ? (state as ProjectSongsFiltered).filteredSongs
         : state.songs;
 
-    return Column(
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 56.0),
       children: [
-        if (songs.isNotEmpty) const ProjectSongsSearch(),
+        Row(
+          children: [
+            Expanded(
+              child: const ProjectSongsSearch(),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              onPressed: () {
+                context.read<ProjectSongsCubit>().refreshSongs();
+              },
+              icon: AnimatedRotation(
+                duration: const Duration(milliseconds: 200),
+                turns: state is ProjectSongsRefreshing ? 0.4 : 0,
+                child: Icon(Icons.refresh),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 16),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () async {
-              await context.read<ProjectSongsCubit>().refreshSongs();
-            },
-            displacement: 0.0,
-            color: Theme.of(context).colorScheme.tertiary,
-            child: songs.isEmpty
-                ? _buildEmptyState(context, state)
-                : ListView.builder(
-                    itemCount: songs.length,
-                    itemBuilder: (context, index) {
-                      final song = songs[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0),
-                        child: ProjectSongListItem(
-                          songsList: songs,
-                          song: song,
+        AnimatedCrossFade(
+          sizeCurve: Curves.easeInOut,
+          firstCurve: Curves.easeIn,
+          secondCurve: Curves.easeOut,
+          duration: const Duration(milliseconds: 300),
+          firstChild: Padding(
+            padding: const EdgeInsets.only(bottom: 20.0),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: state is ProjectSongsRefreshFailure
+                  ? ListTile(
+                      dense: true,
+                      title: Text(
+                        'Brak połączenia z internetem',
+                      ),
+                      textColor: Theme.of(context).colorScheme.onErrorContainer,
+                      tileColor: Theme.of(context).colorScheme.errorContainer,
+                      leading: Icon(
+                        Icons.error_outline,
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                      subtitle: Text(
+                        'Dane mogą być nieaktualne',
+                      ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 12,
+                      children: [
+                        SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.0,
+                          ),
                         ),
-                      );
-                    },
-                    padding: const EdgeInsets.only(bottom: 56.0),
-                  ),
+                        Text('Odświeżanie danych...'),
+                      ],
+                    ),
+            ),
           ),
+          secondChild: const SizedBox(),
+          crossFadeState:
+              state is ProjectSongsRefreshing ||
+                  state is ProjectSongsRefreshFailure
+              ? CrossFadeState.showFirst
+              : CrossFadeState.showSecond,
+        ),
+        if (songs.isEmpty)
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: _buildEmptyState(context, state),
+          ),
+        ...songs.map(
+          (song) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: ProjectSongListItem(
+                songsList: songs,
+                song: song,
+              ),
+            );
+          },
         ),
       ],
     );
@@ -54,47 +110,46 @@ class ProjectSongsList extends StatelessWidget {
 
   Widget _buildEmptyState(
     BuildContext context,
-    ProjectSongsLoadSuccess state,
+    ProjectSongsReady state,
   ) {
-    if (state is ProjectSongsFiltered) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              LucideIcons.searchX,
-              size: 64,
+    return state is ProjectSongsFiltered
+        ? Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  LucideIcons.searchX,
+                  size: 64,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Brak utworów spełniających kryteria wyszukiwania',
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Brak utworów spełniających kryteria wyszukiwania',
-              textAlign: TextAlign.center,
+          )
+        : Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  LucideIcons.music,
+                  size: 64,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Brak utworów w projekcie',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Dodaj pierwszy utwór, aby rozpocząć pracę',
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-          ],
-        ),
-      );
-    }
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            LucideIcons.music,
-            size: 64,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Brak utworów w projekcie',
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Dodaj pierwszy utwór, aby rozpocząć pracę',
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
+          );
   }
 }

@@ -81,16 +81,6 @@ class ProjectsList extends StatelessWidget {
           },
         ),
       ],
-      // children: projects.map(
-      //   (project) {
-      //     return Padding(
-      //       padding: const EdgeInsets.only(bottom: 16.0),
-      //       child: ProjectListItem(
-      //         project: project,
-      //       ),
-      //     );
-      //   },
-      // ).toList(),
     );
   }
 

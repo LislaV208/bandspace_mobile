@@ -21,15 +21,13 @@ class ProjectDetailsView extends StatelessWidget {
             ProjectSongsLoading() => const Center(
               child: CircularProgressIndicator(),
             ),
-            ProjectSongsLoadSuccess() => ProjectSongsList(
+            ProjectSongsReady() => ProjectSongsList(
               state: state,
             ),
             ProjectSongsLoadFailure() => LoadFailureView(
               title: 'Wystąpił błąd podczas ładowania utworów',
               errorMessage: state.message,
-              onRetry: () => context.read<ProjectSongsCubit>().refreshSongs(
-                showLoading: true,
-              ),
+              onRetry: () => context.read<ProjectSongsCubit>().refreshSongs(),
             ),
             _ => const SizedBox(),
           };

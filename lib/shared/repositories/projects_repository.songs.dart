@@ -3,8 +3,8 @@ part of 'projects_repository.dart';
 extension SongsManagement on ProjectsRepository {
   // Pobiera listę utworów dla danego projektu.
   // GET /api/projects/{projectId}/songs
-  Stream<List<Song>> getSongs(int projectId) {
-    return reactiveListStream<Song>(
+  Future<RepositoryResponse<List<Song>>> getSongs(int projectId) {
+    return hybridListStream<Song>(
       methodName: 'getSongs',
       parameters: {'projectId': projectId},
       remoteCall: () async => _fetchSongs(projectId),

@@ -21,13 +21,6 @@ class ProjectsRepository extends CachedRepository {
   // Pobiera listę wszystkich projektów użytkownika.
   // GET /api/projects
   Future<RepositoryResponse<List<Project>>> getProjects() {
-    // return reactiveListStream<Project>(
-    //   methodName: 'getProjects',
-    //   parameters: {},
-    //   remoteCall: _fetchProjects,
-    //   fromJson: (json) => _projectFromJson(json),
-    // );
-
     return hybridListStream<Project>(
       methodName: 'getProjects',
       parameters: {},

@@ -69,6 +69,13 @@ class ProjectsCubit extends Cubit<ProjectsState> {
       } catch (e) {
         emit(ProjectsRefreshFailure(currentState.projects, e.toString()));
       }
+    } else if (currentState is ProjectsLoadFailure) {
+      try {
+        emit(ProjectsLoading());
+        await projectsRepository.refreshProjects();
+      } catch (e) {
+        emit(ProjectsLoadFailure(e.toString()));
+      }
     }
   }
 
