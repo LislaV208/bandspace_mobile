@@ -349,7 +349,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     'Strefa zagrożenia',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.error,
                     ),
                   ),
                 ),
@@ -367,9 +366,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       title: Text(
                         'Usuń konto',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
                       ),
                       subtitle: const Text('Ta operacja jest nieodwracalna'),
                       trailing: isDeleting
