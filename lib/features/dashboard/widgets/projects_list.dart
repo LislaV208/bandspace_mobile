@@ -6,7 +6,7 @@ import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_stat
 import 'package:bandspace_mobile/features/dashboard/widgets/project_list_item.dart';
 
 class ProjectsList extends StatelessWidget {
-  final ProjectsLoadSuccess state;
+  final ProjectsReady state;
 
   const ProjectsList({super.key, required this.state});
 
@@ -54,7 +54,7 @@ class ProjectsList extends StatelessWidget {
                       spacing: 12,
                       children: [
                         SizedBox.square(
-                          dimension: 20,
+                          dimension: 18,
                           child: CircularProgressIndicator(
                             strokeWidth: 2.0,
                           ),

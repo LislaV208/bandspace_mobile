@@ -3,6 +3,16 @@ import 'package:rxdart/rxdart.dart';
 
 import 'package:bandspace_mobile/core/api/api_repository.dart';
 
+class RepositoryResponse<T> {
+  final T? cached;
+  final Stream<T> stream;
+
+  const RepositoryResponse({
+    required this.cached,
+    required this.stream,
+  });
+}
+
 /// Abstrakcyjna klasa bazowa dla repozytoriów z obsługą cache'owania i offline-first.
 ///
 /// Wszystkie repozytoria dziedziczące po tej klasie będą automatycznie
@@ -231,11 +241,81 @@ abstract class CachedRepository extends ApiRepository {
     }
   }
 
+  /// Hybrydowy stream dla listy zwracający zarówno cache jak i fresh stream.
+  ///
+  /// Zwraca Future z RepositoryResponse zawierającym:
+  /// - cached: dane z cache (null jeśli brak cache)
+  /// - stream: reaktywny stream który automatycznie aktualizuje się podczas refreshList
+  /// [customCacheKeyPrefix] pozwala nadpisać domyślny prefiks cache key.
+  Future<RepositoryResponse<List<T>>> hybridListStream<T>({
+    required String methodName,
+    required Map<String, dynamic> parameters,
+    required Future<List<T>> Function() remoteCall,
+    required T Function(Map<String, dynamic>) fromJson,
+    Duration? cacheDuration,
+    String? customCacheKeyPrefix,
+  }) async {
+    final cacheKey = _generateCacheKeyWithPrefix(
+      methodName,
+      parameters,
+      customCacheKeyPrefix,
+    );
+
+    final duration =
+        cacheDuration ??
+        methodCacheStrategies[methodName] ??
+        defaultCacheDuration;
+
+    // Pobierz dane z cache (asynchronicznie)
+    List<T>? cachedData;
+    try {
+      cachedData = await RemoteCaching.instance.call<List<T>>(
+        cacheKey,
+        remote: () async => throw Exception('Cache miss'),
+        fromJson: (json) {
+          if (json is List) {
+            return json
+                .map((item) => fromJson(item as Map<String, dynamic>))
+                .toList();
+          }
+          return <T>[];
+        },
+        cacheDuration: duration,
+      );
+    } catch (_) {
+      // Cache miss - cachedData pozostaje null
+      cachedData = null;
+    }
+
+    // Sprawdź czy już istnieje reactive stream dla tego klucza
+    if (!_reactiveStreams.containsKey(cacheKey)) {
+      _reactiveStreams[cacheKey] = BehaviorSubject<List<T>>();
+
+      // Rozpocznij ładowanie świeżych danych w tle
+      _loadAndEmitData<T>(
+        cacheKey: cacheKey,
+        methodName: methodName,
+        parameters: parameters,
+        remoteCall: remoteCall,
+        fromJson: fromJson,
+        cacheDuration: cacheDuration,
+        customCacheKeyPrefix: customCacheKeyPrefix,
+      );
+    }
+
+    // Zwróć cached dane i reaktywny stream
+    return RepositoryResponse(
+      cached: cachedData,
+      stream: _reactiveStreams[cacheKey]!.stream.cast<List<T>>(),
+    );
+  }
+
   /// Reaktywny stream dla listy z BehaviorSubject.
   ///
   /// Zwraca Stream który będzie emitować nowe dane za każdym razem,
   /// gdy lista zostanie zaktualizowana przez inne metody.
   /// [customCacheKeyPrefix] pozwala nadpisać domyślny prefiks cache key.
+  @Deprecated('Use hybridListStream instead')
   Stream<List<T>> reactiveListStream<T>({
     required String methodName,
     required Map<String, dynamic> parameters,
@@ -369,31 +449,6 @@ abstract class CachedRepository extends ApiRepository {
         defaultCacheDuration;
 
     try {
-      // Najpierw próbuj pobrać z cache
-      List<T>? cachedResult;
-      try {
-        cachedResult = await RemoteCaching.instance.call<List<T>>(
-          cacheKey,
-          remote: () async => throw Exception('Cache miss'),
-          fromJson: (json) {
-            if (json is List) {
-              return json
-                  .map((item) => fromJson(item as Map<String, dynamic>))
-                  .toList();
-            }
-            return <T>[];
-          },
-          cacheDuration: duration,
-        );
-      } catch (error) {
-        cachedResult = null;
-      }
-
-      if (cachedResult != null) {
-        // Emit dane z cache
-        _reactiveStreams[cacheKey]?.add(cachedResult);
-      }
-
       // Zawsze pobierz świeże dane z API
       final freshResult = await RemoteCaching.instance.call<List<T>>(
         cacheKey,
@@ -410,10 +465,8 @@ abstract class CachedRepository extends ApiRepository {
         forceRefresh: true,
       );
 
-      // Emit świeże dane (jeśli różnią się od cache)
-      if (cachedResult == null || !_listsEqual(cachedResult, freshResult)) {
-        _reactiveStreams[cacheKey]?.add(freshResult);
-      }
+      // Emit świeże dane
+      _reactiveStreams[cacheKey]?.add(freshResult);
     } catch (e) {
       _reactiveStreams[cacheKey]?.addError(e);
     }

@@ -17,10 +17,10 @@ class ProjectsLoading extends ProjectsState {
   const ProjectsLoading();
 }
 
-class ProjectsLoadSuccess extends ProjectsState {
+class ProjectsReady extends ProjectsState {
   final List<Project> projects;
 
-  const ProjectsLoadSuccess(this.projects);
+  const ProjectsReady(this.projects);
 
   @override
   List<Object?> get props => [projects];
@@ -35,17 +35,17 @@ class ProjectsLoadFailure extends ProjectsState {
   List<Object?> get props => [message];
 }
 
-class ProjectsRefreshing extends ProjectsLoadSuccess {
+class ProjectsRefreshing extends ProjectsReady {
   const ProjectsRefreshing(super.projects);
 }
 
-class ProjectsRefreshFailure extends ProjectsLoadSuccess {
+class ProjectsRefreshFailure extends ProjectsReady {
   final String message;
 
   const ProjectsRefreshFailure(super.projects, this.message);
 }
 
-class ProjectsCreatingProjectState extends ProjectsLoadSuccess {
+class ProjectsCreatingProjectState extends ProjectsReady {
   const ProjectsCreatingProjectState(super.projects);
 }
 

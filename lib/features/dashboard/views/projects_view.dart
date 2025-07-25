@@ -37,7 +37,7 @@ class ProjectsView extends StatelessWidget {
               BlocBuilder<ProjectsCubit, ProjectsState>(
                 builder: (context, state) {
                   return Visibility(
-                    visible: state is ProjectsLoadSuccess,
+                    visible: state is ProjectsReady,
                     child: IconButton(
                       onPressed: () {
                         context.read<ProjectsCubit>().refreshProjects();
@@ -67,7 +67,7 @@ class ProjectsView extends StatelessWidget {
                       child: CircularProgressIndicator(),
                     ),
                   ),
-                  ProjectsLoadSuccess() => ProjectsList(state: state),
+                  ProjectsReady() => ProjectsList(state: state),
                   ProjectsLoadFailure() => LoadFailureView(
                     title: 'Bład pobierania projektów',
                     errorMessage: state.message,

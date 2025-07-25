@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:lucide_icons_flutter/lucide_icons.dart';
-
 class LoadFailureView extends StatelessWidget {
   final String title;
   final String errorMessage;
@@ -23,7 +21,7 @@ class LoadFailureView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              LucideIcons.x,
+              Icons.error_outline,
               size: 64,
               color: Theme.of(context).colorScheme.error,
             ),
@@ -47,9 +45,10 @@ class LoadFailureView extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             if (onRetry != null)
-              ElevatedButton(
+              FilledButton.icon(
                 onPressed: onRetry,
-                child: const Text('Spróbuj ponownie'),
+                label: const Text('Spróbuj ponownie'),
+                icon: const Icon(Icons.refresh),
               ),
           ],
         ),

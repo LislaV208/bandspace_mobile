@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:bandspace_mobile/shared/models/song_download_url.dart';
 import 'package:dio/dio.dart';
 
 import 'package:bandspace_mobile/core/api/cached_repository.dart';
@@ -8,6 +7,7 @@ import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/project_member.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
 import 'package:bandspace_mobile/shared/models/song_create_data.dart';
+import 'package:bandspace_mobile/shared/models/song_download_url.dart';
 import 'package:bandspace_mobile/shared/models/update_song_data.dart';
 
 part 'projects_repository.songs.dart';
@@ -20,18 +20,15 @@ class ProjectsRepository extends CachedRepository {
 
   // Pobiera listę wszystkich projektów użytkownika.
   // GET /api/projects
-  Stream<List<Project>> getProjects({bool forceRefresh = false}) {
-    if (forceRefresh) {
-      return cachedListStream<Project>(
-        methodName: 'getProjects',
-        parameters: {},
-        remoteCall: _fetchProjects,
-        fromJson: (json) => _projectFromJson(json),
-        forceRefresh: forceRefresh,
-      );
-    }
+  Future<RepositoryResponse<List<Project>>> getProjects() {
+    // return reactiveListStream<Project>(
+    //   methodName: 'getProjects',
+    //   parameters: {},
+    //   remoteCall: _fetchProjects,
+    //   fromJson: (json) => _projectFromJson(json),
+    // );
 
-    return reactiveListStream<Project>(
+    return hybridListStream<Project>(
       methodName: 'getProjects',
       parameters: {},
       remoteCall: _fetchProjects,

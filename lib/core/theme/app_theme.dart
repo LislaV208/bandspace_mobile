@@ -48,12 +48,7 @@ class _AppColors {
 
   // Kolory statusów
   static const Color error = Color.fromARGB(255, 255, 224, 224);
-  static const Color errorBackground = Color.fromARGB(
-    99,
-    255,
-    0,
-    0,
-  ); // Czerwony z alpha 0.2
+  static const Color errorBackground = Color(0xB0FF0000);
   static const Color errorBorder = Color(0x80FF0000); // Czerwony z alpha 0.5
   static const Color success = Color(0xFF10B981); // emerald-500
   static const Color warning = Color(0xFFF59E0B); // amber-500
@@ -63,6 +58,11 @@ class _AppColors {
   static const Color buttonPrimaryDisabled = Color(
     0x802563EB,
   ); // bg-blue-600 z alpha 0.5
+
+  static const Color buttonSecondary = Color(0xFF3A4DB0); // bg-blue-500
+  static const Color buttonSecondaryDisabled = Color(
+    0x803A4DB0,
+  ); // bg-blue-500 z alpha 0.5
 
   // Kolory dividerów
   static const Color divider = Color(0xFF374151); // border-gray-700
@@ -88,6 +88,7 @@ class AppTheme {
 
       // Konfiguracja przycisków
       elevatedButtonTheme: _elevatedButtonTheme,
+      filledButtonTheme: _filledButtonTheme,
       outlinedButtonTheme: _outlinedButtonTheme,
       textButtonTheme: _textButtonTheme,
 
@@ -156,7 +157,7 @@ class AppTheme {
       onTertiary: Colors.white,
       tertiaryContainer: _AppColors.accentLight,
       onTertiaryContainer: Colors.white,
-      error: _AppColors.error,
+      error: _AppColors.errorBackground,
       onError: Colors.white,
       errorContainer: _AppColors.errorBackground,
       onErrorContainer: _AppColors.error,
@@ -204,6 +205,21 @@ class AppTheme {
         disabledBackgroundColor: _AppColors.buttonPrimaryDisabled,
         disabledForegroundColor: Colors.white70,
         padding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        textStyle: AppTextStyles.buttonMedium,
+      ),
+    );
+  }
+
+  // Motyw przycisków Filled
+  static FilledButtonThemeData get _filledButtonTheme {
+    return FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: _AppColors.buttonSecondary,
+        foregroundColor: Colors.white,
+        disabledBackgroundColor: _AppColors.buttonSecondaryDisabled,
+        disabledForegroundColor: Colors.white70,
+        // padding: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         textStyle: AppTextStyles.buttonMedium,
       ),

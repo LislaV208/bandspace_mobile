@@ -6,7 +6,7 @@ import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_stat
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
-/// Cubit zarządzający listą projektów na ekranie dashboardu
+/// Cubit zarządzający listą projektów
 class ProjectsCubit extends Cubit<ProjectsState> {
   final ProjectsRepository projectsRepository;
 
@@ -27,18 +27,33 @@ class ProjectsCubit extends Cubit<ProjectsState> {
   }
 
   Future<void> loadProjects() async {
-    emit(const ProjectsLoading());
+    final response = await projectsRepository.getProjects();
+    final cached = response.cached;
+    final stream = response.stream;
+
+    if (cached != null) {
+      emit(ProjectsRefreshing(cached));
+    } else {
+      emit(const ProjectsLoading());
+    }
 
     projectsSubscription =
-        projectsRepository.getProjects().listen((
+        stream.listen((
           projects,
         ) {
           if (!_acceptStreamUpdates) return;
 
-          emit(ProjectsLoadSuccess(projects));
+          emit(ProjectsReady(projects));
         })..onError(
           (error) {
-            emit(ProjectsLoadFailure(error.toString()));
+            final currentState = state;
+            if (currentState is ProjectsRefreshing) {
+              emit(
+                ProjectsRefreshFailure(currentState.projects, error.toString()),
+              );
+            } else {
+              emit(ProjectsLoadFailure(error.toString()));
+            }
           },
         );
   }
@@ -46,10 +61,10 @@ class ProjectsCubit extends Cubit<ProjectsState> {
   Future<void> refreshProjects() async {
     final currentState = state;
 
-    if (currentState is ProjectsLoadSuccess) {
+    if (currentState is ProjectsReady) {
       try {
         emit(ProjectsRefreshing(currentState.projects));
-        await Future.delayed(const Duration(milliseconds: 300));
+        await Future.delayed(const Duration(milliseconds: 500));
         await projectsRepository.refreshProjects();
       } catch (e) {
         emit(ProjectsRefreshFailure(currentState.projects, e.toString()));
