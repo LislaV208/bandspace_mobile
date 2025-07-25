@@ -98,7 +98,7 @@ class ProjectSongsList extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
               child: ProjectSongListItem(
-                songsList: songs,
+                songsList: state.songs,
                 song: song,
               ),
             );

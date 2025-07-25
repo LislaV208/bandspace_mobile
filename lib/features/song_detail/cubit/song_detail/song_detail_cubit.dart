@@ -23,6 +23,10 @@ class SongDetailCubit extends Cubit<SongDetailState> {
     required Song currentSong,
   }) : super(SongDetailInitial(songs, currentSong)) {
     log('SongDetailCubit created');
+
+    log(
+      'Songs in SongDetailCubit: ${state.songs.map((s) => '${s.id}:${s.title}').toList()}',
+    );
     _downloadUrls();
   }
 

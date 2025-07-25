@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,6 +8,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/core/utils/date_format_utils.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_cubit.dart';
+import 'package:bandspace_mobile/features/project_detail/cubit/project_songs/project_songs_cubit.dart';
+import 'package:bandspace_mobile/features/project_detail/cubit/project_songs/project_songs_state.dart';
 import 'package:bandspace_mobile/features/song_detail/screens/song_detail_screen.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
 
@@ -22,16 +26,30 @@ class ProjectSongListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    log(
+      'Building ProjectSongListItem for song: ${song.title} (id: ${song.id})',
+    );
+    log('Songs list: ${songsList.map((s) => '${s.id}:${s.title}').toList()}');
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
+          log(
+            'Navigating to SongDetailScreen for song: ${song.title} (id: ${song.id})',
+          );
+          log(
+            'Songs list: ${songsList.map((s) => '${s.id}:${s.title}').toList()}',
+          );
+          final state = context.read<ProjectSongsCubit>().state;
+
+          final songs = state is ProjectSongsReady ? state.songs : <Song>[];
+
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => SongDetailScreen.create(
                 context.read<ProjectDetailCubit>().state.project,
-                songsList,
+                songs,
                 song,
               ),
             ),
