@@ -27,7 +27,6 @@ class ProjectListItem extends StatelessWidget {
         child: Ink(
           decoration: BoxDecoration(
             color: const Color(0xFF1F2937), // bg-gray-800
-
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
