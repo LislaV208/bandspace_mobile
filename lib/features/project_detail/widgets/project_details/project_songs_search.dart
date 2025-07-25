@@ -43,7 +43,7 @@ class _ProjectSongsSearchState extends State<ProjectSongsSearch> {
             color: AppColors.textPrimary,
           ),
           decoration: InputDecoration(
-            hintText: 'Szukaj utworów...',
+            hintText: 'Szukaj',
             hintStyle: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.textSecondary,
             ),

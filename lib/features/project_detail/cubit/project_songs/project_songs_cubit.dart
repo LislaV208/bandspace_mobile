@@ -39,9 +39,8 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
 
     _songsSubscription =
         stream.listen((songs) async {
-          if (state is ProjectSongsRefreshing) {
-            await Future.delayed(const Duration(milliseconds: 500));
-          }
+          await Future.delayed(const Duration(milliseconds: 500));
+
           emit(ProjectSongsReady(songs));
         })..onError((error) {
           final currentState = state;
@@ -57,6 +56,8 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
 
   Future<void> refreshSongs() async {
     final currentState = state;
+
+    if (currentState is ProjectSongsRefreshing) return;
 
     if (currentState is ProjectSongsReady) {
       try {
