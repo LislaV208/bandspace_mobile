@@ -32,13 +32,16 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
     final stream = response.stream;
 
     if (cached != null) {
-      emit(ProjectSongsReady(cached));
+      emit(ProjectSongsRefreshing(cached));
     } else {
       emit(const ProjectSongsLoading());
     }
 
     _songsSubscription =
-        stream.listen((songs) {
+        stream.listen((songs) async {
+          if (state is ProjectSongsRefreshing) {
+            await Future.delayed(const Duration(milliseconds: 500));
+          }
           emit(ProjectSongsReady(songs));
         })..onError((error) {
           final currentState = state;

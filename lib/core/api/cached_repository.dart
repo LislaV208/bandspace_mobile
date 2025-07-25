@@ -22,15 +22,13 @@ abstract class CachedRepository extends ApiRepository {
     required super.apiClient,
   });
 
-  /// Mapa przechowująca BehaviorSubject streams dla reaktywnych list.
-  /// Klucz: cache key, wartość: BehaviorSubject z danymi.
-  static final Map<String, BehaviorSubject<List<dynamic>>> _reactiveStreams =
-      {};
+  /// Mapa przechowująca PublishSubject streams dla reaktywnych list.
+  /// Klucz: cache key, wartość: PublishSubject z danymi.
+  static final Map<String, PublishSubject<List<dynamic>>> _reactiveStreams = {};
 
-  /// Mapa przechowująca BehaviorSubject streams dla reaktywnych pojedynczych elementów.
-  /// Klucz: cache key, wartość: BehaviorSubject z danymi.
-  static final Map<String, BehaviorSubject<dynamic>> _reactiveSingleStreams =
-      {};
+  /// Mapa przechowująca PublishSubject streams dla reaktywnych pojedynczych elementów.
+  /// Klucz: cache key, wartość: PublishSubject z danymi.
+  static final Map<String, PublishSubject<dynamic>> _reactiveSingleStreams = {};
 
   /// Domyślny czas cache'owania dla tego repozytorium.
   /// Może być nadpisany w konkretnych implementacjach.
@@ -289,19 +287,18 @@ abstract class CachedRepository extends ApiRepository {
 
     // Sprawdź czy już istnieje reactive stream dla tego klucza
     if (!_reactiveStreams.containsKey(cacheKey)) {
-      _reactiveStreams[cacheKey] = BehaviorSubject<List<T>>();
-
-      // Rozpocznij ładowanie świeżych danych w tle
-      _loadAndEmitData<T>(
-        cacheKey: cacheKey,
-        methodName: methodName,
-        parameters: parameters,
-        remoteCall: remoteCall,
-        fromJson: fromJson,
-        cacheDuration: cacheDuration,
-        customCacheKeyPrefix: customCacheKeyPrefix,
-      );
+      _reactiveStreams[cacheKey] = PublishSubject<List<T>>();
     }
+    // Rozpocznij ładowanie świeżych danych w tle
+    _loadAndEmitData<T>(
+      cacheKey: cacheKey,
+      methodName: methodName,
+      parameters: parameters,
+      remoteCall: remoteCall,
+      fromJson: fromJson,
+      cacheDuration: cacheDuration,
+      customCacheKeyPrefix: customCacheKeyPrefix,
+    );
 
     // Zwróć cached dane i reaktywny stream
     return RepositoryResponse(
@@ -310,7 +307,7 @@ abstract class CachedRepository extends ApiRepository {
     );
   }
 
-  /// Reaktywny stream dla listy z BehaviorSubject.
+  /// Reaktywny stream dla listy z PublishSubject.
   ///
   /// Zwraca Stream który będzie emitować nowe dane za każdym razem,
   /// gdy lista zostanie zaktualizowana przez inne metody.
@@ -332,7 +329,7 @@ abstract class CachedRepository extends ApiRepository {
 
     // Sprawdź czy już istnieje subject dla tego klucza
     if (!_reactiveStreams.containsKey(cacheKey)) {
-      _reactiveStreams[cacheKey] = BehaviorSubject<List<T>>();
+      _reactiveStreams[cacheKey] = PublishSubject<List<T>>();
 
       // Rozpocznij ładowanie danych
       _loadAndEmitData<T>(
@@ -349,7 +346,7 @@ abstract class CachedRepository extends ApiRepository {
     return _reactiveStreams[cacheKey]!.stream.cast<List<T>>();
   }
 
-  /// Reaktywny stream dla pojedynczego elementu z BehaviorSubject.
+  /// Reaktywny stream dla pojedynczego elementu z PublishSubject.
   ///
   /// Zwraca Stream który będzie emitować nowe dane za każdym razem,
   /// gdy element zostanie zaktualizowany przez inne metody.
@@ -364,7 +361,7 @@ abstract class CachedRepository extends ApiRepository {
 
     // Sprawdź czy już istnieje subject dla tego klucza
     if (!_reactiveSingleStreams.containsKey(cacheKey)) {
-      _reactiveSingleStreams[cacheKey] = BehaviorSubject<T>();
+      _reactiveSingleStreams[cacheKey] = PublishSubject<T>();
 
       // Rozpocznij ładowanie danych
       _loadAndEmitSingleData<T>(
@@ -380,7 +377,7 @@ abstract class CachedRepository extends ApiRepository {
     return _reactiveSingleStreams[cacheKey]!.stream.cast<T>();
   }
 
-  /// Ładuje dane i emituje je do BehaviorSubject dla pojedynczego elementu.
+  /// Ładuje dane i emituje je do PublishSubject dla pojedynczego elementu.
   Future<void> _loadAndEmitSingleData<T>({
     required String cacheKey,
     required String methodName,
@@ -433,7 +430,7 @@ abstract class CachedRepository extends ApiRepository {
     }
   }
 
-  /// Ładuje dane i emituje je do BehaviorSubject.
+  /// Ładuje dane i emituje je do PublishSubject.
   Future<void> _loadAndEmitData<T>({
     required String cacheKey,
     required String methodName,
