@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -42,6 +43,8 @@ class ProjectSongsCubit extends Cubit<ProjectSongsState> {
           await Future.delayed(const Duration(milliseconds: 500));
 
           emit(ProjectSongsReady(songs));
+
+          log(songs.toString());
         })..onError((error) {
           final currentState = state;
           if (currentState is ProjectSongsReady) {

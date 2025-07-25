@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,6 +31,7 @@ class _SongViewState extends State<SongView> {
   static const _minBottomHeight = 68.0;
 
   final _draggableScrollableController = DraggableScrollableController();
+  Map<int, int> _songIndexMap = {};
 
   @override
   Widget build(BuildContext context) {
@@ -45,35 +48,41 @@ class _SongViewState extends State<SongView> {
           );
         }
         if (state is SongDetailLoadUrlsSuccess) {
+          _songIndexMap = <int, int>{};
+          for (int i = 0; i < state.downloadUrls.songUrls.length; i++) {
+            _songIndexMap[state.downloadUrls.songUrls[i].songId] = i;
+          }
+
           context.read<AudioPlayerCubit>().loadPlaylist(
             state.downloadUrls.songUrls.map((item) => item.url).toList(),
-            initialIndex: state.songs.indexOf(state.currentSong),
+            initialIndex: _songIndexMap[state.currentSong.id] ?? 0,
           );
         }
         if (state is SongDetailReady) {
-          context.read<AudioPlayerCubit>().playTrackAt(
-            state.songs.indexOf(state.currentSong),
-          );
+          final currentIndex = _songIndexMap[state.currentSong.id];
+          if (currentIndex != null) {
+            context.read<AudioPlayerCubit>().playTrackAt(currentIndex);
+          }
         }
       },
       child: BlocListener<AudioPlayerCubit, AudioPlayerState>(
         listener: (context, state) {
+          log(state.toString());
+
           if (state.isReady) {
             context.read<SongDetailCubit>().setReady();
           }
 
           final currentIndex = state.currentIndex;
           if (currentIndex != null) {
-            final songUnderIndex = context
-                .read<SongDetailCubit>()
-                .state
-                .songs[currentIndex];
-            final currentSong = context
-                .read<SongDetailCubit>()
-                .state
-                .currentSong;
-            if (songUnderIndex != currentSong) {
-              context.read<SongDetailCubit>().selectSong(songUnderIndex);
+            final songDetailState = context.read<SongDetailCubit>().state;
+            if (currentIndex >= 0 &&
+                currentIndex < songDetailState.songs.length) {
+              final songUnderIndex = songDetailState.songs[currentIndex];
+              final currentSong = songDetailState.currentSong;
+              if (songUnderIndex != currentSong) {
+                context.read<SongDetailCubit>().selectSong(songUnderIndex);
+              }
             }
           }
         },

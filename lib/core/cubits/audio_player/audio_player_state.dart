@@ -173,4 +173,25 @@ class AudioPlayerState extends Equatable {
     hasPlaylist,
     downloadProgress,
   ];
+
+  @override
+  String toString() {
+    return 'AudioPlayerState{'
+        'status: $status, '
+        'currentUrl: $currentUrl, '
+        'currentPosition: $currentPosition, '
+        'totalDuration: $totalDuration, '
+        'errorMessage: $errorMessage, '
+        'isReady: $isReady, '
+        'bufferedPosition: $bufferedPosition, '
+        'isSeeking: $isSeeking, '
+        'seekPosition: $seekPosition, '
+        'playlist: $playlist, '
+        'currentIndex: $currentIndex, '
+        'isShuffleEnabled: $isShuffleEnabled, '
+        'loopMode: $loopMode, '
+        'hasPlaylist: $hasPlaylist, '
+        'downloadProgress: $downloadProgress, '
+        '}';
+  }
 }
