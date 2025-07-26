@@ -94,7 +94,9 @@ class SongDetailCubit extends Cubit<SongDetailState> {
     final expired = urls.expiresAt.isBefore(DateTime.now());
     if (expired) return false;
 
-    final songsDifference = state.songs
+    final songs = [...state.songs];
+
+    final songsDifference = songs
       ..removeWhere(
         (song) => urls.songUrls.any((su) => song.id == su.songId),
       );

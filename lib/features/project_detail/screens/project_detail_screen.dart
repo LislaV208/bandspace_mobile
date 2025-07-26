@@ -51,7 +51,7 @@ class ProjectDetailScreen extends StatelessWidget {
         create: (context) => ProjectSongsCubit(
           projectsRepository: context.read<ProjectsRepository>(),
           projectId: context.read<ProjectDetailCubit>().state.project.id,
-        )..refreshSongs(),
+        ),
         child: const ProjectDetailsView(),
       ),
 
