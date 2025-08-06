@@ -88,15 +88,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     context.read<ProjectsCubit>().refreshProjects();
                     context.read<UserInvitationsCubit>().refreshInvitations();
                   },
-                  child: SingleChildScrollView(
+                  child: CustomScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const InvitationsSection(),
-                        ProjectsView(),
-                      ],
-                    ),
+                    slivers: [
+                      const SliverToBoxAdapter(
+                        child: InvitationsSection(),
+                      ),
+                      ProjectsView(),
+                    ],
                   ),
                 ),
               ),
