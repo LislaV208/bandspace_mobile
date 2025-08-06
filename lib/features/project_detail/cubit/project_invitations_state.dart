@@ -1,55 +1,84 @@
-// import 'package:equatable/equatable.dart';
-// import '../../core/models/project_invitation.dart';
+import 'package:equatable/equatable.dart';
 
-// enum ProjectInvitationsStatus {
-//   initial,
-//   loading,
-//   loaded,
-//   error,
-// }
+import 'package:bandspace_mobile/shared/models/project_invitation.dart';
 
-// class ProjectInvitationsState extends Equatable {
-//   final ProjectInvitationsStatus status;
-//   final List<ProjectInvitation> invitations;
-//   final String? errorMessage;
-//   final String? successMessage;
-//   final bool isSendingInvitation;
-//   final bool isCancelingInvitation;
+sealed class ProjectInvitationsState extends Equatable {
+  const ProjectInvitationsState();
 
-//   const ProjectInvitationsState({
-//     this.status = ProjectInvitationsStatus.initial,
-//     this.invitations = const [],
-//     this.errorMessage,
-//     this.successMessage,
-//     this.isSendingInvitation = false,
-//     this.isCancelingInvitation = false,
-//   });
+  @override
+  List<Object?> get props => [];
+}
 
-//   ProjectInvitationsState copyWith({
-//     ProjectInvitationsStatus? status,
-//     List<ProjectInvitation>? invitations,
-//     String? errorMessage,
-//     String? successMessage,
-//     bool? isSendingInvitation,
-//     bool? isCancelingInvitation,
-//   }) {
-//     return ProjectInvitationsState(
-//       status: status ?? this.status,
-//       invitations: invitations ?? this.invitations,
-//       errorMessage: errorMessage,
-//       successMessage: successMessage,
-//       isSendingInvitation: isSendingInvitation ?? this.isSendingInvitation,
-//       isCancelingInvitation: isCancelingInvitation ?? this.isCancelingInvitation,
-//     );
-//   }
+class ProjectInvitationsInitial extends ProjectInvitationsState {
+  const ProjectInvitationsInitial();
+}
 
-//   @override
-//   List<Object?> get props => [
-//         status,
-//         invitations,
-//         errorMessage,
-//         successMessage,
-//         isSendingInvitation,
-//         isCancelingInvitation,
-//       ];
-// }
+class ProjectInvitationsLoading extends ProjectInvitationsState {
+  const ProjectInvitationsLoading();
+}
+
+class ProjectInvitationsLoadSuccess extends ProjectInvitationsState {
+  final List<ProjectInvitation> invitations;
+
+  const ProjectInvitationsLoadSuccess(this.invitations);
+
+  @override
+  List<Object?> get props => [invitations];
+}
+
+class ProjectInvitationsLoadFailure extends ProjectInvitationsState {
+  final String? message;
+
+  const ProjectInvitationsLoadFailure(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class ProjectInvitationsSending extends ProjectInvitationsState {
+  const ProjectInvitationsSending();
+}
+
+class ProjectInvitationsSendSuccess extends ProjectInvitationsState {
+  final String message;
+  final List<ProjectInvitation> invitations;
+
+  const ProjectInvitationsSendSuccess({
+    required this.message,
+    required this.invitations,
+  });
+
+  @override
+  List<Object?> get props => [message, invitations];
+}
+
+class ProjectInvitationsSendFailure extends ProjectInvitationsState {
+  final String? message;
+
+  const ProjectInvitationsSendFailure(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class ProjectInvitationsCanceling extends ProjectInvitationsState {
+  const ProjectInvitationsCanceling();
+}
+
+class ProjectInvitationsCancelSuccess extends ProjectInvitationsState {
+  final List<ProjectInvitation> invitations;
+
+  const ProjectInvitationsCancelSuccess(this.invitations);
+
+  @override
+  List<Object?> get props => [invitations];
+}
+
+class ProjectInvitationsCancelFailure extends ProjectInvitationsState {
+  final String? message;
+
+  const ProjectInvitationsCancelFailure(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}

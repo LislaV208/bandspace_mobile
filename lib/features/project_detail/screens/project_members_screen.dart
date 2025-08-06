@@ -6,6 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/features/project_detail/cubit/project_members/project_members_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_members/project_members_state.dart';
+import 'package:bandspace_mobile/features/project_detail/widgets/invite_user_sheet.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/project_members/empty_members_state.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/project_members/member_list_item.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
@@ -35,35 +36,32 @@ class ProjectMembersScreen extends StatelessWidget {
         title: Text(
           'Członkowie projektu',
         ),
-      ),
-      body: Column(
-        children: [
-          // _buildHeader(context),
-          // const Gap(16),
-          // _buildInviteButton(context),
-          // const Gap(16),
-          Expanded(
-            child: BlocBuilder<ProjectMembersCubit, ProjectMembersState>(
-              builder: (context, state) {
-                return switch (state) {
-                  ProjectMembersInitial() => const SizedBox(),
-                  ProjectMembersLoading() => const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                  ProjectMembersLoadSuccess() => _buildMembersList(
-                    context,
-                    state.members,
-                  ),
-                  ProjectMembersLoadFailure() => _buildErrorState(
-                    context,
-                    state.message,
-                  ),
-                  _ => const SizedBox(),
-                };
-              },
-            ),
+        actions: [
+          IconButton(
+            onPressed: () => InviteUserSheet.show(context, project),
+            icon: const Icon(LucideIcons.userPlus),
+            tooltip: 'Zaproś członka',
           ),
         ],
+      ),
+      body: BlocBuilder<ProjectMembersCubit, ProjectMembersState>(
+        builder: (context, state) {
+          return switch (state) {
+            ProjectMembersInitial() => const SizedBox(),
+            ProjectMembersLoading() => const Center(
+              child: CircularProgressIndicator(),
+            ),
+            ProjectMembersLoadSuccess() => _buildMembersList(
+              context,
+              state.members,
+            ),
+            ProjectMembersLoadFailure() => _buildErrorState(
+              context,
+              state.message,
+            ),
+            _ => const SizedBox(),
+          };
+        },
       ),
     );
   }
@@ -163,14 +161,54 @@ class ProjectMembersScreen extends StatelessWidget {
       return _buildEmptyState(context);
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: members.length,
-      separatorBuilder: (context, index) => const Gap(8),
-      itemBuilder: (context, index) {
-        final member = members[index];
-        return MemberListItem(member: member.user);
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(
+                LucideIcons.users,
+                color: Theme.of(context).colorScheme.onSurface,
+                size: 20,
+              ),
+              const Gap(8),
+              Text(
+                'Członkowie (${members.length})',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const Spacer(),
+              ElevatedButton.icon(
+                onPressed: () => InviteUserSheet.show(context, project),
+                icon: const Icon(LucideIcons.userPlus),
+                label: const Text('Zaproś'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: members.length,
+            separatorBuilder: (context, index) => const Gap(8),
+            itemBuilder: (context, index) {
+              final member = members[index];
+              return MemberListItem(member: member.user);
+            },
+          ),
+        ),
+      ],
     );
   }
 

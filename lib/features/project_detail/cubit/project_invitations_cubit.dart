@@ -1,102 +1,63 @@
-// import 'package:flutter_bloc/flutter_bloc.dart';
-// import '../../core/api/invitation_api.dart';
-// import '../../core/models/project_invitation.dart';
-// import 'project_invitations_state.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-// class ProjectInvitationsCubit extends Cubit<ProjectInvitationsState> {
-//   final InvitationApi _invitationApi;
-//   final int projectId;
+import 'package:bandspace_mobile/shared/repositories/invitations_repository.dart';
+import 'project_invitations_state.dart';
 
-//   ProjectInvitationsCubit({
-//     required InvitationApi invitationApi,
-//     required this.projectId,
-//   })  : _invitationApi = invitationApi,
-//         super(const ProjectInvitationsState());
+class ProjectInvitationsCubit extends Cubit<ProjectInvitationsState> {
+  final InvitationsRepository _invitationsRepository;
+  final int projectId;
 
-//   /// Ładuje zaproszenia dla projektu
-//   Future<void> loadInvitations() async {
-//     emit(state.copyWith(status: ProjectInvitationsStatus.loading));
+  ProjectInvitationsCubit({
+    required InvitationsRepository invitationsRepository,
+    required this.projectId,
+  })  : _invitationsRepository = invitationsRepository,
+        super(const ProjectInvitationsInitial());
 
-//     try {
-//       final response = await _invitationApi.getProjectInvitations(
-//         projectId: projectId,
-//       );
+  Future<void> loadInvitations() async {
+    emit(const ProjectInvitationsLoading());
 
-//       emit(state.copyWith(
-//         status: ProjectInvitationsStatus.loaded,
-//         invitations: response.invitations,
-//       ));
-//     } catch (e) {
-//       emit(state.copyWith(
-//         status: ProjectInvitationsStatus.error,
-//         errorMessage: e.toString(),
-//       ));
-//     }
-//   }
+    try {
+      final invitations = await _invitationsRepository.getProjectInvitations(projectId);
+      emit(ProjectInvitationsLoadSuccess(invitations));
+    } catch (e) {
+      emit(ProjectInvitationsLoadFailure(e.toString()));
+    }
+  }
 
-//   /// Wysyła zaproszenie do użytkownika
-//   Future<void> sendInvitation(String email) async {
-//     emit(state.copyWith(isSendingInvitation: true));
+  Future<void> sendInvitation(String email) async {
+    emit(const ProjectInvitationsSending());
 
-//     try {
-//       final response = await _invitationApi.sendInvitation(
-//         projectId: projectId,
-//         email: email,
-//       );
+    try {
+      final response = await _invitationsRepository.sendInvitation(
+        projectId: projectId,
+        email: email,
+      );
 
-//       // Dodaj nowe zaproszenie do listy
-//       final updatedInvitations = List<ProjectInvitation>.from(state.invitations)
-//         ..add(response.invitation);
+      final updatedInvitations = await _invitationsRepository.getProjectInvitations(projectId);
+      emit(ProjectInvitationsSendSuccess(
+        message: response.message,
+        invitations: updatedInvitations,
+      ));
+    } catch (e) {
+      emit(ProjectInvitationsSendFailure(e.toString()));
+    }
+  }
 
-//       emit(state.copyWith(
-//         isSendingInvitation: false,
-//         invitations: updatedInvitations,
-//         successMessage: response.message,
-//       ));
-//     } catch (e) {
-//       emit(state.copyWith(
-//         isSendingInvitation: false,
-//         errorMessage: e.toString(),
-//       ));
-//     }
-//   }
+  Future<void> cancelInvitation(int invitationId) async {
+    emit(const ProjectInvitationsCanceling());
 
-//   /// Anuluje zaproszenie
-//   Future<void> cancelInvitation(int invitationId) async {
-//     emit(state.copyWith(isCancelingInvitation: true));
+    try {
+      await _invitationsRepository.cancelInvitation(
+        projectId: projectId,
+        invitationId: invitationId,
+      );
 
-//     try {
-//       final response = await _invitationApi.cancelInvitation(
-//         projectId: projectId,
-//         invitationId: invitationId,
-//       );
+      final updatedInvitations = await _invitationsRepository.getProjectInvitations(projectId);
+      emit(ProjectInvitationsCancelSuccess(updatedInvitations));
+    } catch (e) {
+      emit(ProjectInvitationsCancelFailure(e.toString()));
+    }
+  }
 
-//       // Usuń zaproszenie z listy
-//       final updatedInvitations = state.invitations
-//           .where((invitation) => invitation.id != invitationId)
-//           .toList();
-
-//       emit(state.copyWith(
-//         isCancelingInvitation: false,
-//         invitations: updatedInvitations,
-//         successMessage: response.message,
-//       ));
-//     } catch (e) {
-//       emit(state.copyWith(
-//         isCancelingInvitation: false,
-//         errorMessage: e.toString(),
-//       ));
-//     }
-//   }
-
-//   /// Czyści komunikat o błędzie
-//   void clearError() {
-//     emit(state.copyWith(errorMessage: null));
-//   }
-
-//   /// Czyści komunikat o sukcesie
-//   void clearSuccess() {
-//     emit(state.copyWith(successMessage: null));
-//   }
-
-// }
+  void refreshInvitations() => loadInvitations();
+}

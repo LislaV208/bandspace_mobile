@@ -7,7 +7,9 @@ import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
 import 'package:bandspace_mobile/features/project_detail/repository/project_members_repository.dart';
 import 'package:bandspace_mobile/features/song_detail/song_list_urls_cache_storage.dart';
+import 'package:bandspace_mobile/shared/cubits/user_invitations/user_invitations_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
+import 'package:bandspace_mobile/shared/repositories/invitations_repository.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 import 'package:bandspace_mobile/shared/repositories/user_repository.dart';
 import 'package:bandspace_mobile/shared/services/google_sign_in_service.dart';
@@ -35,6 +37,11 @@ final appProviders = [
       apiClient: context.read<ApiClient>(),
     ),
   ),
+  RepositoryProvider(
+    create: (context) => InvitationsRepository(
+      apiClient: context.read<ApiClient>(),
+    ),
+  ),
   // Features
   RepositoryProvider(
     create: (context) => AuthRepository(
@@ -59,6 +66,11 @@ final appProviders = [
   BlocProvider(
     create: (context) => UserProfileCubit(
       userRepository: context.read<UserRepository>(),
+    ),
+  ),
+  BlocProvider(
+    create: (context) => UserInvitationsCubit(
+      invitationsRepository: context.read<InvitationsRepository>(),
     ),
   ),
 ];

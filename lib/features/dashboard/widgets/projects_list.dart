@@ -18,8 +18,8 @@ class ProjectsList extends StatelessWidget {
       return _buildEmptyState();
     }
 
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 56.0),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         AnimatedCrossFade(
           sizeCurve: Curves.easeInOut,
@@ -80,6 +80,7 @@ class ProjectsList extends StatelessWidget {
             );
           },
         ),
+        const SizedBox(height: 56), // Space for FAB
       ],
     );
   }

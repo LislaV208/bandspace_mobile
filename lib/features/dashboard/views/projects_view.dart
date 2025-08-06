@@ -14,6 +14,7 @@ class ProjectsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
@@ -54,30 +55,28 @@ class ProjectsView extends StatelessWidget {
             ],
           ),
         ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: BlocBuilder<ProjectsCubit, ProjectsState>(
-              builder: (context, state) {
-                return switch (state) {
-                  ProjectsInitial() => const SizedBox(),
-                  ProjectsLoading() => const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(32.0),
-                      child: CircularProgressIndicator(),
-                    ),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: BlocBuilder<ProjectsCubit, ProjectsState>(
+            builder: (context, state) {
+              return switch (state) {
+                ProjectsInitial() => const SizedBox(),
+                ProjectsLoading() => const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: CircularProgressIndicator(),
                   ),
-                  ProjectsReady() => ProjectsList(state: state),
-                  ProjectsLoadFailure() => LoadFailureView(
-                    title: 'Bład pobierania projektów',
-                    errorMessage: state.message,
-                    onRetry: () =>
-                        context.read<ProjectsCubit>().refreshProjects(),
-                  ),
-                  ProjectsState() => const SizedBox(),
-                };
-              },
-            ),
+                ),
+                ProjectsReady() => ProjectsList(state: state),
+                ProjectsLoadFailure() => LoadFailureView(
+                  title: 'Błąd pobierania projektów',
+                  errorMessage: state.message,
+                  onRetry: () =>
+                      context.read<ProjectsCubit>().refreshProjects(),
+                ),
+                ProjectsState() => const SizedBox(),
+              };
+            },
           ),
         ),
       ],
