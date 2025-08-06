@@ -5,7 +5,7 @@ import 'package:bandspace_mobile/shared/models/user.dart';
 
 class ProjectInvitation extends Equatable {
   final int id;
-  final String email;
+  final String? email;
   final Project? project;
   final User? invitedBy;
   final DateTime createdAt;

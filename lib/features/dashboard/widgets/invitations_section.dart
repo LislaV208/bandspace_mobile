@@ -7,6 +7,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:bandspace_mobile/shared/cubits/user_invitations/user_invitations_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_invitations/user_invitations_state.dart';
 import 'package:bandspace_mobile/shared/models/project_invitation.dart';
+
 import 'invitation_card.dart';
 
 class InvitationsSection extends StatelessWidget {
@@ -14,16 +15,35 @@ class InvitationsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<UserInvitationsCubit, UserInvitationsState>(
-      builder: (context, state) {
-        return switch (state) {
-          UserInvitationsLoadSuccess() when state.invitations.isNotEmpty =>
-            _buildInvitationsSection(context, state.invitations),
-          UserInvitationsActionSuccess() when state.invitations.isNotEmpty =>
-            _buildInvitationsSection(context, state.invitations),
-          _ => const SizedBox.shrink(),
-        };
+    return BlocListener<UserInvitationsCubit, UserInvitationsState>(
+      listener: (context, state) {
+        if (state is UserInvitationsLoadFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Theme.of(context).colorScheme.errorContainer,
+            ),
+          );
+        } else if (state is UserInvitationsActionFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
       },
+      child: BlocBuilder<UserInvitationsCubit, UserInvitationsState>(
+        builder: (context, state) {
+          return switch (state) {
+            UserInvitationsLoadSuccess() when state.invitations.isNotEmpty =>
+              _buildInvitationsSection(context, state.invitations),
+            UserInvitationsActionSuccess() when state.invitations.isNotEmpty =>
+              _buildInvitationsSection(context, state.invitations),
+            _ => const SizedBox.shrink(),
+          };
+        },
+      ),
     );
   }
 

@@ -27,7 +27,7 @@ class UserInvitationsLoadSuccess extends UserInvitationsState {
 }
 
 class UserInvitationsLoadFailure extends UserInvitationsState {
-  final String? message;
+  final String message;
 
   const UserInvitationsLoadFailure(this.message);
 
@@ -57,7 +57,7 @@ class UserInvitationsActionSuccess extends UserInvitationsState {
 }
 
 class UserInvitationsActionFailure extends UserInvitationsState {
-  final String? message;
+  final String message;
 
   const UserInvitationsActionFailure(this.message);
 
