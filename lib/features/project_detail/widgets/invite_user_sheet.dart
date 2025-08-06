@@ -53,29 +53,8 @@ class _InviteUserSheetState extends State<InviteUserSheet> {
   Widget build(BuildContext context) {
     return BlocListener<ProjectInvitationsCubit, ProjectInvitationsState>(
       listener: (context, state) {
-        switch (state) {
-          case ProjectInvitationsSendSuccess():
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.green,
-              ),
-            );
-            _emailController.clear();
-            break;
-          case ProjectInvitationsSendFailure():
-          case ProjectInvitationsLoadFailure():
-          case ProjectInvitationsCancelFailure():
-            final message = (state as dynamic).message ?? 'Wystąpił błąd';
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(message),
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
-            );
-            break;
-          default:
-            break;
+        if (state is ProjectInvitationsSendSuccess) {
+          _emailController.clear();
         }
       },
       child: Container(
@@ -84,24 +63,99 @@ class _InviteUserSheetState extends State<InviteUserSheet> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         ),
         child: SafeArea(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.9,
-            ),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.9,
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: MainAxisSize.max,
               children: [
                 _buildHeader(context),
                 const Gap(24),
+                _buildMessageDisplay(context),
                 _buildInviteForm(context),
                 const Gap(24),
-                Flexible(
+                Expanded(
                   child: _buildInvitationsList(context),
                 ),
-                Gap(MediaQuery.of(context).viewInsets.bottom + 20),
+                SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessageDisplay(BuildContext context) {
+    return BlocBuilder<ProjectInvitationsCubit, ProjectInvitationsState>(
+      builder: (context, state) {
+        if (state is ProjectInvitationsSendSuccess) {
+          return Container(
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary.withAlpha(51),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  LucideIcons.check,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const Gap(8),
+                Expanded(
+                  child: Text(
+                    state.message,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+      },
+    );
+  }
+
+  Widget _buildErrorDisplay(
+    BuildContext context,
+    ProjectInvitationsState state,
+  ) {
+    String? errorMessage;
+
+    if (state is ProjectInvitationsSendFailure) {
+      errorMessage = state.message ?? 'Błąd podczas wysyłania zaproszenia';
+    } else if (state is ProjectInvitationsLoadFailure) {
+      errorMessage = state.message ?? 'Błąd podczas ładowania zaproszeń';
+    } else if (state is ProjectInvitationsCancelFailure) {
+      errorMessage = state.message ?? 'Błąd podczas anulowania zaproszenia';
+    }
+
+    if (errorMessage == null) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.error.withAlpha(51),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        errorMessage,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onErrorContainer,
         ),
       ),
     );
@@ -150,6 +204,9 @@ class _InviteUserSheetState extends State<InviteUserSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            BlocBuilder<ProjectInvitationsCubit, ProjectInvitationsState>(
+              builder: (context, state) => _buildErrorDisplay(context, state),
+            ),
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
@@ -194,8 +251,11 @@ class _InviteUserSheetState extends State<InviteUserSheet> {
             BlocBuilder<ProjectInvitationsCubit, ProjectInvitationsState>(
               builder: (context, state) {
                 final isSending = state is ProjectInvitationsSending;
+                final isCanceling = state is ProjectInvitationsCanceling;
+                final isLoading = isSending || isCanceling;
+
                 return ElevatedButton(
-                  onPressed: isSending ? null : _sendInvitation,
+                  onPressed: isLoading ? null : _sendInvitation,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -204,7 +264,7 @@ class _InviteUserSheetState extends State<InviteUserSheet> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: isSending
+                  child: isLoading
                       ? SizedBox(
                           height: 20,
                           width: 20,
@@ -233,10 +293,11 @@ class _InviteUserSheetState extends State<InviteUserSheet> {
               child: CircularProgressIndicator(),
             ),
           ),
-          ProjectInvitationsLoadSuccess() when state.invitations.isEmpty =>
+          ProjectInvitationsWithData() when state.invitations.isEmpty =>
             Padding(
               padding: const EdgeInsets.all(32),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     LucideIcons.mail,
@@ -247,32 +308,39 @@ class _InviteUserSheetState extends State<InviteUserSheet> {
                   Text(
                     'Brak wysłanych zaproszeń',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const Gap(8),
                   Text(
                     'Zaproszenia pojawią się tutaj po wysłaniu',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ],
               ),
             ),
-          ProjectInvitationsLoadSuccess() || ProjectInvitationsSendSuccess() =>
-            _buildInvitationsListContent(context, state),
+          ProjectInvitationsWithData() => _buildInvitationsListContent(
+            context,
+            state,
+          ),
           _ => const SizedBox(),
         };
       },
     );
   }
 
-  Widget _buildInvitationsListContent(BuildContext context, dynamic state) {
-    final invitations = (state is ProjectInvitationsLoadSuccess)
-        ? state.invitations
-        : (state as ProjectInvitationsSendSuccess).invitations;
+  Widget _buildInvitationsListContent(
+    BuildContext context,
+    ProjectInvitationsWithData state,
+  ) {
+    final invitations = state.invitations;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

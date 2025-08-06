@@ -36,13 +36,6 @@ class ProjectMembersScreen extends StatelessWidget {
         title: Text(
           'Członkowie projektu',
         ),
-        actions: [
-          IconButton(
-            onPressed: () => InviteUserSheet.show(context, project),
-            icon: const Icon(LucideIcons.userPlus),
-            tooltip: 'Zaproś członka',
-          ),
-        ],
       ),
       body: BlocBuilder<ProjectMembersCubit, ProjectMembersState>(
         builder: (context, state) {
@@ -65,96 +58,6 @@ class ProjectMembersScreen extends StatelessWidget {
       ),
     );
   }
-
-  // Widget _buildHeader(BuildContext context) {
-  //   return ListTile(
-  //     leading: Icon(
-  //       LucideIcons.users,
-  //       color: Theme.of(context).colorScheme.onSurface,
-  //       size: 20,
-  //     ),
-  //     title: Text(
-  //       project.name,
-  //       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-  //         color: Theme.of(context).colorScheme.onSurface,
-  //       ),
-  //     ),
-  //     trailing: Container(
-  //       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-  //       decoration: BoxDecoration(
-  //         color: Theme.of(
-  //           context,
-  //         ).colorScheme.primary.withValues(alpha: 0.5),
-  //         borderRadius: BorderRadius.circular(12),
-  //       ),
-  //       child: Text(
-  //         '${project.membersCount}',
-  //         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-  //           // color: Theme.of(context).colorScheme.primary,
-  //           fontWeight: FontWeight.w600,
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  //   // return Padding(
-  //   //   padding: const EdgeInsets.all(16),
-  //   //   child: Row(
-  //   //     children: [
-  //   //       Icon(
-  //   //         LucideIcons.users,
-  //   //         color: Theme.of(context).colorScheme.onSurface,
-  //   //         size: 20,
-  //   //       ),
-  //   //       const Gap(8),
-  //   //       Text(
-  //   //         project.name,
-  //   //         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-  //   //           color: Theme.of(context).colorScheme.onSurface,
-  //   //         ),
-  //   //       ),
-  //   //       const Spacer(),
-  //   //       Container(
-  //   //         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-  //   //         decoration: BoxDecoration(
-  //   //           color: Theme.of(
-  //   //             context,
-  //   //           ).colorScheme.primary.withValues(alpha: 0.1),
-  //   //           borderRadius: BorderRadius.circular(12),
-  //   //         ),
-  //   //         child: Text(
-  //   //           '${project.membersCount}',
-  //   //           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-  //   //             color: Theme.of(context).colorScheme.primary,
-  //   //             fontWeight: FontWeight.w600,
-  //   //           ),
-  //   //         ),
-  //   //       ),
-  //   //     ],
-  //   //   ),
-  //   // );
-  // }
-
-  // Widget _buildInviteButton(BuildContext context) {
-  //   return Padding(
-  //     padding: const EdgeInsets.symmetric(horizontal: 16),
-  //     child: SizedBox(
-  //       width: double.infinity,
-  //       child: ElevatedButton.icon(
-  //         onPressed: () => _navigateToInviteUser(context),
-  //         icon: const Icon(LucideIcons.userPlus),
-  //         label: const Text('Zaproś użytkownika'),
-  //         style: ElevatedButton.styleFrom(
-  //           backgroundColor: Theme.of(context).colorScheme.primary,
-  //           foregroundColor: Theme.of(context).colorScheme.onPrimary,
-  //           padding: const EdgeInsets.symmetric(vertical: 12),
-  //           shape: RoundedRectangleBorder(
-  //             borderRadius: BorderRadius.circular(12),
-  //           ),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 
   Widget _buildMembersList(BuildContext context, List<ProjectMember> members) {
     if (members.isEmpty) {
@@ -188,7 +91,10 @@ class ProjectMembersScreen extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),

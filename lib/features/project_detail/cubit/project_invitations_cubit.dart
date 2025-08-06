@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:bandspace_mobile/shared/models/project_invitation.dart';
 import 'package:bandspace_mobile/shared/repositories/invitations_repository.dart';
 import 'project_invitations_state.dart';
 
@@ -25,7 +26,9 @@ class ProjectInvitationsCubit extends Cubit<ProjectInvitationsState> {
   }
 
   Future<void> sendInvitation(String email) async {
-    emit(const ProjectInvitationsSending());
+    // Get current invitations before starting the action
+    final currentInvitations = _getCurrentInvitations();
+    emit(ProjectInvitationsSending(currentInvitations));
 
     try {
       final response = await _invitationsRepository.sendInvitation(
@@ -39,12 +42,17 @@ class ProjectInvitationsCubit extends Cubit<ProjectInvitationsState> {
         invitations: updatedInvitations,
       ));
     } catch (e) {
-      emit(ProjectInvitationsSendFailure(e.toString()));
+      emit(ProjectInvitationsSendFailure(
+        message: e.toString(),
+        invitations: currentInvitations,
+      ));
     }
   }
 
   Future<void> cancelInvitation(int invitationId) async {
-    emit(const ProjectInvitationsCanceling());
+    // Get current invitations before starting the action
+    final currentInvitations = _getCurrentInvitations();
+    emit(ProjectInvitationsCanceling(currentInvitations));
 
     try {
       await _invitationsRepository.cancelInvitation(
@@ -55,9 +63,21 @@ class ProjectInvitationsCubit extends Cubit<ProjectInvitationsState> {
       final updatedInvitations = await _invitationsRepository.getProjectInvitations(projectId);
       emit(ProjectInvitationsCancelSuccess(updatedInvitations));
     } catch (e) {
-      emit(ProjectInvitationsCancelFailure(e.toString()));
+      emit(ProjectInvitationsCancelFailure(
+        message: e.toString(),
+        invitations: currentInvitations,
+      ));
     }
   }
 
   void refreshInvitations() => loadInvitations();
+
+  /// Helper method to get current invitations from state
+  List<ProjectInvitation> _getCurrentInvitations() {
+    final currentState = state;
+    if (currentState is ProjectInvitationsWithData) {
+      return currentState.invitations;
+    }
+    return [];
+  }
 }

@@ -9,6 +9,16 @@ sealed class ProjectInvitationsState extends Equatable {
   List<Object?> get props => [];
 }
 
+/// Base class for states that have access to invitations list
+abstract class ProjectInvitationsWithData extends ProjectInvitationsState {
+  final List<ProjectInvitation> invitations;
+
+  const ProjectInvitationsWithData(this.invitations);
+
+  @override
+  List<Object?> get props => [invitations];
+}
+
 class ProjectInvitationsInitial extends ProjectInvitationsState {
   const ProjectInvitationsInitial();
 }
@@ -17,13 +27,8 @@ class ProjectInvitationsLoading extends ProjectInvitationsState {
   const ProjectInvitationsLoading();
 }
 
-class ProjectInvitationsLoadSuccess extends ProjectInvitationsState {
-  final List<ProjectInvitation> invitations;
-
-  const ProjectInvitationsLoadSuccess(this.invitations);
-
-  @override
-  List<Object?> get props => [invitations];
+class ProjectInvitationsLoadSuccess extends ProjectInvitationsWithData {
+  const ProjectInvitationsLoadSuccess(super.invitations);
 }
 
 class ProjectInvitationsLoadFailure extends ProjectInvitationsState {
@@ -35,50 +40,50 @@ class ProjectInvitationsLoadFailure extends ProjectInvitationsState {
   List<Object?> get props => [message];
 }
 
-class ProjectInvitationsSending extends ProjectInvitationsState {
-  const ProjectInvitationsSending();
+class ProjectInvitationsSending extends ProjectInvitationsWithData {
+  const ProjectInvitationsSending(super.invitations);
 }
 
-class ProjectInvitationsSendSuccess extends ProjectInvitationsState {
+class ProjectInvitationsSendSuccess extends ProjectInvitationsWithData {
   final String message;
-  final List<ProjectInvitation> invitations;
 
   const ProjectInvitationsSendSuccess({
     required this.message,
-    required this.invitations,
-  });
+    required List<ProjectInvitation> invitations,
+  }) : super(invitations);
 
   @override
   List<Object?> get props => [message, invitations];
 }
 
-class ProjectInvitationsSendFailure extends ProjectInvitationsState {
+class ProjectInvitationsSendFailure extends ProjectInvitationsWithData {
   final String? message;
 
-  const ProjectInvitationsSendFailure(this.message);
+  const ProjectInvitationsSendFailure({
+    required this.message,
+    required List<ProjectInvitation> invitations,
+  }) : super(invitations);
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, invitations];
 }
 
-class ProjectInvitationsCanceling extends ProjectInvitationsState {
-  const ProjectInvitationsCanceling();
+class ProjectInvitationsCanceling extends ProjectInvitationsWithData {
+  const ProjectInvitationsCanceling(super.invitations);
 }
 
-class ProjectInvitationsCancelSuccess extends ProjectInvitationsState {
-  final List<ProjectInvitation> invitations;
-
-  const ProjectInvitationsCancelSuccess(this.invitations);
-
-  @override
-  List<Object?> get props => [invitations];
+class ProjectInvitationsCancelSuccess extends ProjectInvitationsWithData {
+  const ProjectInvitationsCancelSuccess(super.invitations);
 }
 
-class ProjectInvitationsCancelFailure extends ProjectInvitationsState {
+class ProjectInvitationsCancelFailure extends ProjectInvitationsWithData {
   final String? message;
 
-  const ProjectInvitationsCancelFailure(this.message);
+  const ProjectInvitationsCancelFailure({
+    required this.message,
+    required List<ProjectInvitation> invitations,
+  }) : super(invitations);
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, invitations];
 }
