@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_cubit.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_state.dart';
 import 'package:bandspace_mobile/features/dashboard/widgets/project_list_item.dart';
 
@@ -16,49 +14,63 @@ class ProjectsList extends StatelessWidget {
   Widget build(BuildContext context) {
     final projects = state.projects;
 
+    // final projects = List.generate(
+    //   10,
+    //   (index) => Project(
+    //     slug: 'project-$index',
+    //     id: index,
+    //     name: 'Mock Project ${index + 1}',
+    //     createdAt: DateTime.now().subtract(Duration(days: index)),
+    //     updatedAt: DateTime.now().subtract(Duration(days: index)),
+    //     projectUsers: [],
+    //   ),
+    // );
+
     if (projects.isEmpty) {
-      return _buildEmptySliver(context);
+      return _buildEmptyState(context);
     }
 
-    return _buildProjectsSliver(context, projects);
+    return _buildProjectsList(context, projects);
   }
 
-  Widget _buildEmptySliver(BuildContext context) {
-    return SliverFillRemaining(
-      hasScrollBody: false,
+  Widget _buildEmptyState(BuildContext context) {
+    return Expanded(
       child: Column(
         children: [
-          _buildHeader(context),
+          _buildRefreshStatusContent(context),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 32, 16, 80),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    LucideIcons.folderPlus,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Nie masz jeszcze żadnych projektów',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 32, 16, 80),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      LucideIcons.folderPlus,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Utwórz swój pierwszy projekt, aby rozpocząć',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.7),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Nie masz jeszcze żadnych projektów',
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    Text(
+                      'Utwórz swój pierwszy projekt, aby rozpocząć',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -67,12 +79,10 @@ class ProjectsList extends StatelessWidget {
     );
   }
 
-  Widget _buildProjectsSliver(BuildContext context, List projects) {
-    return SliverToBoxAdapter(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+  Widget _buildProjectsList(BuildContext context, List projects) {
+    return Expanded(
+      child: ListView(
         children: [
-          _buildHeader(context),
           _buildRefreshStatusContent(context),
           ...projects.asMap().entries.map(
             (entry) {
@@ -90,41 +100,6 @@ class ProjectsList extends StatelessWidget {
             },
           ),
           const SizedBox(height: 80), // Space for FAB
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Moje projekty',
-                style: Theme.of(context).textTheme.headlineLarge,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Zarządzaj i organizuj swoje projekty muzyczne',
-              ),
-            ],
-          ),
-          IconButton(
-            onPressed: () {
-              context.read<ProjectsCubit>().refreshProjects();
-            },
-            icon: AnimatedRotation(
-              duration: const Duration(milliseconds: 200),
-              turns: state is ProjectsRefreshing ? 0.4 : 0,
-              child: Icon(Icons.refresh),
-            ),
-          ),
         ],
       ),
     );
@@ -174,7 +149,9 @@ class ProjectsList extends StatelessWidget {
                 ),
         ),
       ),
-      secondChild: const SizedBox(),
+      secondChild: Row(
+        children: [],
+      ),
       crossFadeState:
           state is ProjectsRefreshing || state is ProjectsRefreshFailure
           ? CrossFadeState.showFirst

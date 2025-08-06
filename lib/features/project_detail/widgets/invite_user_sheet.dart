@@ -70,7 +70,6 @@ class _InviteUserSheetState extends State<InviteUserSheet> {
               children: [
                 _buildHeader(context),
                 const Gap(24),
-                _buildMessageDisplay(context),
                 _buildInviteForm(context),
                 const Gap(24),
                 Expanded(
@@ -82,46 +81,6 @@ class _InviteUserSheetState extends State<InviteUserSheet> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildMessageDisplay(BuildContext context) {
-    return BlocBuilder<ProjectInvitationsCubit, ProjectInvitationsState>(
-      builder: (context, state) {
-        if (state is ProjectInvitationsSendSuccess) {
-          return Container(
-            margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.primary.withAlpha(51),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  LucideIcons.check,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const Gap(8),
-                Expanded(
-                  child: Text(
-                    state.message,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-        return const SizedBox.shrink();
-      },
     );
   }
 

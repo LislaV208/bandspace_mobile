@@ -9,7 +9,11 @@ class InvitationListItem extends StatelessWidget {
   final ProjectInvitation invitation;
   final VoidCallback? onCancel;
 
-  const InvitationListItem({super.key, required this.invitation, this.onCancel});
+  const InvitationListItem({
+    super.key,
+    required this.invitation,
+    this.onCancel,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +66,7 @@ class InvitationListItem extends StatelessWidget {
         ),
         const Gap(2),
         Text(
-          'Zaproszony przez ${invitation.invitedBy.name ?? invitation.invitedBy.email}',
+          'Zaproszony przez ${invitation.invitedBy?.name ?? invitation.invitedBy?.email ?? '-'}',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -72,7 +76,8 @@ class InvitationListItem extends StatelessWidget {
   }
 
   Widget _buildActions(BuildContext context) {
-    if (invitation.status != ProjectInvitationStatus.pending || onCancel == null) {
+    if (invitation.status != ProjectInvitationStatus.pending ||
+        onCancel == null) {
       return const SizedBox.shrink();
     }
 

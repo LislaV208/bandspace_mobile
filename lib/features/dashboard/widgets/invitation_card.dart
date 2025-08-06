@@ -66,7 +66,7 @@ class InvitationCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                invitation.project.name,
+                invitation.project?.name ?? '-',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
@@ -92,7 +92,7 @@ class InvitationCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Od: ${invitation.invitedBy.name ?? invitation.invitedBy.email}',
+          'Od: ${invitation.invitedBy?.name ?? invitation.invitedBy?.email ?? '-'}',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -119,7 +119,9 @@ class InvitationCard extends StatelessWidget {
             style: OutlinedButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
               side: BorderSide(
-                color: Theme.of(context).colorScheme.error.withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.error.withValues(alpha: 0.5),
               ),
               padding: const EdgeInsets.symmetric(vertical: 8),
               shape: RoundedRectangleBorder(

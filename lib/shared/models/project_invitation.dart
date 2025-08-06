@@ -1,12 +1,13 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
 
 class ProjectInvitation extends Equatable {
   final int id;
   final String email;
-  final ProjectInvitationProject project;
-  final User invitedBy;
+  final Project? project;
+  final User? invitedBy;
   final DateTime createdAt;
   final ProjectInvitationStatus status;
 
@@ -23,8 +24,12 @@ class ProjectInvitation extends Equatable {
     return ProjectInvitation(
       id: json['id'],
       email: json['email'],
-      project: ProjectInvitationProject.fromJson(json['project']),
-      invitedBy: User.fromMap(json['invited_by']),
+      project: json['project'] != null
+          ? Project.fromJson(json['project'])
+          : null,
+      invitedBy: json['invitedBy'] != null
+          ? User.fromMap(json['invitedBy'])
+          : null,
       createdAt: DateTime.parse(json['created_at']).toLocal(),
       status: ProjectInvitationStatus.values.firstWhere(
         (status) => status.name == json['status'],
@@ -37,8 +42,8 @@ class ProjectInvitation extends Equatable {
     return {
       'id': id,
       'email': email,
-      'project': project.toJson(),
-      'invited_by': invitedBy.toMap(),
+      'project': project?.toJson(),
+      'invitedBy': invitedBy?.toMap(),
       'created_at': createdAt.toIso8601String(),
       'status': status.name,
     };
@@ -53,37 +58,6 @@ class ProjectInvitation extends Equatable {
     createdAt,
     status,
   ];
-}
-
-class ProjectInvitationProject extends Equatable {
-  final int id;
-  final String name;
-  final String slug;
-
-  const ProjectInvitationProject({
-    required this.id,
-    required this.name,
-    required this.slug,
-  });
-
-  factory ProjectInvitationProject.fromJson(Map<String, dynamic> json) {
-    return ProjectInvitationProject(
-      id: json['id'],
-      name: json['name'],
-      slug: json['slug'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'slug': slug,
-    };
-  }
-
-  @override
-  List<Object?> get props => [id, name, slug];
 }
 
 enum ProjectInvitationStatus {

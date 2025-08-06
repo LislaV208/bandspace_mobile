@@ -47,7 +47,7 @@ class _AppColors {
   ); // Jaśniejszy niebieski dla zaznaczenia
 
   // Kolory statusów
-  static const Color error = Color.fromARGB(255, 255, 224, 224);
+  static const Color error = Color.fromARGB(255, 255, 121, 121);
   static const Color errorBackground = Color(0xB0FF0000);
   static const Color errorBorder = Color(0x80FF0000); // Czerwony z alpha 0.5
   static const Color success = Color(0xFF10B981); // emerald-500
@@ -157,10 +157,10 @@ class AppTheme {
       onTertiary: Colors.white,
       tertiaryContainer: _AppColors.accentLight,
       onTertiaryContainer: Colors.white,
-      error: _AppColors.errorBackground,
+      error: _AppColors.error,
       onError: Colors.white,
       errorContainer: _AppColors.errorBackground,
-      onErrorContainer: _AppColors.error,
+      onErrorContainer: Color.fromARGB(255, 255, 238, 238),
       surface: _AppColors.surfaceLight,
       onSurface: _AppColors.textPrimary,
       surfaceContainerHighest: _AppColors.surfaceMedium,
