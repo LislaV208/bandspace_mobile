@@ -1,44 +1,54 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
 
 /// Model danych dla relacji projekt-użytkownik
-class ProjectUser extends Equatable {
+class ProjectMember extends Equatable {
   final int id;
-  final int projectId;
-  final int userId;
+  final DateTime? joinedAt;
+  final Project project;
   final User user;
+  final User? invitedBy;
 
-  const ProjectUser({
+  const ProjectMember({
     required this.id,
-    required this.projectId,
-    required this.userId,
+    required this.joinedAt,
+    required this.project,
     required this.user,
+    this.invitedBy,
   });
 
   @override
   List<Object?> get props => [
     id,
-    projectId,
-    userId,
+    joinedAt,
+    project,
     user,
+    invitedBy,
   ];
 
-  factory ProjectUser.fromJson(Map<String, dynamic> json) {
-    return ProjectUser(
+  factory ProjectMember.fromJson(Map<String, dynamic> json) {
+    return ProjectMember(
       id: json['id'],
-      projectId: json['project_id'],
-      userId: json['user_id'],
+      joinedAt: json['joinedAt'] != null
+          ? DateTime.parse(json['joinedAt'])
+          : null,
+      project: Project.fromJson(json['project']),
       user: User.fromMap(json['user']),
+      invitedBy: json['invitedBy'] != null
+          ? User.fromMap(json['invitedBy'])
+          : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'project_id': projectId,
-      'user_id': userId,
+      'joinedAt': joinedAt?.toIso8601String(),
+      'project': project.toJson(),
       'user': user.toMap(),
+      'invitedBy': invitedBy?.toMap(),
     };
   }
 }

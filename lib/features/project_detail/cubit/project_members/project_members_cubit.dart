@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/features/project_detail/cubit/project_members/project_members_state.dart';
-import 'package:bandspace_mobile/shared/models/project_member.dart';
+import 'package:bandspace_mobile/shared/models/project_user.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 class ProjectMembersCubit extends Cubit<ProjectMembersState> {

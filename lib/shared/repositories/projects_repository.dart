@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 
 import 'package:bandspace_mobile/core/api/cached_repository.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
-import 'package:bandspace_mobile/shared/models/project_member.dart';
+import 'package:bandspace_mobile/shared/models/project_user.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
 import 'package:bandspace_mobile/shared/models/song_create_data.dart';
 import 'package:bandspace_mobile/shared/models/song_download_url.dart';

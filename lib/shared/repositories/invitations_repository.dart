@@ -6,7 +6,7 @@ class InvitationsRepository extends ApiRepository {
     required super.apiClient,
   });
 
-  Future<InvitationResponse> sendInvitation({
+  Future<ProjectInvitation> sendInvitation({
     required int projectId,
     required String email,
   }) async {
@@ -14,19 +14,17 @@ class InvitationsRepository extends ApiRepository {
       '/api/projects/$projectId/invitations',
       data: {'email': email},
     );
-    return InvitationResponse.fromJson(response.data);
+    return ProjectInvitation.fromJson(response.data);
   }
 
   Future<List<ProjectInvitation>> getProjectInvitations(int projectId) async {
     final response = await apiClient.get(
       '/api/projects/$projectId/invitations',
     );
-    final invitationListResponse = InvitationListResponse.fromJson(
-      response.data,
-    );
-    final invitationsData = invitationListResponse.invitations;
-
-    return invitationsData;
+    final List<dynamic> invitationsData = response.data;
+    return invitationsData
+        .map((invitationData) => ProjectInvitation.fromJson(invitationData))
+        .toList();
   }
 
   Future<void> cancelInvitation({
@@ -38,9 +36,12 @@ class InvitationsRepository extends ApiRepository {
     );
   }
 
-  Future<InvitationListResponse> getUserInvitations() async {
+  Future<List<ProjectInvitation>> getUserInvitations() async {
     final response = await apiClient.get('/api/user/invitations');
-    return InvitationListResponse.fromJson(response.data);
+    final List<dynamic> invitationsData = response.data;
+    return invitationsData
+        .map((invitationData) => ProjectInvitation.fromJson(invitationData))
+        .toList();
   }
 
   Future<void> acceptInvitation(int invitationId) async {

@@ -125,7 +125,7 @@ class ProjectListItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Text(
-        '${project.membersCount} ${_getMemberCountText(project.membersCount)}',
+        '${project.users.length} ${_getMemberCountText(project.users.length)}',
         style: const TextStyle(
           fontSize: 12,
           color: Color(0xFF60A5FA), // text-blue-400
@@ -137,7 +137,7 @@ class ProjectListItem extends StatelessWidget {
   /// Buduje awatary członków projektu
   Widget _buildMemberAvatars() {
     const maxVisibleAvatars = 5;
-    final members = project.members;
+    final members = project.users;
     final visibleMembers = members.length > maxVisibleAvatars
         ? members.sublist(0, maxVisibleAvatars)
         : members;

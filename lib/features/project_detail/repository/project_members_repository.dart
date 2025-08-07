@@ -1,5 +1,5 @@
 import 'package:bandspace_mobile/core/api/cached_repository.dart';
-import 'package:bandspace_mobile/shared/models/project_member.dart';
+import 'package:bandspace_mobile/shared/models/project_user.dart';
 
 class ProjectMembersRepository extends CachedRepository {
   const ProjectMembersRepository({

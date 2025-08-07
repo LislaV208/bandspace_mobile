@@ -9,6 +9,7 @@ class ProjectInvitation extends Equatable {
   final Project? project;
   final User? invitedBy;
   final DateTime createdAt;
+  final DateTime updatedAt;
   final ProjectInvitationStatus status;
 
   const ProjectInvitation({
@@ -17,6 +18,7 @@ class ProjectInvitation extends Equatable {
     required this.project,
     required this.invitedBy,
     required this.createdAt,
+    required this.updatedAt,
     required this.status,
   });
 
@@ -30,7 +32,8 @@ class ProjectInvitation extends Equatable {
       invitedBy: json['invitedBy'] != null
           ? User.fromMap(json['invitedBy'])
           : null,
-      createdAt: DateTime.parse(json['created_at']).toLocal(),
+      createdAt: DateTime.parse(json['createdAt']).toLocal(),
+      updatedAt: DateTime.parse(json['updatedAt']).toLocal(),
       status: ProjectInvitationStatus.values.firstWhere(
         (status) => status.name == json['status'],
         orElse: () => ProjectInvitationStatus.pending,
@@ -44,7 +47,8 @@ class ProjectInvitation extends Equatable {
       'email': email,
       'project': project?.toJson(),
       'invitedBy': invitedBy?.toMap(),
-      'created_at': createdAt.toIso8601String(),
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
       'status': status.name,
     };
   }
@@ -56,6 +60,7 @@ class ProjectInvitation extends Equatable {
     project,
     invitedBy,
     createdAt,
+    updatedAt,
     status,
   ];
 }
@@ -66,49 +71,3 @@ enum ProjectInvitationStatus {
   rejected,
 }
 
-class InvitationResponse extends Equatable {
-  final bool success;
-  final String message;
-  final ProjectInvitation? invitation;
-
-  const InvitationResponse({
-    required this.success,
-    required this.message,
-    this.invitation,
-  });
-
-  factory InvitationResponse.fromJson(Map<String, dynamic> json) {
-    return InvitationResponse(
-      success: json['success'],
-      message: json['message'],
-      invitation: json['invitation'] != null
-          ? ProjectInvitation.fromJson(json['invitation'])
-          : null,
-    );
-  }
-
-  @override
-  List<Object?> get props => [success, message, invitation];
-}
-
-class InvitationListResponse extends Equatable {
-  final bool success;
-  final List<ProjectInvitation> invitations;
-
-  const InvitationListResponse({
-    required this.success,
-    required this.invitations,
-  });
-
-  factory InvitationListResponse.fromJson(Map<String, dynamic> json) {
-    return InvitationListResponse(
-      success: json['success'],
-      invitations: (json['invitations'] as List)
-          .map((invitation) => ProjectInvitation.fromJson(invitation))
-          .toList(),
-    );
-  }
-
-  @override
-  List<Object?> get props => [success, invitations];
-}

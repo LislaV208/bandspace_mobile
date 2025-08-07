@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import 'package:bandspace_mobile/shared/models/project_member.dart';
+import 'package:bandspace_mobile/shared/models/project_user.dart';
 
 abstract class ProjectMembersState extends Equatable {
   const ProjectMembersState();

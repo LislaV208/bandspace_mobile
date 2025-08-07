@@ -14,8 +14,8 @@ class UserInvitationsCubit extends Cubit<UserInvitationsState> {
     emit(const UserInvitationsLoading());
 
     try {
-      final response = await _invitationsRepository.getUserInvitations();
-      emit(UserInvitationsLoadSuccess(response.invitations));
+      final invitations = await _invitationsRepository.getUserInvitations();
+      emit(UserInvitationsLoadSuccess(invitations));
     } catch (e) {
       emit(UserInvitationsLoadFailure(e.toString()));
     }
@@ -26,10 +26,10 @@ class UserInvitationsCubit extends Cubit<UserInvitationsState> {
 
     try {
       await _invitationsRepository.acceptInvitation(invitationId);
-      final response = await _invitationsRepository.getUserInvitations();
+      final invitations = await _invitationsRepository.getUserInvitations();
       emit(UserInvitationsActionSuccess(
         message: 'Zaproszenie zostało przyjęte',
-        invitations: response.invitations,
+        invitations: invitations,
       ));
     } catch (e) {
       emit(UserInvitationsActionFailure(e.toString()));
@@ -41,10 +41,10 @@ class UserInvitationsCubit extends Cubit<UserInvitationsState> {
 
     try {
       await _invitationsRepository.rejectInvitation(invitationId);
-      final response = await _invitationsRepository.getUserInvitations();
+      final invitations = await _invitationsRepository.getUserInvitations();
       emit(UserInvitationsActionSuccess(
         message: 'Zaproszenie zostało odrzucone',
-        invitations: response.invitations,
+        invitations: invitations,
       ));
     } catch (e) {
       emit(UserInvitationsActionFailure(e.toString()));

@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-import 'package:bandspace_mobile/shared/models/project_user.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
 
 /// Model danych projektu muzycznego
@@ -10,7 +9,7 @@ class Project extends Equatable {
   final String slug;
   final DateTime? createdAt;
   final DateTime? updatedAt;
-  final List<ProjectUser>? projectUsers;
+  final List<User> users;
 
   const Project({
     required this.id,
@@ -18,7 +17,7 @@ class Project extends Equatable {
     required this.slug,
     required this.createdAt,
     required this.updatedAt,
-    required this.projectUsers,
+    required this.users,
   });
 
   @override
@@ -28,32 +27,23 @@ class Project extends Equatable {
     slug,
     createdAt,
     updatedAt,
-    projectUsers,
+    users,
   ];
 
   factory Project.fromJson(Map<String, dynamic> json) {
-    // final projectUsers = <ProjectUser>[];
-    // if (json['projectUsers'] != null && json['projectUsers'] is List) {
-    //   for (final projectUserJson in json['projectUsers']) {
-    //     projectUsers.add(ProjectUser.fromJson(projectUserJson));
-    //   }
-    // }
-
     return Project(
       id: json['id'],
       name: json['name'] ?? '',
       slug: json['slug'] ?? '',
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'])
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
           : null,
-      updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'])
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
           : null,
-      projectUsers: json['projectUsers'] != null
-          ? (json['projectUsers'] as List<dynamic>)
-                .map((e) => ProjectUser.fromJson(e as Map<String, dynamic>))
-                .toList()
-          : null,
+      users: (json['users'] as List<dynamic>)
+          .map((e) => User.fromMap(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 
@@ -62,20 +52,14 @@ class Project extends Equatable {
       'id': id,
       'name': name,
       'slug': slug,
-      'created_at': createdAt?.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
-      'projectUsers': projectUsers?.map((pu) => pu.toJson()).toList(),
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+      'users': users.map((pu) => pu.toJson()).toList(),
     };
   }
 
-  /// Pobiera liczbę członków projektu
-  int get membersCount => projectUsers?.length ?? 0;
-
-  /// Pobiera listę użytkowników należących do projektu
-  List<User> get members => projectUsers?.map((pu) => pu.user).toList() ?? [];
-
   /// Sprawdza czy użytkownik jest członkiem projektu
   bool isMember(int userId) {
-    return projectUsers?.any((pu) => pu.userId == userId) ?? false;
+    return users.any((pu) => pu.id == userId);
   }
 }

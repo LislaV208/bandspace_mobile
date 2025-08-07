@@ -31,14 +31,14 @@ class ProjectInvitationsCubit extends Cubit<ProjectInvitationsState> {
     emit(ProjectInvitationsSending(currentInvitations));
 
     try {
-      final response = await _invitationsRepository.sendInvitation(
+      await _invitationsRepository.sendInvitation(
         projectId: projectId,
         email: email,
       );
 
       final updatedInvitations = await _invitationsRepository.getProjectInvitations(projectId);
       emit(ProjectInvitationsSendSuccess(
-        message: response.message,
+        message: 'Zaproszenie zostało wysłane',
         invitations: updatedInvitations,
       ));
     } catch (e) {

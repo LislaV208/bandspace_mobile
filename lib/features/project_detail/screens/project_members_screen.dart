@@ -10,7 +10,7 @@ import 'package:bandspace_mobile/features/project_detail/widgets/invite_user_she
 import 'package:bandspace_mobile/features/project_detail/widgets/project_members/empty_members_state.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/project_members/member_list_item.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
-import 'package:bandspace_mobile/shared/models/project_member.dart';
+import 'package:bandspace_mobile/shared/models/project_user.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 /// Ekran wyświetlający członków projektu
