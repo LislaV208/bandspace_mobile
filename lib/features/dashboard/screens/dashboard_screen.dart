@@ -6,9 +6,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_cubit.dart';
 import 'package:bandspace_mobile/features/dashboard/views/projects_view.dart';
 import 'package:bandspace_mobile/features/dashboard/widgets/create_project_bottom_sheet.dart';
-import 'package:bandspace_mobile/features/dashboard/widgets/invitations_section.dart';
 import 'package:bandspace_mobile/features/dashboard/widgets/user_drawer.dart';
 import 'package:bandspace_mobile/shared/cubits/user_invitations/user_invitations_cubit.dart';
+import 'package:bandspace_mobile/shared/cubits/user_invitations/user_invitations_state.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
@@ -53,6 +53,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             }
           },
         ),
+        BlocListener<UserInvitationsCubit, UserInvitationsState>(
+          listenWhen: (previous, current) => current is UserInvitationsActionSuccess,
+          listener: (context, state) {
+            // Po przyjęciu zaproszenia odśwież projekty, aby pokazać nowy projekt
+            context.read<ProjectsCubit>().refreshProjects();
+          },
+        ),
       ],
       child: Scaffold(
         endDrawer: UserDrawer(),
@@ -83,13 +90,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const InvitationsSection(),
-                    Expanded(child: ProjectsView()),
-                  ],
-                ),
+                child: ProjectsView(),
               ),
             ],
           ),

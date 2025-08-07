@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_state.dart';
 import 'package:bandspace_mobile/features/dashboard/widgets/project_list_item.dart';
+import 'package:bandspace_mobile/features/dashboard/widgets/invitation_list_item.dart';
+import 'package:bandspace_mobile/shared/cubits/user_invitations/user_invitations_cubit.dart';
+import 'package:bandspace_mobile/shared/cubits/user_invitations/user_invitations_state.dart';
 
 class ProjectsList extends StatelessWidget {
   final ProjectsReady state;
@@ -14,23 +18,18 @@ class ProjectsList extends StatelessWidget {
   Widget build(BuildContext context) {
     final projects = state.projects;
 
-    // final projects = List.generate(
-    //   10,
-    //   (index) => Project(
-    //     slug: 'project-$index',
-    //     id: index,
-    //     name: 'Mock Project ${index + 1}',
-    //     createdAt: DateTime.now().subtract(Duration(days: index)),
-    //     updatedAt: DateTime.now().subtract(Duration(days: index)),
-    //     projectUsers: [],
-    //   ),
-    // );
+    return BlocBuilder<UserInvitationsCubit, UserInvitationsState>(
+      builder: (context, invitationsState) {
+        final invitations = _getInvitations(invitationsState);
+        
+        // Pokaż empty state tylko gdy nie ma ani projektów ani zaproszeń
+        if (projects.isEmpty && invitations.isEmpty) {
+          return _buildEmptyState(context);
+        }
 
-    if (projects.isEmpty) {
-      return _buildEmptyState(context);
-    }
-
-    return _buildProjectsList(context, projects);
+        return _buildProjectsList(context, projects);
+      },
+    );
   }
 
   Widget _buildEmptyState(BuildContext context) {
@@ -81,26 +80,49 @@ class ProjectsList extends StatelessWidget {
 
   Widget _buildProjectsList(BuildContext context, List projects) {
     return Expanded(
-      child: ListView(
-        children: [
-          _buildRefreshStatusContent(context),
-          ...projects.asMap().entries.map(
-            (entry) {
-              final index = entry.key;
-              final project = entry.value;
-              return Padding(
-                padding: EdgeInsets.fromLTRB(
-                  16.0,
-                  index == 0 ? 0 : 8.0,
-                  16.0,
-                  8.0,
-                ),
-                child: ProjectListItem(project: project),
-              );
-            },
-          ),
-          const SizedBox(height: 80), // Space for FAB
-        ],
+      child: BlocBuilder<UserInvitationsCubit, UserInvitationsState>(
+        builder: (context, invitationsState) {
+          final invitations = _getInvitations(invitationsState);
+          
+          return ListView(
+            children: [
+              _buildRefreshStatusContent(context),
+              // Wyświetl zaproszenia przed projektami
+              ...invitations.asMap().entries.map(
+                (entry) {
+                  final index = entry.key;
+                  final invitation = entry.value;
+                  return Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      16.0,
+                      (index == 0 && projects.isEmpty) ? 0 : 8.0,
+                      16.0,
+                      8.0,
+                    ),
+                    child: ReceivedInvitationListItem(invitation: invitation),
+                  );
+                },
+              ),
+              // Następnie wyświetl projekty
+              ...projects.asMap().entries.map(
+                (entry) {
+                  final index = entry.key;
+                  final project = entry.value;
+                  return Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      16.0,
+                      (index == 0 && invitations.isEmpty) ? 0 : 8.0,
+                      16.0,
+                      8.0,
+                    ),
+                    child: ProjectListItem(project: project),
+                  );
+                },
+              ),
+              const SizedBox(height: 80), // Space for FAB
+            ],
+          );
+        },
       ),
     );
   }
@@ -157,5 +179,14 @@ class ProjectsList extends StatelessWidget {
           ? CrossFadeState.showFirst
           : CrossFadeState.showSecond,
     );
+  }
+
+  /// Pobiera listę zaproszeń ze stanu UserInvitationsCubit
+  List _getInvitations(UserInvitationsState state) {
+    return switch (state) {
+      UserInvitationsLoadSuccess() => state.invitations,
+      UserInvitationsActionSuccess() => state.invitations,
+      _ => <dynamic>[],
+    };
   }
 }

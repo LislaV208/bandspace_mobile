@@ -65,7 +65,7 @@ class ProjectsView extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Zarządzaj i organizuj swoje projekty muzyczne',
+                'Zarządzaj swoimi projektami muzycznymi',
               ),
             ],
           ),
