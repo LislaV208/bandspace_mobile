@@ -57,11 +57,6 @@ class _SongViewState extends State<SongView> {
             _indexToSongIdMap[i] = songId;
           }
 
-          log('Created maps:');
-          log('_songIndexMap: $_songIndexMap');
-          log('_indexToSongIdMap: $_indexToSongIdMap');
-          log('Current song ID: ${state.currentSong.id}');
-          log('Initial index: ${_songIndexMap[state.currentSong.id]}');
 
           context.read<AudioPlayerCubit>().loadPlaylist(
             state.downloadUrls.songUrls.map((item) => item.url).toList(),
@@ -85,39 +80,20 @@ class _SongViewState extends State<SongView> {
 
           final currentIndex = state.currentIndex;
           if (currentIndex != null) {
-            log('AudioPlayer currentIndex changed to: $currentIndex');
             final songId = _indexToSongIdMap[currentIndex];
-            log('Mapped to songId: $songId');
             if (songId != null) {
               final songDetailState = context.read<SongDetailCubit>().state;
-              log(
-                'Current song in SongDetailCubit: ${songDetailState.currentSong.id}',
-              );
-              log(
-                'Songs in list: ${songDetailState.songs.map((s) => '${s.id}:${s.title}').toList()}',
-              );
               try {
                 final songUnderIndex = songDetailState.songs.firstWhere(
                   (song) => song.id == songId,
                 );
-                log(
-                  'Found song: ${songUnderIndex.title} (id: ${songUnderIndex.id})',
-                );
                 final currentSong = songDetailState.currentSong;
                 if (songUnderIndex != currentSong) {
-                  log('Songs are different, calling selectSong');
                   context.read<SongDetailCubit>().selectSong(songUnderIndex);
-                } else {
-                  log('Songs are the same, no change needed');
                 }
               } catch (e) {
                 log('Song with id $songId not found in songs list: $e');
-                log(
-                  'Available song IDs: ${songDetailState.songs.map((s) => s.id).toList()}',
-                );
               }
-            } else {
-              log('songId is null for currentIndex $currentIndex');
             }
           }
         },

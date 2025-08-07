@@ -32,7 +32,7 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     : _audioPlayer = AudioPlayer(),
       super(const AudioPlayerState()) {
     _listenToPlayerEvents();
-    _listenToPlaylistEvents();
+    // _listenToPlaylistEvents() zostanie wywołane dopiero po załadowaniu playlisty
   }
 
   /// Prywatna metoda do nasłuchiwania na wszystkie zdarzenia z paczki `just_audio`.
@@ -118,15 +118,27 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
   }
 
   /// Nasłuchuje na zdarzenia specyficzne dla playlist
+  /// UWAGA: Wywołuj dopiero PO załadowaniu playlisty!
   void _listenToPlaylistEvents() {
+    // Anuluj poprzednie subskrypcje jeśli istnieją
+    _currentIndexSubscription?.cancel();
+    _sequenceStateSubscription?.cancel();
+    
+    
     // Nasłuchiwanie na zmiany indeksu w playlist
     _currentIndexSubscription = _audioPlayer.currentIndexStream.listen((index) {
       if (state.hasPlaylist) {
+        log(
+          '[AudioPlayerCubit] currentIndexStream changed from ${state.currentIndex} to $index',
+        );
         emit(state.copyWith(currentIndex: Value(index)));
 
         // Aktualizuj currentUrl na podstawie nowego indeksu
         if (index != null && index < state.playlist.length) {
           emit(state.copyWith(currentUrl: Value(state.playlist[index])));
+          log(
+            '[AudioPlayerCubit] Updated currentUrl to: ${state.playlist[index]}',
+          );
         }
       }
     });
@@ -325,6 +337,8 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
       return;
     }
 
+    final targetIndex = initialIndex ?? 0;
+
     try {
       // Tworzenie LockCachingAudioSource dla każdego URL
       final audioSources = await Future.wait(
@@ -336,7 +350,7 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
         state.copyWith(
           status: PlayerStatus.loading,
           playlist: urls,
-          currentIndex: Value(initialIndex ?? 0),
+          currentIndex: Value(targetIndex),
           hasPlaylist: true,
           errorMessage: Value(null),
           isReady: false,
@@ -346,9 +360,12 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
       // Załaduj playlist w just_audio
       await _audioPlayer.setAudioSources(
         audioSources,
-        initialIndex: initialIndex ?? 0,
+        initialIndex: targetIndex,
         initialPosition: Duration.zero,
       );
+      
+      // TERAZ zacznij nasłuchiwać na playlist events
+      _listenToPlaylistEvents();
 
       if (playWhenReady) {
         await _audioPlayer.play();
