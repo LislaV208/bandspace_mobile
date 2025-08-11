@@ -27,6 +27,7 @@ class AuthRepository extends ApiRepository {
     googleSignInService.initialize();
   }
 
+
   /// Loguje użytkownika przy użyciu emaila i hasła.
   ///
   /// Zwraca sesję użytkownika w przypadku powodzenia.
@@ -42,9 +43,6 @@ class AuthRepository extends ApiRepository {
       );
 
       final session = Session.fromMap(response.data);
-
-      // Ustawienie tokenu autoryzacji w ApiClient
-      apiClient.setAuthToken(session.accessToken);
 
       // Zapisanie danych sesji w lokalnym magazynie
       await storageService.saveSession(session);
@@ -95,8 +93,7 @@ class AuthRepository extends ApiRepository {
 
       final session = Session.fromMap(response.data);
 
-      // Krok 4: Ustawienie tokenu autoryzacji w ApiClient
-      apiClient.setAuthToken(session.accessToken);
+      // Krok 4: Tokeny są automatycznie zarządzane przez AuthInterceptor
 
       // Krok 5: Zapisanie danych sesji w lokalnym magazynie
       await storageService.saveSession(session);
@@ -141,8 +138,7 @@ class AuthRepository extends ApiRepository {
           user: User.fromMap(responseData['user']),
         );
 
-        // Ustawienie tokenu autoryzacji w ApiClient
-        apiClient.setAuthToken(session.accessToken);
+        // Tokeny są automatycznie zarządzane przez AuthInterceptor
 
         // Zapisanie danych sesji w lokalnym magazynie
         await storageService.saveSession(session);
@@ -181,9 +177,6 @@ class AuthRepository extends ApiRepository {
     } catch (e) {
       rethrow;
     } finally {
-      // Czyszczenie tokenu autoryzacji
-      apiClient.clearAuthToken();
-
       // Usunięcie danych sesji z lokalnego magazynu
       await storageService.clearSession();
     }
@@ -198,27 +191,18 @@ class AuthRepository extends ApiRepository {
 
   /// Inicjalizuje sesję użytkownika na podstawie danych z lokalnego magazynu.
   ///
-  /// Jeśli dane sesji istnieją w lokalnym magazynie, ustawia token autoryzacji w ApiClient.
   /// Zwraca sesję użytkownika, jeśli istnieje, null w przeciwnym razie.
+  /// AuthInterceptor automatycznie obsłuży refresh tokenów przy pierwszym żądaniu.
   Future<Session?> initSession() async {
-    final session = await storageService.getSession();
-
-    if (session != null) {
-      // Ustawienie tokenu autoryzacji w ApiClient
-      apiClient.setAuthToken(session.accessToken);
-    }
-
-    return session;
+    return await storageService.getSession();
   }
+
 
   /// Czyści lokalny stan autoryzacji bez wywoływania API
   ///
   /// Używane po usunięciu konta, gdy użytkownik już nie istnieje w systemie
   Future<void> clearLocalSession() async {
     try {
-      // Czyszczenie tokenu autoryzacji
-      apiClient.clearAuthToken();
-
       // Usunięcie danych sesji z lokalnego magazynu
       await storageService.clearSession();
     } catch (e) {

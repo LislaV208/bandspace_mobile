@@ -18,4 +18,5 @@ class Session {
   Map<String, dynamic> toMap() {
     return {'accessToken': accessToken, 'refreshToken': refreshToken, 'user': user.toMap()};
   }
+
 }

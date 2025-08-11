@@ -1,9 +1,12 @@
 import 'package:dio/dio.dart';
 
 import 'package:bandspace_mobile/core/config/env_config.dart';
+import 'package:bandspace_mobile/core/auth/auth_interceptor.dart';
+import 'package:bandspace_mobile/shared/services/session_storage_service.dart';
 
 /// Klasa ApiClient odpowiedzialna za wykonywanie żądań HTTP
-/// do API BandSpace przy użyciu biblioteki dio.
+/// do API BandSpace przy użyciu biblioteki dio z obsługą automatycznego
+/// odświeżania tokenów autoryzacji.
 class ApiClient {
   /// Instancja Dio używana do wykonywania żądań
   final Dio _dio;
@@ -34,21 +37,13 @@ class ApiClient {
       return status != null && status >= 200 && status < 300;
     };
 
-    // Dodanie interceptorów dla logowania, obsługi błędów, itp.
+    // Dodanie Auth Interceptor
+    _dio.interceptors.add(AuthInterceptor(SessionStorageService()));
+    
+    // Dodanie interceptorów dla logowania
     _dio.interceptors.add(
       LogInterceptor(requestBody: true, responseBody: true, error: true),
     );
-  }
-
-  /// Metoda do ustawiania tokenu autoryzacji
-  void setAuthToken(String token) {
-    _dio.options.headers['Authorization'] = 'Bearer $token';
-    // _dio.options.headers['Authorization'] = 'Bearer dupa';
-  }
-
-  /// Metoda do usuwania tokenu autoryzacji
-  void clearAuthToken() {
-    _dio.options.headers.remove('Authorization');
   }
 
   /// Wykonuje żądanie GET
