@@ -27,7 +27,6 @@ class AuthRepository extends ApiRepository {
     googleSignInService.initialize();
   }
 
-
   /// Loguje użytkownika przy użyciu emaila i hasła.
   ///
   /// Zwraca sesję użytkownika w przypadku powodzenia.
@@ -87,8 +86,8 @@ class AuthRepository extends ApiRepository {
       // Krok 3: Wysłanie ID tokenu Google do backendu w celu wymiany na JWT
       // Backend zweryfikuje token Google i zwróci sesję aplikacji
       final response = await apiClient.post(
-        '/api/auth/login',
-        data: {'googleToken': googleAuth.idToken},
+        '/api/auth/google/mobile',
+        data: {'token': googleAuth.idToken},
       );
 
       final session = Session.fromMap(response.data);
@@ -171,9 +170,9 @@ class AuthRepository extends ApiRepository {
       await apiClient.post('/api/auth/logout');
 
       // Wylogowanie z Google Sign-In
-      if (await googleSignInService.isSignedIn()) {
-        await googleSignInService.signOut();
-      }
+      // if (await googleSignInService.isSignedIn()) {
+      await googleSignInService.signOut();
+      // }
     } catch (e) {
       rethrow;
     } finally {
@@ -196,7 +195,6 @@ class AuthRepository extends ApiRepository {
   Future<Session?> initSession() async {
     return await storageService.getSession();
   }
-
 
   /// Czyści lokalny stan autoryzacji bez wywoływania API
   ///

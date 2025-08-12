@@ -352,7 +352,7 @@ class _AuthScreenContentState extends State<_AuthScreenContent> {
                                       style: TextStyle(
                                         color: Theme.of(
                                           context,
-                                        ).colorScheme.primary,
+                                        ).colorScheme.tertiary,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -534,7 +534,7 @@ class _AuthScreenContentState extends State<_AuthScreenContent> {
               child: Text(
                 "Zapomniałeś hasła?",
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
+                  color: Theme.of(context).colorScheme.tertiary,
                   fontWeight: FontWeight.w500,
                 ),
               ),

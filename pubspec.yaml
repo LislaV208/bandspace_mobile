@@ -19,7 +19,7 @@ dependencies:
   flutter_dotenv: ^5.2.1
   flutter_secure_storage: ^9.2.4
   gap: ^3.0.1
-  google_sign_in: ^7.0.0
+  google_sign_in: ^7.1.1
   icons_plus: ^5.0.0
   lucide_icons_flutter: ^3.0.6
   path: ^1.9.0

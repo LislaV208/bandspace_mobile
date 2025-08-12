@@ -27,7 +27,9 @@ class GoogleSignInService {
     _authSubscription = _googleSignIn.authenticationEvents.listen((event) {
       if (event is GoogleSignInAuthenticationEventSignIn) {
         _currentUser = event.user;
-        debugPrint('Google Sign-In: Użytkownik zalogowany: ${event.user.email}');
+        debugPrint(
+          'Google Sign-In: Użytkownik zalogowany: ${event.user.email}',
+        );
       } else if (event is GoogleSignInAuthenticationEventSignOut) {
         _currentUser = null;
         debugPrint('Google Sign-In: Użytkownik wylogowany');
@@ -42,17 +44,22 @@ class GoogleSignInService {
   }
 
   /// Inicjalizuje Google Sign-In z właściwą konfiguracją
-  Future<void> initialize({String? clientId, List<String> scopes = const ['email', 'profile']}) async {
+  Future<void> initialize({
+    String? clientId,
+    List<String> scopes = const ['email', 'profile'],
+  }) async {
     if (_isInitialized) return;
 
     try {
       await _googleSignIn.initialize(
-        clientId: '773891250246-lss86hbtjoe294tqnecr6270qtmtnkj6.apps.googleusercontent.com',
-        serverClientId: '773891250246-o4b9rrrbrped2joef6dpa4o7mv2blv8m.apps.googleusercontent.com',
+        clientId:
+            '773891250246-lss86hbtjoe294tqnecr6270qtmtnkj6.apps.googleusercontent.com',
+        serverClientId:
+            '773891250246-o4b9rrrbrped2joef6dpa4o7mv2blv8m.apps.googleusercontent.com',
       );
 
       // Spróbuj lekkiej autentyfikacji przy starcie
-      _currentUser = await _googleSignIn.attemptLightweightAuthentication();
+      // _currentUser = await _googleSignIn.attemptLightweightAuthentication();
       _isInitialized = true;
       debugPrint('Google Sign-In: Zainicjalizowano pomyślnie');
     } catch (error) {
@@ -81,14 +88,20 @@ class GoogleSignInService {
         return null;
       } else if (e.code == 'network_error') {
         debugPrint('Google Sign-In: Błąd sieci');
-        throw Exception('Brak połączenia z internetem. Sprawdź połączenie i spróbuj ponownie.');
+        throw Exception(
+          'Brak połączenia z internetem. Sprawdź połączenie i spróbuj ponownie.',
+        );
       } else {
         debugPrint('Google Sign-In: Platform error [${e.code}]: ${e.message}');
         throw Exception('Błąd podczas logowania przez Google: ${e.message}');
       }
     } catch (error) {
-      debugPrint('Google Sign-In: Nieoczekiwany błąd podczas logowania: $error');
-      throw Exception('Wystąpił nieoczekiwany błąd podczas logowania przez Google');
+      debugPrint(
+        'Google Sign-In: Nieoczekiwany błąd podczas logowania: $error',
+      );
+      throw Exception(
+        'Wystąpił nieoczekiwany błąd podczas logowania przez Google',
+      );
     }
   }
 
@@ -101,7 +114,9 @@ class GoogleSignInService {
       _currentUser = null;
       debugPrint('Google Sign-In: Pomyślnie wylogowano');
     } on PlatformException catch (e) {
-      debugPrint('Google Sign-In: Platform error podczas wylogowywania [${e.code}]: ${e.message}');
+      debugPrint(
+        'Google Sign-In: Platform error podczas wylogowywania [${e.code}]: ${e.message}',
+      );
       // Mimo błędu, wyczyść lokalny stan
       _currentUser = null;
       rethrow;
@@ -124,7 +139,9 @@ class GoogleSignInService {
       _currentUser = null;
       debugPrint('Google Sign-In: Pomyślnie rozłączono konto');
     } on PlatformException catch (e) {
-      debugPrint('Google Sign-In: Platform error podczas rozłączania [${e.code}]: ${e.message}');
+      debugPrint(
+        'Google Sign-In: Platform error podczas rozłączania [${e.code}]: ${e.message}',
+      );
       // Mimo błędu, wyczyść lokalny stan
       _currentUser = null;
       rethrow;
@@ -145,7 +162,9 @@ class GoogleSignInService {
       final user = await currentUser;
       return user != null;
     } catch (error) {
-      debugPrint('Google Sign-In: Błąd podczas sprawdzania stanu logowania: $error');
+      debugPrint(
+        'Google Sign-In: Błąd podczas sprawdzania stanu logowania: $error',
+      );
       return false;
     }
   }
@@ -158,7 +177,9 @@ class GoogleSignInService {
       try {
         _currentUser = await _googleSignIn.attemptLightweightAuthentication();
       } catch (error) {
-        debugPrint('Google Sign-In: Błąd podczas pobierania aktualnego użytkownika: $error');
+        debugPrint(
+          'Google Sign-In: Błąd podczas pobierania aktualnego użytkownika: $error',
+        );
         return null;
       }
     }
@@ -175,7 +196,9 @@ class GoogleSignInService {
         final GoogleSignInAuthentication auth = account.authentication;
         return auth.idToken;
       } on PlatformException catch (e) {
-        debugPrint('Google Sign-In: Platform error podczas pobierania ID token [${e.code}]: ${e.message}');
+        debugPrint(
+          'Google Sign-In: Platform error podczas pobierania ID token [${e.code}]: ${e.message}',
+        );
         return null;
       } catch (error) {
         debugPrint('Google Sign-In: Błąd podczas pobierania ID token: $error');
@@ -186,7 +209,8 @@ class GoogleSignInService {
   }
 
   /// Stream dla zdarzeń autentyfikacji
-  Stream<GoogleSignInAuthenticationEvent> get authenticationEvents => _googleSignIn.authenticationEvents;
+  Stream<GoogleSignInAuthenticationEvent> get authenticationEvents =>
+      _googleSignIn.authenticationEvents;
 
   /// Sprawdza czy serwis jest zainicjalizowany, jeśli nie - inicjalizuje
   Future<void> _ensureInitialized() async {
