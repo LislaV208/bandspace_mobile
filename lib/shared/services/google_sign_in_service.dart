@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -75,34 +76,16 @@ class GoogleSignInService {
   Future<GoogleSignInAccount?> signIn() async {
     await _ensureInitialized();
 
-    try {
-      // Używamy authenticate() zgodnie z dokumentacją 7.x
-      final account = await _googleSignIn.authenticate();
+    // W wersji 7.x używamy attemptLightweightAuthentication() + authenticate()
+    // GoogleSignInAccount? account = await _googleSignIn
+    //     .attemptLightweightAuthentication();
 
-      _currentUser = account;
-      debugPrint('Google Sign-In: Pomyślnie zalogowano ${account.email}');
-      return account;
-    } on PlatformException catch (e) {
-      if (e.code == 'sign_in_canceled') {
-        debugPrint('Google Sign-In: Logowanie anulowane');
-        return null;
-      } else if (e.code == 'network_error') {
-        debugPrint('Google Sign-In: Błąd sieci');
-        throw Exception(
-          'Brak połączenia z internetem. Sprawdź połączenie i spróbuj ponownie.',
-        );
-      } else {
-        debugPrint('Google Sign-In: Platform error [${e.code}]: ${e.message}');
-        throw Exception('Błąd podczas logowania przez Google: ${e.message}');
-      }
-    } catch (error) {
-      debugPrint(
-        'Google Sign-In: Nieoczekiwany błąd podczas logowania: $error',
-      );
-      throw Exception(
-        'Wystąpił nieoczekiwany błąd podczas logowania przez Google',
-      );
-    }
+    // Jeśli lightweight nie zadziała, spróbuj pełnej autoryzacji
+    final account = await _googleSignIn.authenticate();
+
+    _currentUser = account;
+    log('Google Sign-In: Pomyślnie zalogowano ${account.email}');
+    return account;
   }
 
   /// Wylogowuje użytkownika z Google

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:bandspace_mobile/core/api/api_client.dart';
@@ -98,16 +100,11 @@ class AuthRepository extends ApiRepository {
       await storageService.saveSession(session);
 
       return session;
-    } on ApiException {
-      // Wyloguj z Google w przypadku błędu autoryzacji w backendzie
-      await googleSignInService.signOut();
-      rethrow;
     } catch (e) {
-      // Wyloguj z Google w przypadku innych błędów
+      log(e.toString());
       await googleSignInService.signOut();
-      throw UnknownException(
-        'Wystąpił nieoczekiwany błąd podczas logowania przez Google: $e',
-      );
+
+      rethrow;
     }
   }
 

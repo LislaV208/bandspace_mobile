@@ -15,9 +15,6 @@ import 'package:bandspace_mobile/features/splash/screens/splash_screen.dart';
 Future<void> main({String envFileName = '.env'}) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inicjalizacja RemoteCaching
-  await RemoteCaching.instance.init();
-
   // Załadowanie odpowiedniego pliku .env
   await EnvConfig().init(fileName: envFileName);
 

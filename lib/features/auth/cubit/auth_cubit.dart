@@ -188,29 +188,10 @@ class AuthCubit extends Cubit<AuthState> {
       // Wyczyść stan ładowania
       emit(state.copyWith(isLoading: false));
 
-      // Nawigacja do ekranu głównego po udanym logowaniu
-      debugPrint("Zalogowano przez Google pomyślnie: ${session.user.email}");
-
       // Emitujemy stan z danymi użytkownika, co oznacza że jest zalogowany
       emit(state.copyWith(user: Value(session.user)));
     } catch (e) {
-      // Obsługa błędów
-      String errorMessage = "Błąd logowania przez Google: ${e.toString()}";
-
-      // Sprawdzamy typ wyjątku i dostosowujemy komunikat
-      if (e.toString().contains("ApiException")) {
-        errorMessage = e.toString().replaceAll("ApiException: ", "");
-      } else if (e.toString().contains("NetworkException")) {
-        errorMessage =
-            "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
-      } else if (e.toString().contains("TimeoutException")) {
-        errorMessage =
-            "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
-      } else if (e.toString().contains("Anulowano logowanie przez Google")) {
-        errorMessage = "Logowanie przez Google zostało anulowane.";
-      }
-
-      emit(state.copyWith(isLoading: false, errorMessage: Value(errorMessage)));
+      emit(state.copyWith(isLoading: false, errorMessage: Value(e.toString())));
     }
   }
 
