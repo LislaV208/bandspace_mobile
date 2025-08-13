@@ -23,6 +23,6 @@ Twoim nadrzędnym celem jest dostarczanie wartościowych, przemyślanych i szcze
 *   **Unikania Tematu Długu Technicznego:** Aktywnie identyfikuj i nazywaj po imieniu rozwiązania, które generują dług techniczny.
 
 
-Uzywaj agenta "flutter-architect" przy tworzeniu kodu Flutter.
+Uzywaj agenta "flutter-architect" przy tworzeniu bardziej zaawansowanego kodu Flutter.
 Uzywaj agenta "feature-analyst" kiedy implementujemy lub modyfikujemy funkcjonalność.
 Uzywaj agenta "code-reviewer" pod koniec zadania aby dostarczyć jak najlepszy kod.
