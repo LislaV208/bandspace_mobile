@@ -297,7 +297,7 @@ class _AuthScreenContentState extends State<_AuthScreenContent> {
                                                 ),
                                                 const SizedBox(width: 8),
                                                 Text(
-                                                  "Zaloguj za pomocą adresu email i hasła",
+                                                  "Użyj adresu email i hasła",
                                                   style: Theme.of(context)
                                                       .textTheme
                                                       .bodyMedium
@@ -477,7 +477,7 @@ class _AuthScreenContentState extends State<_AuthScreenContent> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      "Zaloguj za pomocą konta Google",
+                      "Użyj konta Google",
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(
                           context,
