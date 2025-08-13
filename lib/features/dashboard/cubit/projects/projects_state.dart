@@ -43,6 +43,9 @@ class ProjectsRefreshFailure extends ProjectsReady {
   final String message;
 
   const ProjectsRefreshFailure(super.projects, this.message);
+
+  @override
+  List<Object?> get props => [projects, message];
 }
 
 class ProjectsCreatingProjectState extends ProjectsReady {
@@ -61,4 +64,7 @@ class ProjectsCreatingProjectFailure extends ProjectsCreatingProjectState {
   final String message;
 
   const ProjectsCreatingProjectFailure(super.projects, this.message);
+
+  @override
+  List<Object?> get props => [projects, message];
 }

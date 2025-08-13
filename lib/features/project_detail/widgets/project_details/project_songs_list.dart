@@ -119,6 +119,9 @@ class ProjectSongsList extends StatelessWidget {
                   subtitle: Text(
                     'Dane mogą być nieaktualne',
                   ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 )
               : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
