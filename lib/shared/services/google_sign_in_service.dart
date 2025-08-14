@@ -52,9 +52,11 @@ class GoogleSignInService {
     if (_isInitialized) return;
 
     try {
+      // TODO: load from env
       await _googleSignIn.initialize(
-        clientId:
-            '773891250246-lss86hbtjoe294tqnecr6270qtmtnkj6.apps.googleusercontent.com',
+        clientId: kDebugMode
+            ? '773891250246-tqdqrcj6jkail99uei6r4jmp8bkjcdgc.apps.googleusercontent.com'
+            : '773891250246-lss86hbtjoe294tqnecr6270qtmtnkj6.apps.googleusercontent.com',
         serverClientId:
             '773891250246-o4b9rrrbrped2joef6dpa4o7mv2blv8m.apps.googleusercontent.com',
       );
