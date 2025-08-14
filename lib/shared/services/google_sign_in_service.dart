@@ -54,9 +54,6 @@ class GoogleSignInService {
     try {
       // TODO: load from env
       await _googleSignIn.initialize(
-        clientId: kDebugMode
-            ? '773891250246-tqdqrcj6jkail99uei6r4jmp8bkjcdgc.apps.googleusercontent.com'
-            : '773891250246-lss86hbtjoe294tqnecr6270qtmtnkj6.apps.googleusercontent.com',
         serverClientId:
             '773891250246-o4b9rrrbrped2joef6dpa4o7mv2blv8m.apps.googleusercontent.com',
       );
@@ -79,11 +76,11 @@ class GoogleSignInService {
     await _ensureInitialized();
 
     // W wersji 7.x używamy attemptLightweightAuthentication() + authenticate()
-    // GoogleSignInAccount? account = await _googleSignIn
-    //     .attemptLightweightAuthentication();
+    GoogleSignInAccount? account = await _googleSignIn
+        .attemptLightweightAuthentication();
 
     // Jeśli lightweight nie zadziała, spróbuj pełnej autoryzacji
-    final account = await _googleSignIn.authenticate();
+    account ??= await _googleSignIn.authenticate();
 
     _currentUser = account;
     log('Google Sign-In: Pomyślnie zalogowano ${account.email}');
