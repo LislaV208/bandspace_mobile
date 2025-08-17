@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
+import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
+import 'package:bandspace_mobile/features/auth/screens/auth_screen.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_cubit.dart';
 import 'package:bandspace_mobile/features/dashboard/views/projects_view.dart';
 import 'package:bandspace_mobile/features/dashboard/widgets/create_project_bottom_sheet.dart';
@@ -43,6 +46,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return MultiBlocListener(
       listeners: [
+        // Listener dla automatycznego przekierowania po wylogowaniu
+        BlocListener<AuthCubit, AuthState>(
+          listenWhen: (previous, current) {
+            // Słuchaj tylko gdy wcześniej użytkownik był zalogowany, a teraz nie jest
+            return previous.user != null && current.user == null;
+          },
+          listener: (context, state) {
+            // Użytkownik został wylogowany - przekieruj do AuthScreen
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const AuthScreen()),
+              (route) => false, // Usuń wszystkie poprzednie ekrany ze stosu
+            );
+          },
+        ),
         BlocListener<UserProfileCubit, UserProfileState>(
           listenWhen: (previous, current) =>
               previous is UserProfileEditNameSubmitting &&
@@ -54,7 +71,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           },
         ),
         BlocListener<UserInvitationsCubit, UserInvitationsState>(
-          listenWhen: (previous, current) => current is UserInvitationsActionSuccess,
+          listenWhen: (previous, current) =>
+              current is UserInvitationsActionSuccess,
           listener: (context, state) {
             // Po przyjęciu zaproszenia odśwież projekty, aby pokazać nowy projekt
             context.read<ProjectsCubit>().refreshProjects();

@@ -7,7 +7,6 @@ import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/account/screens/profile_screen.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
-import 'package:bandspace_mobile/features/auth/screens/auth_screen.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
@@ -217,14 +216,8 @@ class UserDrawer extends StatelessWidget {
       // Sprawdź ponownie, czy widget jest nadal w drzewie widgetów
       if (!context.mounted) return;
 
-      // Zamknij drawer
+      // Zamknij drawer - nawigacja do AuthScreen będzie obsłużona przez listener w DashboardScreen
       Navigator.of(context).pop();
-
-      // Nawiguj do ekranu logowania
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const AuthScreen()),
-        (route) => false, // Usuń wszystkie poprzednie ekrany ze stosu
-      );
     }
   }
 }

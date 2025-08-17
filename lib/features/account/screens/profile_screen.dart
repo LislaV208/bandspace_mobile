@@ -6,7 +6,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/features/account/screens/change_password_screen.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
-import 'package:bandspace_mobile/features/auth/screens/auth_screen.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 
@@ -69,17 +68,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
 
           if (state is UserProfileDeleteSuccess) {
+            // Wyloguj użytkownika - nawigacja będzie obsłużona przez listener w DashboardScreen
             await context.read<AuthCubit>().logout();
-            if (!context.mounted) return;
-            await context.read<AuthCubit>().clearUserSession();
-            if (!context.mounted) return;
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const AuthScreen()),
-              (route) => false,
-            );
           }
 
           if (state is UserProfileDeleteFailure) {
+            if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
