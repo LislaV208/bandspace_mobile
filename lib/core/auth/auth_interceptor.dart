@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import 'package:bandspace_mobile/core/auth/auth_event_service.dart';
 import 'package:bandspace_mobile/core/config/env_config.dart';
 import 'package:bandspace_mobile/shared/models/session.dart';
 import 'package:bandspace_mobile/shared/services/session_storage_service.dart';
@@ -10,8 +11,10 @@ import 'package:bandspace_mobile/shared/services/session_storage_service.dart';
 /// błędy 401 poprzez odświeżenie access tokenu.
 class AuthInterceptor extends Interceptor {
   final SessionStorageService _storage;
+  final AuthEventService? _authEventService;
 
-  AuthInterceptor(this._storage);
+  AuthInterceptor(this._storage, {AuthEventService? authEventService})
+      : _authEventService = authEventService;
 
   @override
   Future<void> onRequest(
@@ -50,16 +53,15 @@ class AuthInterceptor extends Interceptor {
 
       try {
         // Spróbuj odświeżyć access token
-        final success = await _tryRefreshToken();
-
-        if (success) {
-          // Jeśli refresh się powiódł, ponów pierwotne żądanie
-          final response = await _retryRequest(err.requestOptions);
-          handler.resolve(response);
-          return;
-        }
+        await _tryRefreshToken();
+        
+        // Jeśli refresh się powiódł, ponów pierwotne żądanie
+        final response = await _retryRequest(err.requestOptions);
+        handler.resolve(response);
+        return;
       } catch (e) {
-        // Jeśli refresh się nie powiódł, przekaż oryginalny błąd 401
+        // Refresh się nie powiódł - powiadom o niepowodzeniu
+        _authEventService?.emit(AuthEvent.tokenRefreshFailed);
       }
     }
 
@@ -77,30 +79,24 @@ class AuthInterceptor extends Interceptor {
   }
 
   /// Próbuje odświeżyć access token używając refresh tokenu
-  Future<bool> _tryRefreshToken() async {
+  /// Rzuca wyjątek w przypadku niepowodzenia
+  Future<void> _tryRefreshToken() async {
     final refreshToken = await _storage.getRefreshToken();
     if (refreshToken == null || refreshToken.isEmpty) {
-      return false;
+      throw Exception('Brak refresh tokenu');
     }
 
-    try {
-      // Użyj nowej instancji Dio żeby uniknąć interceptorów
-      final dio = Dio();
-      dio.options.baseUrl = EnvConfig().apiBaseUrl;
+    // Użyj nowej instancji Dio żeby uniknąć interceptorów
+    final dio = Dio();
+    dio.options.baseUrl = EnvConfig().apiBaseUrl;
 
-      final response = await dio.post(
-        '/api/auth/refresh',
-        data: {'refreshToken': refreshToken},
-      );
+    final response = await dio.post(
+      '/api/auth/refresh',
+      data: {'refreshToken': refreshToken},
+    );
 
-      final session = Session.fromMap(response.data);
-      await _storage.saveSession(session);
-      return true;
-    } catch (e) {
-      // W przypadku błędu refresh tokenu, wyczyść sesję
-      await _storage.clearSession();
-      return false;
-    }
+    final session = Session.fromMap(response.data);
+    await _storage.saveSession(session);
   }
 
   /// Ponawia pierwotne żądanie z nowym tokenem

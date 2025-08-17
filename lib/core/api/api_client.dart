@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
 
-import 'package:bandspace_mobile/core/config/env_config.dart';
+import 'package:bandspace_mobile/core/auth/auth_event_service.dart';
 import 'package:bandspace_mobile/core/auth/auth_interceptor.dart';
+import 'package:bandspace_mobile/core/config/env_config.dart';
 import 'package:bandspace_mobile/shared/services/session_storage_service.dart';
 
 /// Klasa ApiClient odpowiedzialna za wykonywanie żądań HTTP
@@ -11,16 +12,8 @@ class ApiClient {
   /// Instancja Dio używana do wykonywania żądań
   final Dio _dio;
 
-  /// Singleton instance
-  static final ApiClient _instance = ApiClient._internal();
-
-  /// Fabryka zwracająca singleton
-  factory ApiClient() {
-    return _instance;
-  }
-
-  /// Konstruktor prywatny inicjalizujący Dio z odpowiednimi ustawieniami
-  ApiClient._internal() : _dio = Dio() {
+  /// Konstruktor inicjalizujący Dio z odpowiednimi ustawieniami
+  ApiClient({AuthEventService? authEventService}) : _dio = Dio() {
     // Pobranie bazowego URL z konfiguracji środowiskowej
     final baseUrl = EnvConfig().apiBaseUrl;
 
@@ -37,8 +30,11 @@ class ApiClient {
       return status != null && status >= 200 && status < 300;
     };
 
-    // Dodanie Auth Interceptor
-    _dio.interceptors.add(AuthInterceptor(SessionStorageService()));
+    // Dodanie Auth Interceptor z AuthEventService
+    _dio.interceptors.add(AuthInterceptor(
+      SessionStorageService(),
+      authEventService: authEventService,
+    ));
     
     // Dodanie interceptorów dla logowania
     _dio.interceptors.add(

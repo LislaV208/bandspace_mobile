@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/api/cached_repository.dart';
+import 'package:bandspace_mobile/core/auth/auth_event_service.dart';
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
 import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
@@ -11,8 +14,22 @@ import 'package:bandspace_mobile/shared/models/user.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository authRepository;
+  final AuthEventService authEventService;
+  
+  // Subskrypcja do eventów auth
+  StreamSubscription<AuthEvent>? _authEventSubscription;
 
-  AuthCubit({required this.authRepository}) : super(const AuthState()) {
+  AuthCubit({
+    required this.authRepository,
+    required this.authEventService,
+  }) : super(const AuthState()) {
+    // Nasłuchuj na eventy związane z uwierzytelnianiem
+    _authEventSubscription = authEventService.events.listen((event) {
+      if (event == AuthEvent.tokenRefreshFailed) {
+        _handleTokenRefreshFailed();
+      }
+    });
+    
     // Inicjalizacja sesji przy tworzeniu cubita
     _initSession();
   }
@@ -34,7 +51,10 @@ class AuthCubit extends Cubit<AuthState> {
 
   @override
   Future<void> close() {
-    // Zwolnienie zasobów
+    // Zwolnienie zasobów streamów
+    _authEventSubscription?.cancel();
+    
+    // Zwolnienie zasobów kontrolerów
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
@@ -307,4 +327,13 @@ class AuthCubit extends Cubit<AuthState> {
       );
     }
   }
+
+  /// Obsługuje niepowodzenie odświeżania tokenu - automatyczne wylogowanie użytkownika
+  void _handleTokenRefreshFailed() {
+    debugPrint("Token refresh failed - automatyczne wylogowanie użytkownika");
+    
+    // Wyczyść sesję lokalnie bez wywoływania API (token już jest nieprawidłowy)
+    clearUserSession();
+  }
+
 }
