@@ -53,6 +53,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             return previous.user != null && current.user == null;
           },
           listener: (context, state) {
+            // Pokaż SnackBar jeśli wylogowanie było spowodowane błędem tokenu
+            if (state.loggedOutDueToTokenFailure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Wystąpił błąd sesji. Zaloguj się ponownie.'),
+                  backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                ),
+              );
+            }
+
             // Użytkownik został wylogowany - przekieruj do AuthScreen
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) => const AuthScreen()),

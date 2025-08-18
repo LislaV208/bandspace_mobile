@@ -19,6 +19,9 @@ class AuthState extends Equatable {
   /// Używana do określenia, czy aplikacja powinna pokazać ekran ładowania czy przejść do odpowiedniego ekranu.
   final bool isAuthStateInitialized;
 
+  /// Flaga wskazująca, czy użytkownik został wylogowany z powodu niepowodzenia odświeżania tokenu
+  final bool loggedOutDueToTokenFailure;
+
   const AuthState({
     this.view = AuthView.login,
     this.isLoading = false,
@@ -27,6 +30,7 @@ class AuthState extends Equatable {
     this.showConfirmPassword = false,
     this.user,
     this.isAuthStateInitialized = false,
+    this.loggedOutDueToTokenFailure = false,
   });
 
   /// Tworzy kopię stanu z nowymi wartościami
@@ -38,6 +42,7 @@ class AuthState extends Equatable {
     bool? showConfirmPassword,
     Value<User?>? user,
     bool? isAuthStateInitialized,
+    bool? loggedOutDueToTokenFailure,
   }) {
     return AuthState(
       view: view ?? this.view,
@@ -47,6 +52,7 @@ class AuthState extends Equatable {
       showConfirmPassword: showConfirmPassword ?? this.showConfirmPassword,
       user: user != null ? user.value : this.user,
       isAuthStateInitialized: isAuthStateInitialized ?? this.isAuthStateInitialized,
+      loggedOutDueToTokenFailure: loggedOutDueToTokenFailure ?? this.loggedOutDueToTokenFailure,
     );
   }
 
@@ -59,5 +65,6 @@ class AuthState extends Equatable {
     showConfirmPassword,
     user,
     isAuthStateInitialized,
+    loggedOutDueToTokenFailure,
   ];
 }

@@ -14,7 +14,7 @@ class AuthInterceptor extends Interceptor {
   final AuthEventService? _authEventService;
 
   AuthInterceptor(this._storage, {AuthEventService? authEventService})
-      : _authEventService = authEventService;
+    : _authEventService = authEventService;
 
   @override
   Future<void> onRequest(
@@ -52,15 +52,15 @@ class AuthInterceptor extends Interceptor {
       }
 
       try {
-        // Spróbuj odświeżyć access token
-        await _tryRefreshToken();
-        
+        // Spróbuj odświeżyć access token z retry do 3 prób
+        await _tryRefreshTokenWithRetry();
+
         // Jeśli refresh się powiódł, ponów pierwotne żądanie
         final response = await _retryRequest(err.requestOptions);
         handler.resolve(response);
         return;
       } catch (e) {
-        // Refresh się nie powiódł - powiadom o niepowodzeniu
+        // Wszystkie próby refresh się nie powiodły - powiadom o niepowodzeniu
         _authEventService?.emit(AuthEvent.tokenRefreshFailed);
       }
     }
@@ -76,6 +76,30 @@ class AuthInterceptor extends Interceptor {
       return !path.contains('/api/auth/logout');
     }
     return false;
+  }
+
+  /// Próbuje odświeżyć access token z retry do 5 prób
+  /// Rzuca wyjątek jeśli wszystkie próby się nie powiodą
+  Future<void> _tryRefreshTokenWithRetry() async {
+    const maxRetries = 5;
+    const retryDelay = Duration(milliseconds: 100);
+
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await _tryRefreshToken();
+        return; // Sukces - zakończ retry loop
+      } catch (e) {
+        if (attempt == maxRetries) {
+          // Ostatnia próba - rzuć wyjątek
+          throw Exception(
+            'Token refresh failed after $maxRetries attempts: $e',
+          );
+        }
+
+        // Poczekaj przed następną próbą (exponential backoff)
+        await Future.delayed(retryDelay * attempt);
+      }
+    }
   }
 
   /// Próbuje odświeżyć access token używając refresh tokenu

@@ -122,7 +122,10 @@ class AuthCubit extends Cubit<AuthState> {
 
       // Nawigacja do DashboardScreen zostanie obsłużona przez widok
       // Emitujemy stan z danymi użytkownika, co oznacza że jest zalogowany
-      emit(state.copyWith(user: Value(session.user)));
+      emit(state.copyWith(
+        user: Value(session.user),
+        loggedOutDueToTokenFailure: false, // Reset flagi przy udanym logowaniu
+      ));
     } catch (e) {
       // Obsługa błędów
       String errorMessage = "Błąd logowania: ${e.toString()}";
@@ -176,7 +179,10 @@ class AuthCubit extends Cubit<AuthState> {
       debugPrint("Zarejestrowano pomyślnie: ${session.user.email}");
 
       // Emitujemy stan z danymi użytkownika, co oznacza że jest zalogowany
-      emit(state.copyWith(user: Value(session.user)));
+      emit(state.copyWith(
+        user: Value(session.user),
+        loggedOutDueToTokenFailure: false, // Reset flagi przy udanym logowaniu
+      ));
     } catch (e) {
       // Obsługa błędów
       String errorMessage = "Błąd rejestracji: ${e.toString()}";
@@ -209,7 +215,10 @@ class AuthCubit extends Cubit<AuthState> {
       emit(state.copyWith(isLoading: false));
 
       // Emitujemy stan z danymi użytkownika, co oznacza że jest zalogowany
-      emit(state.copyWith(user: Value(session.user)));
+      emit(state.copyWith(
+        user: Value(session.user),
+        loggedOutDueToTokenFailure: false, // Reset flagi przy udanym logowaniu
+      ));
     } catch (e) {
       emit(state.copyWith(isLoading: false, errorMessage: Value(e.toString())));
     }
@@ -274,7 +283,10 @@ class AuthCubit extends Cubit<AuthState> {
       }
     }
 
-    emit(const AuthState().copyWith(errorMessage: Value(errorMessage)));
+    emit(const AuthState().copyWith(
+      errorMessage: Value(errorMessage),
+      loggedOutDueToTokenFailure: false, // Reset flagi
+    ));
   }
 
   /// Aktualizuje dane użytkownika w stanie autoryzacji
@@ -332,8 +344,36 @@ class AuthCubit extends Cubit<AuthState> {
   void _handleTokenRefreshFailed() {
     debugPrint("Token refresh failed - automatyczne wylogowanie użytkownika");
     
-    // Wyczyść sesję lokalnie bez wywoływania API (token już jest nieprawidłowy)
-    clearUserSession();
+    // Ustaw flagę wylogowania z powodu błędu tokenu i wyczyść sesję
+    emit(state.copyWith(
+      loggedOutDueToTokenFailure: true,
+      user: Value(null),
+    ));
+    
+    // Wyczyść lokalne dane (bez API call - token już jest nieprawidłowy)
+    _clearLocalData();
+  }
+
+  /// Czyści lokalne dane bez wywołania API
+  Future<void> _clearLocalData() async {
+    try {
+      // Wyczyść token i lokalną sesję
+      await authRepository.clearLocalSession();
+
+      // Invaliduj wszystkie cache
+      await CachedRepository.invalidateAll();
+
+      // Wyczyść pola formularza
+      if (!kDebugMode) {
+        emailController.clear();
+        passwordController.clear();
+      }
+      confirmPasswordController.clear();
+
+      debugPrint("Wyczyszczono lokalne dane po niepowodzeniu refresh tokenu");
+    } catch (e) {
+      debugPrint("Błąd podczas czyszczenia lokalnych danych: $e");
+    }
   }
 
 }
