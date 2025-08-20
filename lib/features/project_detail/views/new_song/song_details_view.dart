@@ -1,11 +1,15 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/create_song/new_song_state.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/create_song/song_create_cubit.dart';
+import 'package:bandspace_mobile/features/project_detail/widgets/audio_preview_player.dart';
 import 'package:bandspace_mobile/shared/models/song_create_data.dart';
 
 /// Step 2: Uzupełnienie szczegółów utworu
@@ -30,6 +34,29 @@ class _SongDetailsViewState extends State<SongDetailsView> {
   final _descriptionController = TextEditingController();
   final _titleFocus = FocusNode();
   final _descriptionFocus = FocusNode();
+  final _scrollController = ScrollController();
+  late KeyboardVisibilityController _keyboardVisibilityController;
+
+  @override
+  void initState() {
+    super.initState();
+    _keyboardVisibilityController = KeyboardVisibilityController();
+    _keyboardVisibilityController.onChange.listen((isVisible) {
+      log('Keyboard visibility changed: $isVisible');
+      if (isVisible) {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          log('Scrolling to bottom after keyboard shown');
+          if (_scrollController.hasClients && mounted) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
+        });
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -37,101 +64,120 @@ class _SongDetailsViewState extends State<SongDetailsView> {
     _descriptionController.dispose();
     _titleFocus.dispose();
     _descriptionFocus.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minHeight:
-              MediaQuery.of(context).size.height -
-              MediaQuery.of(context).viewInsets.bottom -
-              200, // Wysokość nagłówka i progress bar
-        ),
-        child: IntrinsicHeight(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildFileInfo(),
-              const SizedBox(height: 24),
-              _buildTitleField(),
-              const SizedBox(height: 20),
-              _buildDescriptionField(),
-              const Spacer(),
-              const SizedBox(height: 20),
-              _buildButtons(),
-            ],
+    return Column(
+      children: [
+        // Scrollable content
+        Expanded(
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildFileInfo(),
+                const SizedBox(height: 24),
+                _buildTitleField(),
+                const SizedBox(height: 20),
+                _buildDescriptionField(),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
-      ),
+
+        // Sticky bottom buttons
+        Container(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 16,
+            bottom:
+                MediaQuery.of(context).viewInsets.bottom +
+                MediaQuery.of(context).padding.bottom +
+                16,
+          ),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            border: Border(
+              top: BorderSide(
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+                width: 1,
+              ),
+            ),
+          ),
+          child: _buildButtons(),
+        ),
+      ],
     );
   }
 
   Widget _buildFileInfo() {
-    // Pobierz rozmiar pliku (w przyszłości)
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceDark,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              LucideIcons.music,
-              size: 24,
-              color: AppColors.primary,
-            ),
+    return BlocBuilder<NewSongCubit, NewSongState>(
+      builder: (context, state) {
+        if (state is NewSongFileSelected) {
+          return AudioPreviewPlayer(
+            audioFile: state.file,
+            onRemoveFile: () {
+              context.read<NewSongCubit>().goToInitialStep();
+            },
+          );
+        }
+
+        // Fallback - nie powinno się zdarzyć w tym kroku
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceDark,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                BlocBuilder<NewSongCubit, NewSongState>(
-                  builder: (context, state) {
-                    return Text(
-                      state is NewSongFileSelected
-                          ? state.file.path.split('/').last
-                          : 'Wybierz plik audio',
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  LucideIcons.music,
+                  size: 24,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Brak pliku audio',
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: AppColors.textPrimary,
                         fontWeight: FontWeight.w500,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    );
-                  },
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Wróć do poprzedniego kroku',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Plik audio',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const Icon(LucideIcons.check, size: 20, color: AppColors.primary),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -271,7 +317,7 @@ class _SongDetailsViewState extends State<SongDetailsView> {
                 side: BorderSide(
                   color: Theme.of(
                     context,
-                  ).colorScheme.onSurfaceVariant.withOpacity(0.3),
+                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
