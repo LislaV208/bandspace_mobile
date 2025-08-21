@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
 
 import 'package:bandspace_mobile/core/auth/auth_event_service.dart';
@@ -60,6 +62,7 @@ class AuthInterceptor extends Interceptor {
         handler.resolve(response);
         return;
       } catch (e) {
+        log('Refresh token failed: $e', error: e);
         // Wszystkie próby refresh się nie powiodły - powiadom o niepowodzeniu
         _authEventService?.emit(AuthEvent.tokenRefreshFailed);
       }
