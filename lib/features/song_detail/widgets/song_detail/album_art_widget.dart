@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class AlbumArtWidget extends StatelessWidget {
@@ -25,16 +26,11 @@ class AlbumArtWidget extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
-            Theme.of(context).colorScheme.secondary.withValues(alpha: 0.6),
+            Theme.of(
+              context,
+            ).colorScheme.primaryContainer.withValues(alpha: 0.6),
           ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
       ),
       child: Icon(
         LucideIcons.music,

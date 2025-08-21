@@ -101,10 +101,8 @@ class _CreateProjectBottomSheetState extends State<CreateProjectBottomSheet> {
         const Icon(LucideIcons.folderPlus, size: 24),
         const SizedBox(width: 12),
         Text(
-          'Nowy Projekt',
-          style: AppTextStyles.headlineSmall.copyWith(
-            color: AppColors.textPrimary,
-          ),
+          'Nowy projekt',
+          style: AppTextStyles.headlineSmall,
         ),
       ],
     );
@@ -117,11 +115,15 @@ class _CreateProjectBottomSheetState extends State<CreateProjectBottomSheet> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.errorBackground,
+        color: Theme.of(context).colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.errorBorder),
       ),
-      child: Text(message, style: AppTextStyles.error),
+      child: Text(
+        message,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onErrorContainer,
+        ),
+      ),
     );
   }
 
@@ -166,10 +168,7 @@ class _CreateProjectBottomSheetState extends State<CreateProjectBottomSheet> {
                   : () async {
                       context.read<CreateProjectCubit>().createProject(name);
                     },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.buttonPrimary,
-                foregroundColor: Colors.white,
-              ),
+
               child:
                   state is CreateProjectLoading || state is CreateProjectSuccess
                   ? const Row(

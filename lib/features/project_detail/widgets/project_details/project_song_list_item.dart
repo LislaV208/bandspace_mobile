@@ -54,7 +54,7 @@ class ProjectSongListItem extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
         children: [
-          _buildSongIcon(),
+          _buildSongIcon(context),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -89,18 +89,25 @@ class ProjectSongListItem extends StatelessWidget {
   }
 
   /// Buduje ikonę utworu
-  Widget _buildSongIcon() {
+  Widget _buildSongIcon(BuildContext context) {
     return Container(
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: AppColors.accent.withAlpha((255 * 0.15).toInt()),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Theme.of(context).colorScheme.primary,
+            Theme.of(context).colorScheme.primaryContainer,
+          ], // from-blue-900 to-indigo-900
+        ),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Icon(
         LucideIcons.music,
         size: 20,
-        color: AppColors.accent,
+        color: Colors.white.withAlpha(200),
       ),
     );
   }

@@ -4,8 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_state.dart';
-import 'package:bandspace_mobile/features/dashboard/widgets/project_list_item.dart';
 import 'package:bandspace_mobile/features/dashboard/widgets/invitation_list_item.dart';
+import 'package:bandspace_mobile/features/dashboard/widgets/project_list_item.dart';
 import 'package:bandspace_mobile/shared/cubits/user_invitations/user_invitations_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_invitations/user_invitations_state.dart';
 
@@ -21,7 +21,7 @@ class ProjectsList extends StatelessWidget {
     return BlocBuilder<UserInvitationsCubit, UserInvitationsState>(
       builder: (context, invitationsState) {
         final invitations = _getInvitations(invitationsState);
-        
+
         // Pokaż empty state tylko gdy nie ma ani projektów ani zaproszeń
         if (projects.isEmpty && invitations.isEmpty) {
           return _buildEmptyState(context);
@@ -52,20 +52,14 @@ class ProjectsList extends StatelessWidget {
                     const SizedBox(height: 24),
                     Text(
                       'Nie masz jeszcze żadnych projektów',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
+                      style: Theme.of(context).textTheme.headlineSmall,
+
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 12),
                     Text(
                       'Utwórz swój pierwszy projekt, aby rozpocząć',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.7),
-                      ),
+
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -83,7 +77,7 @@ class ProjectsList extends StatelessWidget {
       child: BlocBuilder<UserInvitationsCubit, UserInvitationsState>(
         builder: (context, invitationsState) {
           final invitations = _getInvitations(invitationsState);
-          
+
           return ListView(
             children: [
               _buildRefreshStatusContent(context),

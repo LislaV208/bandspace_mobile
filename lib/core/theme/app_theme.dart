@@ -6,30 +6,103 @@ import 'package:flutter/services.dart';
 import 'text_styles.dart';
 
 class _AppColors {
-  // Kolory podstawowe
-  static const Color primary = Color(0xFF273486); // BandSpace Blue
-  static const Color primaryLight = Color(
-    0xFF3A4DB0,
-  ); // Jaśniejsza wersja BandSpace Blue
-  static const Color primaryDark = Color(
-    0xFF1A2360,
-  ); // Ciemniejsza wersja BandSpace Blue
+  // Kolory podstawowe - Material Design 3 dla ciemnego, niebieskawo-szarego motywu
 
-  static const Color onPrimary = Colors.white;
-
-  static const Color accent = Color(
+  // PRIMARY - główny kolor marki BandSpace (niebieski)
+  static const Color primary = Color(
     0xFF2563EB,
-  ); // Akcent - używany dla przycisków, linków itp.
-  static const Color accentLight = Color(
-    0xFF60A5FA,
-  ); // Jaśniejszy akcent - używany dla linków
+  ); // blue-600 - oryginalny BandSpace Blue
+  static const Color onPrimary = Colors.white;
+  static const Color primaryContainer = Color(
+    0xFF1E40AF,
+  ); // blue-800 - ciemniejszy kontener
+  static const Color onPrimaryContainer = Color(0xFFDDD6FE); // blue-100 tint
+
+  // SECONDARY - jaśniejszy niebieski
+  static const Color secondary = Color(
+    0xFF3B82F6,
+  ); // blue-500 - jaśniejszy od primary
+  static const Color onSecondary = Colors.white;
+  static const Color secondaryContainer = Color.fromARGB(
+    178,
+    37,
+    100,
+    235,
+  ); // blue-600 - bazuje na primary
+  static const Color onSecondaryContainer = Color.fromARGB(
+    255,
+    246,
+    247,
+    255,
+  ); // blue-100 tint
+
+  // TERTIARY - niebieski-fioletowy
+  static const Color tertiary = Color.fromARGB(
+    255,
+    92,
+    95,
+    246,
+  ); // violet-500 - niebieski-fioletowy
+  static const Color onTertiary = Colors.white;
+  static const Color tertiaryContainer = Color.fromARGB(
+    255,
+    65,
+    69,
+    200,
+  ); // ciemniejsza wersja tertiary
+  static const Color onTertiaryContainer = Color.fromARGB(
+    255,
+    241,
+    242,
+    252,
+  ); // jasny odcień dla tekstu na kontenerze
+
+  // Deprecated - zachowane dla kompatybilności wstecznej
+  static const Color primaryLight = Color(
+    0xFF3B82F6,
+  ); // blue-500 - jaśniejsza wersja
+  static const Color primaryDark = Color(
+    0xFF1E40AF,
+  ); // blue-800 - ciemniejsza wersja
+  static const Color accent = primary; // alias
+  static const Color accentLight = Color(0xFF60A5FA); // blue-400
 
   // Kolory tła
   static const Color background = Color(0xFF111827); // bg-gray-900
-  static const Color surface = Color(0xFF1F2937); // bg-gray-800
+
+  // Paleta kolorów surface - Material Design 3
+  // surface - podstawowa powierzchnia dla komponentów (Card, AppBar, Dialog)
+  static const Color surface = Color(
+    0xFF1F2937,
+  ); // bg-gray-800 - podstawowa powierzchnia komponentów
+
+  // surfaceContainer - hierarchia kontenerów (od najciemniejszego do najjaśniejszego)
+  static const Color surfaceContainerLowest = Color(
+    0xFF0F172A,
+  ); // bg-slate-900 - najciemniejsze kontenery
+  static const Color surfaceContainerLow = Color(
+    0xFF1A202C,
+  ); // bg-gray-850 - niskie kontenery
+  static const Color surfaceContainer = Color(
+    0xFF2D3748,
+  ); // bg-gray-750 - standardowe kontenery
+  static const Color surfaceContainerHigh = Color(
+    0xFF374151,
+  ); // bg-gray-700 - wysokie kontenery
+  static const Color surfaceContainerHighest = Color(
+    0xFF4B5563,
+  ); // bg-gray-600 - najwyższe kontenery
+
+  // Deprecated - zachowane dla kompatybilności wstecznej
   static const Color surfaceLight = Color(0xFF1F2937); // bg-gray-800
   static const Color surfaceDark = Color(0xFF0F172A); // bg-slate-900
   static const Color surfaceMedium = Color(0xFF374151); // bg-gray-700
+
+  // Aliasy dla łatwiejszego dostępu (backwards compatibility)
+  static const Color surfaceLowest = surfaceContainerLowest;
+  static const Color surfaceLow = surfaceContainerLow;
+  static const Color surfaceHigh = surfaceContainerHigh;
+  static const Color surfaceHighest = surfaceContainerHighest;
 
   // Kolory tekstu
   static const Color textPrimary = Colors.white;
@@ -55,8 +128,11 @@ class _AppColors {
 
   // Kolory przycisków
   static const Color buttonPrimary = Color(0xFF2563EB); // bg-blue-600
-  static const Color buttonPrimaryDisabled = Color(
-    0x802563EB,
+  static const Color buttonPrimaryDisabled = Color.fromARGB(
+    156,
+    37,
+    100,
+    235,
   ); // bg-blue-600 z alpha 0.5
 
   static const Color buttonSecondary = Color(0xFF3A4DB0); // bg-blue-500
@@ -132,6 +208,11 @@ class AppTheme {
       progressIndicatorTheme: _progressIndicatorTheme,
 
       floatingActionButtonTheme: _floatingActionButtonTheme,
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: _AppColors.borderFocused,
+        selectionColor: _AppColors.borderFocused.withAlpha(127),
+        selectionHandleColor: _AppColors.borderFocused,
+      ),
     );
   }
 
@@ -145,25 +226,31 @@ class AppTheme {
   static ColorScheme get _darkColorScheme {
     return const ColorScheme(
       brightness: Brightness.dark,
+      // Kolory podstawowe z pełną hierarchią
       primary: _AppColors.primary,
-      onPrimary: Colors.white,
-      primaryContainer: _AppColors.primaryLight,
-      onPrimaryContainer: Colors.white,
-      secondary: _AppColors.accent,
-      onSecondary: Colors.white,
-      secondaryContainer: _AppColors.accentLight,
-      onSecondaryContainer: Colors.white,
-      tertiary: _AppColors.accentLight,
-      onTertiary: Colors.white,
-      tertiaryContainer: _AppColors.accentLight,
-      onTertiaryContainer: Colors.white,
+      onPrimary: _AppColors.onPrimary,
+      primaryContainer: _AppColors.primaryContainer,
+      onPrimaryContainer: _AppColors.onPrimaryContainer,
+      secondary: _AppColors.secondary,
+      onSecondary: _AppColors.onSecondary,
+      secondaryContainer: _AppColors.secondaryContainer,
+      onSecondaryContainer: _AppColors.onSecondaryContainer,
+      tertiary: _AppColors.tertiary,
+      onTertiary: _AppColors.onTertiary,
+      tertiaryContainer: _AppColors.tertiaryContainer,
+      onTertiaryContainer: _AppColors.onTertiaryContainer,
       error: _AppColors.error,
       onError: Colors.white,
       errorContainer: _AppColors.errorBackground,
       onErrorContainer: Color.fromARGB(255, 255, 238, 238),
-      surface: _AppColors.surfaceLight,
+      // Hierarchia powierzchni Material Design 3
+      surface: _AppColors.surface,
       onSurface: _AppColors.textPrimary,
-      surfaceContainerHighest: _AppColors.surfaceMedium,
+      surfaceContainerLowest: _AppColors.surfaceContainerLowest,
+      surfaceContainerLow: _AppColors.surfaceContainerLow,
+      surfaceContainer: _AppColors.surfaceContainer,
+      surfaceContainerHigh: _AppColors.surfaceContainerHigh,
+      surfaceContainerHighest: _AppColors.surfaceContainerHighest,
       onSurfaceVariant: _AppColors.textSecondary,
       outline: _AppColors.border,
       outlineVariant: _AppColors.divider,
@@ -200,10 +287,10 @@ class AppTheme {
   static ElevatedButtonThemeData get _elevatedButtonTheme {
     return ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: _AppColors.buttonPrimary,
-        foregroundColor: Colors.white,
-        disabledBackgroundColor: _AppColors.buttonPrimaryDisabled,
-        disabledForegroundColor: Colors.white70,
+        backgroundColor: _AppColors.primary,
+        foregroundColor: _AppColors.onPrimary,
+        disabledBackgroundColor: _AppColors.primary.withAlpha(100),
+        disabledForegroundColor: _AppColors.onPrimary.withAlpha(127),
         padding: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         textStyle: AppTextStyles.buttonMedium,
@@ -219,7 +306,7 @@ class AppTheme {
         foregroundColor: Colors.white,
         disabledBackgroundColor: _AppColors.buttonSecondaryDisabled,
         disabledForegroundColor: Colors.white70,
-        // padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         textStyle: AppTextStyles.buttonMedium,
       ),
@@ -317,7 +404,7 @@ class AppTheme {
   // Motyw Card
   static CardThemeData get _cardTheme {
     return CardThemeData(
-      color: _AppColors.surfaceLight,
+      color: _AppColors.surface,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),

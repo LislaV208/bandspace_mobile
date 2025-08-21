@@ -27,7 +27,7 @@ class FilePickerView extends StatelessWidget {
               color: AppColors.surfaceDark,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: AppColors.primary.withOpacity(0.3),
+                color: Theme.of(context).colorScheme.primaryContainer,
                 width: 2,
                 style: BorderStyle.solid,
               ),

@@ -91,7 +91,7 @@ class _ResetPasswordContentState extends State<_ResetPasswordContent> {
                       children: [
                         Icon(
                           Icons.error_outline,
-                          color: Theme.of(context).colorScheme.error,
+                          color: Theme.of(context).colorScheme.onErrorContainer,
                           size: 20,
                         ),
                         const Gap(12),
@@ -100,7 +100,9 @@ class _ResetPasswordContentState extends State<_ResetPasswordContent> {
                             state.message,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
-                                  color: Theme.of(context).colorScheme.error,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onErrorContainer,
                                 ),
                           ),
                         ),
@@ -126,17 +128,7 @@ class _ResetPasswordContentState extends State<_ResetPasswordContent> {
                       enabled: state is! ResetPasswordLoading,
                       decoration: InputDecoration(
                         hintText: 'nazwa@przykład.pl',
-                        prefixIcon: Icon(
-                          Icons.email_outlined,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
+                        prefixIcon: Icon(Icons.email_outlined),
                       ),
                       onFieldSubmitted: (value) {
                         if (state is! ResetPasswordLoading) {
@@ -149,13 +141,10 @@ class _ResetPasswordContentState extends State<_ResetPasswordContent> {
                 const Gap(32),
 
                 // Send Button
-                FilledButton(
+                ElevatedButton(
                   onPressed: state is ResetPasswordLoading
                       ? null
                       : () => _handleSendLink(context),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
                   child: state is ResetPasswordLoading
                       ? const SizedBox(
                           height: 20,

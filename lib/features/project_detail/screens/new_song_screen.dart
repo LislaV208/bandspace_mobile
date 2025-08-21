@@ -30,10 +30,7 @@ class NewSongScreen extends StatelessWidget {
           contentPadding: EdgeInsets.zero,
           title: Text(
             'Nowy utwór',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           subtitle: Text(
             project.name,

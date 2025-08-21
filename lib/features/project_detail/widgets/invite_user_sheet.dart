@@ -144,9 +144,7 @@ class _InviteUserSheetState extends State<InviteUserSheet> {
               const Gap(12),
               Text(
                 'Zaproś do projektu',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+                style: Theme.of(context).textTheme.titleMedium,
               ),
             ],
           ),
@@ -169,30 +167,10 @@ class _InviteUserSheetState extends State<InviteUserSheet> {
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
               decoration: InputDecoration(
                 labelText: 'Adres email',
                 hintText: 'Wprowadź adres email użytkownika',
-                prefixIcon: Icon(
-                  LucideIcons.mail,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                filled: true,
-                fillColor: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                labelStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                hintStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+                prefixIcon: Icon(LucideIcons.mail),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -215,14 +193,7 @@ class _InviteUserSheetState extends State<InviteUserSheet> {
 
                 return ElevatedButton(
                   onPressed: isLoading ? null : _sendInvitation,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+
                   child: isLoading
                       ? SizedBox(
                           height: 20,
@@ -266,20 +237,12 @@ class _InviteUserSheetState extends State<InviteUserSheet> {
                   const Gap(16),
                   Text(
                     'Brak wysłanych zaproszeń',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurfaceVariant,
-                    ),
+                    style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const Gap(8),
                   Text(
                     'Zaproszenia pojawią się tutaj po wysłaniu',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurfaceVariant,
-                    ),
+                    style: Theme.of(context).textTheme.bodySmall,
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -308,9 +271,7 @@ class _InviteUserSheetState extends State<InviteUserSheet> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             'Wysłane zaproszenia (${invitations.length})',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
+            style: Theme.of(context).textTheme.titleSmall,
           ),
         ),
         const Gap(12),
@@ -349,25 +310,16 @@ class _InviteUserSheetState extends State<InviteUserSheet> {
         backgroundColor: Theme.of(context).colorScheme.surface,
         title: Text(
           'Anuluj zaproszenie',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
+          style: Theme.of(context).textTheme.titleMedium,
         ),
         content: Text(
           'Czy na pewno chcesz anulować to zaproszenie?',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text(
-              'Anuluj',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
+            child: Text('Anuluj'),
           ),
           TextButton(
             onPressed: () {

@@ -41,13 +41,21 @@ class SongListWidget extends StatelessWidget {
                             audioState.status == PlayerStatus.playing &&
                             isCurrentSong;
 
-                        return SongListItemWidget(
-                          song: song,
-                          isCurrentSong: isCurrentSong,
-                          isPlaying: isPlaying,
-                          onTap: () {
-                            context.read<AudioPlayerCubit>().playTrackAt(index);
-                          },
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 8.0,
+                            horizontal: 16.0,
+                          ),
+                          child: SongListItemWidget(
+                            song: song,
+                            isCurrentSong: isCurrentSong,
+                            isPlaying: isPlaying,
+                            onTap: () {
+                              context.read<AudioPlayerCubit>().playTrackAt(
+                                index,
+                              );
+                            },
+                          ),
                         );
                       },
                     );

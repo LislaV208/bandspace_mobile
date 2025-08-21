@@ -57,7 +57,6 @@ class _SongViewState extends State<SongView> {
             _indexToSongIdMap[i] = songId;
           }
 
-
           context.read<AudioPlayerCubit>().loadPlaylist(
             state.downloadUrls.songUrls.map((item) => item.url).toList(),
             initialIndex: _songIndexMap[state.currentSong.id] ?? 0,
@@ -200,27 +199,20 @@ class _SongViewState extends State<SongView> {
                                       height: _minBottomHeight,
                                       child: Center(
                                         child: TextButton.icon(
-                                          style: TextButton.styleFrom(
-                                            foregroundColor: Theme.of(
-                                              context,
-                                            ).colorScheme.onSurfaceVariant,
-                                            disabledForegroundColor: Theme.of(
-                                              context,
-                                            ).colorScheme.onSurfaceVariant,
-                                          ),
-                                          onPressed: percentageScrolled >= 0.9
-                                              ? null
-                                              : () {
-                                                  _draggableScrollableController
-                                                      .animateTo(
-                                                        1.0,
-                                                        duration:
-                                                            const Duration(
-                                                              milliseconds: 400,
-                                                            ),
-                                                        curve: Curves.easeInOut,
-                                                      );
-                                                },
+                                          onPressed: () {
+                                            if (percentageScrolled >= 0.9) {
+                                              return;
+                                            }
+
+                                            _draggableScrollableController
+                                                .animateTo(
+                                                  1.0,
+                                                  duration: const Duration(
+                                                    milliseconds: 400,
+                                                  ),
+                                                  curve: Curves.easeInOut,
+                                                );
+                                          },
                                           label: const Text('WIĘCEJ UTWORÓW'),
                                           icon: const Icon(
                                             LucideIcons.listMusic,

@@ -61,7 +61,7 @@ class ProjectsView extends StatelessWidget {
             children: [
               Text(
                 'Moje projekty',
-                style: Theme.of(context).textTheme.headlineLarge,
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 4),
               Text(

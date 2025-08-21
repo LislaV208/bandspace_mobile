@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_cubit.dart';
@@ -19,14 +20,14 @@ class SongInfoWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: isCompact 
-        ? EdgeInsets.zero 
-        : const EdgeInsets.symmetric(horizontal: 32.0),
+      padding: isCompact
+          ? EdgeInsets.zero
+          : const EdgeInsets.symmetric(horizontal: 32.0),
       child: Column(
         mainAxisSize: isCompact ? MainAxisSize.min : MainAxisSize.max,
-        crossAxisAlignment: isCompact 
-          ? CrossAxisAlignment.start 
-          : CrossAxisAlignment.center,
+        crossAxisAlignment: isCompact
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.center,
         children: [
           BlocSelector<SongDetailCubit, SongDetailState, Song>(
             selector: (state) => state.currentSong,
@@ -34,10 +35,10 @@ class SongInfoWidget extends StatelessWidget {
               return Text(
                 song.title,
                 style: isCompact
-                  ? Theme.of(context).textTheme.labelLarge?.copyWith()
-                  : Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    ? Theme.of(context).textTheme.labelLarge?.copyWith()
+                    : Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                 textAlign: isCompact ? TextAlign.start : TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -48,12 +49,8 @@ class SongInfoWidget extends StatelessWidget {
           Text(
             project.name,
             style: isCompact
-              ? Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                )
-              : Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+                ? Theme.of(context).textTheme.bodyMedium
+                : Theme.of(context).textTheme.bodyLarge,
           ),
         ],
       ),

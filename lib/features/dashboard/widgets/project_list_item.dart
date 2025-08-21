@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:lucide_icons_flutter/lucide_icons.dart';
-
 import 'package:bandspace_mobile/core/utils/date_format_utils.dart';
 import 'package:bandspace_mobile/features/project_detail/screens/project_detail_screen.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
@@ -26,23 +24,17 @@ class ProjectListItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         child: Ink(
           decoration: BoxDecoration(
-            color: const Color(0xFF1F2937), // bg-gray-800
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // _buildHeader(),
-              _buildContent(),
-            ],
-          ),
+          child: _buildContent(context),
         ),
       ),
     );
   }
 
   /// Buduje zawartość karty projektu z informacjami o projekcie
-  Widget _buildContent() {
+  Widget _buildContent(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -54,24 +46,22 @@ class ProjectListItem extends StatelessWidget {
               Container(
                 width: 48,
                 height: 48, // h-32 w Tailwind
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                     colors: [
-                      Color(0xFF1E3A8A),
-                      Color(0xFF312E81),
+                      Theme.of(context).colorScheme.primary,
+                      Theme.of(context).colorScheme.primaryContainer,
                     ], // from-blue-900 to-indigo-900
                   ),
                   borderRadius: BorderRadius.all(Radius.circular(8)),
                 ),
                 child: Center(
                   child: Icon(
-                    LucideIcons.music,
+                    Icons.library_music,
                     size: 28,
-                    color: const Color(0xFF60A5FA).withAlpha(
-                      204,
-                    ), // text-blue-400 opacity-80 (0.8 * 255 = 204)
+                    color: Colors.white.withAlpha(200),
                   ),
                 ),
               ),
@@ -89,10 +79,6 @@ class ProjectListItem extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     'Utworzono ${DateFormatUtils.formatRelativeTime(project.createdAt)}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF9CA3AF), // text-gray-400
-                    ),
                   ),
                 ],
               ),
@@ -103,7 +89,7 @@ class ProjectListItem extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(child: _buildMemberAvatars()),
-              _buildMemberCountBadge(),
+              _buildMemberCountBadge(context),
             ],
           ),
         ],
@@ -112,23 +98,23 @@ class ProjectListItem extends StatelessWidget {
   }
 
   /// Buduje badge z liczbą członków projektu
-  Widget _buildMemberCountBadge() {
+  Widget _buildMemberCountBadge(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 10,
         vertical: 4,
       ),
       decoration: BoxDecoration(
-        color: const Color(
-          0xFF2563EB,
-        ).withAlpha(51), // bg-blue-600/20 (0.2 * 255 = 51)
+        color: Theme.of(
+          context,
+        ).colorScheme.secondaryContainer,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Text(
         '${project.users.length} ${_getMemberCountText(project.users.length)}',
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
-          color: Color(0xFF60A5FA), // text-blue-400
+          color: Theme.of(context).colorScheme.onSecondaryContainer,
         ),
       ),
     );

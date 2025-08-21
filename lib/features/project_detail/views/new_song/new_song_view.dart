@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/core/theme/app_colors.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/create_song/new_song_state.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/create_song/song_create_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/views/new_song/file_picker_view.dart';
@@ -91,8 +89,8 @@ class _NewSongViewState extends State<NewSongView> {
 
   Widget _buildProgressIndicator(NewSongState state) {
     Color getStepColor(bool isActive) {
-      if (isActive) return AppColors.primary;
-      return AppColors.textSecondary.withValues(alpha: 0.3);
+      if (isActive) return Theme.of(context).colorScheme.primary;
+      return Theme.of(context).colorScheme.surfaceContainerHigh;
     }
 
     final isStepThree =

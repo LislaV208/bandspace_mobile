@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/cubits/audio_player/audio_player_cubit.dart';
@@ -22,12 +23,11 @@ class ProgressBarWidget extends StatelessWidget {
                 thumbShape: const RoundSliderThumbShape(
                   enabledThumbRadius: 6.0,
                 ),
-                activeTrackColor: Theme.of(context).colorScheme.primary,
-                inactiveTrackColor: Theme.of(context)
-                    .colorScheme
-                    .onSurfaceVariant
-                    .withValues(alpha: 0.3),
-                thumbColor: Theme.of(context).colorScheme.primary,
+                activeTrackColor: Theme.of(context).colorScheme.secondary,
+                inactiveTrackColor: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHigh,
+                thumbColor: Theme.of(context).colorScheme.secondary,
               ),
               child: Slider(
                 value: progress,

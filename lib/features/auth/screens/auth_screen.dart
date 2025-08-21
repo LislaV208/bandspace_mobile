@@ -81,8 +81,8 @@ class _AuthScreenContentState extends State<_AuthScreenContent> {
                   child: Row(
                     children: [
                       Container(
-                        width: 48,
-                        height: 48,
+                        width: 46,
+                        height: 46,
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
@@ -94,23 +94,12 @@ class _AuthScreenContentState extends State<_AuthScreenContent> {
                           ),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: const Icon(
-                          LucideIcons.music,
-                          color: Colors.white,
-                          size: 24,
-                        ),
+                        child: const Icon(LucideIcons.music),
                       ),
                       const SizedBox(width: 16),
                       Text(
                         "BandSpace",
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface, // Colors.white
-                              letterSpacing: -0.3,
-                            ),
+                        style: Theme.of(context).textTheme.headlineLarge,
                       ),
                     ],
                   ),
@@ -148,34 +137,15 @@ class _AuthScreenContentState extends State<_AuthScreenContent> {
                                   isLoginView
                                       ? "Witaj z powrotem!"
                                       : "Dołącz do BandSpace",
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineLarge
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w800,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurface, // Colors.white
-                                        letterSpacing: -0.8,
-                                        height: 1.1,
-                                      ),
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.headlineMedium,
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
                                   isLoginView
                                       ? "Zaloguj się, aby kontynuować pracę nad swoimi projektami."
                                       : "Utwórz konto, aby rozpocząć współpracę muzyczną.",
-                                  style: Theme.of(context).textTheme.bodyLarge
-                                      ?.copyWith(
-                                        color:
-                                            Theme.of(
-                                                  context,
-                                                )
-                                                .colorScheme
-                                                .onSurfaceVariant, // #D1D5DB
-                                        height: 1.5,
-                                        letterSpacing: 0.1,
-                                      ),
                                 ),
                               ],
                             ),
@@ -278,39 +248,13 @@ class _AuthScreenContentState extends State<_AuthScreenContent> {
 
                                       // Email option - subtle and secondary
                                       Center(
-                                        child: GestureDetector(
-                                          onTap: _toggleEmailForm,
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 20,
-                                              vertical: 12,
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(
-                                                  Icons.alternate_email,
-                                                  size: 16,
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurfaceVariant, // #D1D5DB
-                                                ),
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  "Użyj adresu email i hasła",
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyMedium
-                                                      ?.copyWith(
-                                                        color: Theme.of(context)
-                                                            .colorScheme
-                                                            .onSurfaceVariant, // #D1D5DB
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                      ),
-                                                ),
-                                              ],
-                                            ),
+                                        child: TextButton.icon(
+                                          onPressed: _toggleEmailForm,
+                                          label: const Text(
+                                            "Użyj adresu email i hasła",
+                                          ),
+                                          icon: const Icon(
+                                            Icons.alternate_email,
                                           ),
                                         ),
                                       ),
@@ -352,7 +296,7 @@ class _AuthScreenContentState extends State<_AuthScreenContent> {
                                       style: TextStyle(
                                         color: Theme.of(
                                           context,
-                                        ).colorScheme.tertiary,
+                                        ).colorScheme.secondary,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -389,20 +333,6 @@ class _AuthScreenContentState extends State<_AuthScreenContent> {
           color: Theme.of(context).colorScheme.outline, // #374151
           width: 1.5,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(
-              context,
-            ).colorScheme.primary.withValues(alpha: 0.15), // BandSpace blue
-            blurRadius: 32,
-            offset: const Offset(0, 16),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -456,72 +386,47 @@ class _AuthScreenContentState extends State<_AuthScreenContent> {
     return Column(
       children: [
         // Back button
-        Row(
-          children: [
-            GestureDetector(
-              onTap: _toggleEmailForm,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.arrow_back_ios,
-                      size: 16,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurfaceVariant, // #D1D5DB
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      "Użyj konta Google",
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurfaceVariant, // #D1D5DB
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: _toggleEmailForm,
+            label: Text('Użyj konta Google'),
+            icon: Icon(Icons.arrow_back),
+          ),
         ),
 
         const SizedBox(height: 24),
 
         // Email field
-        _buildCleanTextField(
+        TextFormField(
           controller: authCubit.emailController,
           focusNode: authCubit.emailFocus,
-          hintText: "Email",
+          decoration: InputDecoration(
+            hintText: "Email",
+            prefixIcon: Icon(Icons.alternate_email),
+          ),
           keyboardType: TextInputType.emailAddress,
-          prefixIcon: Icons.alternate_email,
         ),
 
         const SizedBox(height: 16),
 
         // Password field
-        _buildCleanTextField(
+        TextFormField(
           controller: authCubit.passwordController,
           focusNode: authCubit.passwordFocus,
-          hintText: "Hasło",
-          obscureText: !state.showPassword,
-          prefixIcon: Icons.lock_outline,
-          suffixIcon: IconButton(
-            icon: Icon(
-              state.showPassword
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined,
-              color: Theme.of(context).colorScheme.onSurfaceVariant, // #D1D5DB
-              size: 20,
+          decoration: InputDecoration(
+            hintText: "Hasło",
+            prefixIcon: Icon(Icons.lock_outline),
+            suffixIcon: IconButton(
+              icon: Icon(
+                state.showPassword
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+              ),
+              onPressed: () => authCubit.togglePasswordVisibility(),
             ),
-            onPressed: () => authCubit.togglePasswordVisibility(),
           ),
+          obscureText: !state.showPassword,
         ),
 
         // Forgot password
@@ -533,9 +438,8 @@ class _AuthScreenContentState extends State<_AuthScreenContent> {
               onPressed: () => _openResetPasswordModal(context),
               child: Text(
                 "Zapomniałeś hasła?",
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.tertiary,
-                  fontWeight: FontWeight.w500,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.secondary,
                 ),
               ),
             ),
@@ -554,25 +458,23 @@ class _AuthScreenContentState extends State<_AuthScreenContent> {
                 : Column(
                     children: [
                       const SizedBox(height: 16),
-                      _buildCleanTextField(
+                      TextFormField(
                         controller: authCubit.confirmPasswordController,
                         focusNode: authCubit.confirmPasswordFocus,
-                        hintText: "Potwierdź hasło",
-                        obscureText: !state.showConfirmPassword,
-                        prefixIcon: Icons.lock_outline,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            state.showConfirmPassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant, // #D1D5DB
-                            size: 20,
+                        decoration: InputDecoration(
+                          hintText: "Potwierdź hasło",
+                          prefixIcon: Icon(Icons.lock_outline),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              state.showConfirmPassword
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                            ),
+                            onPressed: () =>
+                                authCubit.toggleConfirmPasswordVisibility(),
                           ),
-                          onPressed: () =>
-                              authCubit.toggleConfirmPasswordVisibility(),
                         ),
+                        obscureText: !state.showConfirmPassword,
                       ),
                     ],
                   ),
@@ -581,120 +483,15 @@ class _AuthScreenContentState extends State<_AuthScreenContent> {
 
         const SizedBox(height: 32),
 
-        // Submit button
-        _buildCleanSubmitButton(
-          onPressed: state.isLoading
-              ? null
-              : (isLoginView ? authCubit.login : authCubit.register),
-          isLoading: state.isLoading,
-          isLoginView: isLoginView,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCleanTextField({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required String hintText,
-    required IconData prefixIcon,
-    bool obscureText = false,
-    TextInputType keyboardType = TextInputType.text,
-    Widget? suffixIcon,
-  }) {
-    return AnimatedBuilder(
-      animation: focusNode,
-      builder: (context, child) {
-        return Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface, // #1F2937
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: focusNode.hasFocus
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.outline,
-              width: focusNode.hasFocus ? 2 : 1,
-            ), // #374151
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: TextFormField(
-            controller: controller,
-            focusNode: focusNode,
-            obscureText: obscureText,
-            keyboardType: keyboardType,
-            style: TextStyle(
-              fontSize: 16,
-              color: Theme.of(context).colorScheme.onSurface, // Colors.white
-              fontWeight: FontWeight.w500,
-            ),
-            decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: TextStyle(
-                color:
-                    Theme.of(
-                      context,
-                    ).colorScheme.onSurfaceVariant.withValues(
-                      alpha: 0.6,
-                    ), // Hint color
-                fontWeight: FontWeight.w400,
-              ),
-              prefixIcon: Icon(
-                prefixIcon,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurfaceVariant, // #D1D5DB
-                size: 20,
-              ),
-              suffixIcon: suffixIcon,
-              contentPadding: const EdgeInsets.all(20),
-              border: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              errorBorder: InputBorder.none,
-              focusedErrorBorder: InputBorder.none,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildCleanSubmitButton({
-    required VoidCallback? onPressed,
-    required bool isLoading,
-    required bool isLoginView,
-  }) {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.primary,
-            Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(16),
-          child: Center(
-            child: isLoading
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: state.isLoading
+                ? null
+                : isLoginView
+                ? authCubit.login
+                : authCubit.register,
+            child: state.isLoading
                 ? const SizedBox(
                     height: 24,
                     width: 24,
@@ -708,13 +505,12 @@ class _AuthScreenContentState extends State<_AuthScreenContent> {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
                       letterSpacing: 0.2,
                     ),
                   ),
           ),
         ),
-      ),
+      ],
     );
   }
 }

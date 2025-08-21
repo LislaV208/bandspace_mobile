@@ -27,7 +27,6 @@ class PlayerControlsWidget extends StatelessWidget {
                 },
                 icon: const Icon(LucideIcons.skipBack),
                 iconSize: 32,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               Container(
                 width: 72,
@@ -38,19 +37,10 @@ class PlayerControlsWidget extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Theme.of(context).colorScheme.primary,
                       Theme.of(context).colorScheme.secondary,
+                      Theme.of(context).colorScheme.secondaryContainer,
                     ],
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.4),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
                 ),
                 child: IconButton(
                   onPressed: () {
@@ -69,7 +59,6 @@ class PlayerControlsWidget extends StatelessWidget {
                 },
                 icon: const Icon(LucideIcons.skipForward),
                 iconSize: 32,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ],
           ),

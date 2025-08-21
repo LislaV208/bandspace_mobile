@@ -110,14 +110,16 @@ class DeleteProjectDialog extends StatelessWidget {
                         context.read<DeleteProjectCubit>().deleteProject();
                       },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                  foregroundColor: Theme.of(context).colorScheme.onError,
+                  backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                  foregroundColor: Theme.of(
+                    context,
+                  ).colorScheme.onErrorContainer,
                   disabledBackgroundColor: Theme.of(
                     context,
                   ).colorScheme.error.withValues(alpha: 0.5),
                   disabledForegroundColor: Theme.of(
                     context,
-                  ).colorScheme.onError,
+                  ).colorScheme.onErrorContainer.withValues(alpha: 0.5),
                 ),
                 child: isDeleting
                     ? const SizedBox(

@@ -84,7 +84,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           listenWhen: (previous, current) =>
               current is UserInvitationsActionSuccess,
           listener: (context, state) {
-            // Po przyjęciu zaproszenia odśwież projekty, aby pokazać nowy projekt
             context.read<ProjectsCubit>().refreshProjects();
           },
         ),
@@ -102,7 +101,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     Text(
                       'BandSpace',
-                      style: Theme.of(context).textTheme.headlineMedium,
+                      style: Theme.of(context).textTheme.headlineLarge,
                     ),
                     Builder(
                       builder: (context) {
@@ -126,7 +125,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         floatingActionButton: Builder(
           builder: (context) {
             return FloatingActionButton.extended(
-              backgroundColor: Theme.of(context).colorScheme.secondary,
               onPressed: () async {
                 final cubit = context.read<ProjectsCubit>();
                 cubit.pauseUpdates();

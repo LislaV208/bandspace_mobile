@@ -51,12 +51,6 @@ class _ChangePasswordContent extends StatelessWidget {
             children: [
               Text(
                 'Wprowadź swoje aktualne hasło oraz nowe hasło, które chcesz ustawić.',
-                style:
-                    Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
               ),
               const Gap(32),
 
@@ -78,21 +72,20 @@ class _ChangePasswordContent extends StatelessWidget {
                             children: [
                               Icon(
                                 Icons.error_outline,
-                                color: Theme.of(context).colorScheme.error,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onErrorContainer,
                                 size: 20,
                               ),
                               const Gap(12),
                               Expanded(
                                 child: Text(
                                   state.errorMessage!,
-                                  style:
-                                      Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.error,
-                                      ),
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onErrorContainer,
+                                  ),
                                 ),
                               ),
                             ],
@@ -141,13 +134,11 @@ class _ChangePasswordContent extends StatelessWidget {
                       const Gap(32),
 
                       // Change Password Button
-                      FilledButton(
+                      ElevatedButton(
                         onPressed: state.isLoading
                             ? null
                             : cubit.changePassword,
-                        style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
+
                         child: state.isLoading
                             ? const SizedBox(
                                 height: 20,
@@ -202,40 +193,14 @@ class _ChangePasswordContent extends StatelessWidget {
           obscureText: obscureText,
           decoration: InputDecoration(
             hintText: hintText,
-            prefixIcon: Icon(
-              prefixIcon,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+            prefixIcon: Icon(prefixIcon),
             suffixIcon: IconButton(
               icon: Icon(
                 obscureText ? Icons.visibility : Icons.visibility_off,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               onPressed: onToggleVisibility,
             ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.outline,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.outline,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.primary,
-                width: 2,
-              ),
-            ),
-            filled: true,
-            fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
           ),
-          style: Theme.of(context).textTheme.bodyLarge,
         ),
       ],
     );

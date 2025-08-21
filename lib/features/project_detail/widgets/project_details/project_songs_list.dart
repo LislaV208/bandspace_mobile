@@ -159,6 +159,7 @@ class ProjectSongsList extends StatelessWidget {
             children: [
               Icon(
                 LucideIcons.searchX,
+                color: Theme.of(context).colorScheme.tertiary,
                 size: 64,
               ),
               const SizedBox(height: 16),
@@ -173,8 +174,9 @@ class ProjectSongsList extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                LucideIcons.music,
+                Icons.music_off,
                 size: 64,
+                color: Theme.of(context).colorScheme.tertiary,
               ),
               const SizedBox(height: 16),
               Text(

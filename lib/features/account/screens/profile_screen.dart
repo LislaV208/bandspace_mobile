@@ -108,59 +108,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Profile Header
-          // Container(
-          //   padding: const EdgeInsets.all(24),
-          //   decoration: BoxDecoration(
-          //     color: Theme.of(context).colorScheme.primaryContainer,
-          //     borderRadius: BorderRadius.circular(16),
-          //   ),
-          //   child: Column(
-          //     children: [
-          //       Container(
-          //         width: 80,
-          //         height: 80,
-          //         decoration: BoxDecoration(
-          //           color: Theme.of(context).colorScheme.primary,
-          //           shape: BoxShape.circle,
-          //         ),
-          //         child: Icon(
-          //           Icons.person,
-          //           size: 40,
-          //           color: Theme.of(context).colorScheme.onPrimary,
-          //         ),
-          //       ),
-          //       const Gap(16),
-          //       Text(
-          //         state.user.name?.isNotEmpty == true
-          //             ? state.user.name!
-          //             : 'Brak nazwy',
-          //         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-          //           fontWeight: FontWeight.bold,
-          //           color: Theme.of(context).colorScheme.onPrimaryContainer,
-          //         ),
-          //         textAlign: TextAlign.center,
-          //       ),
-          //       const Gap(4),
-          //       Text(
-          //         state.user.email,
-          //         style:
-          //             Theme.of(
-          //               context,
-          //             ).textTheme.bodyMedium?.copyWith(
-          //               color: Theme.of(context).colorScheme.onSurfaceVariant,
-          //             ),
-          //         textAlign: TextAlign.center,
-          //       ),
-          //     ],
-          //   ),
-          // ),
-          // const Gap(32),
-
           // Profile Information
           Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -170,9 +121,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Text(
                     'Profil publiczny',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
 
@@ -186,8 +135,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       Text(
                         'Nazwa',
-                        style: Theme.of(context).textTheme.labelMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
+                        style: Theme.of(context).textTheme.labelMedium,
                       ),
                       const Gap(8),
                       TextFormField(
@@ -286,7 +234,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Security Section
           Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -328,7 +276,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Danger Zone
           Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.errorContainer.withAlpha(50),
+              color: Theme.of(
+                context,
+              ).colorScheme.errorContainer.withAlpha(90),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: Theme.of(context).colorScheme.error.withAlpha(50),
@@ -346,7 +296,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ),
-                const Divider(height: 1),
+                const Divider(height: 1, color: Colors.white54),
 
                 // Delete Account
                 BlocBuilder<UserProfileCubit, UserProfileState>(
@@ -376,19 +326,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   },
                 ),
               ],
-            ),
-          ),
-          const Gap(32),
-
-          // Logout Button
-          OutlinedButton.icon(
-            onPressed: () {
-              context.read<AuthCubit>().logout();
-            },
-            icon: const Icon(Icons.logout),
-            label: const Text('Wyloguj się'),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
             ),
           ),
         ],
