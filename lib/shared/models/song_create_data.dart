@@ -1,16 +1,16 @@
 class CreateSongData {
   final String title;
-  final String? description;
+  final int? bpm;
 
   const CreateSongData({
     required this.title,
-    this.description,
+    this.bpm,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'title': title,
-      'description': description,
+      'bpm': bpm,
     };
   }
 }

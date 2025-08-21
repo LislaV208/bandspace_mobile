@@ -10,6 +10,7 @@ import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/create_song/new_song_state.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/create_song/song_create_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/audio_preview_player.dart';
+import 'package:bandspace_mobile/features/project_detail/widgets/bpm_control.dart';
 import 'package:bandspace_mobile/shared/models/song_create_data.dart';
 
 /// Step 2: Uzupełnienie szczegółów utworu
@@ -31,11 +32,10 @@ class _SongDetailsViewState extends State<SongDetailsView> {
         ? (widget.state as NewSongFileSelected).songInitialName
         : '',
   );
-  final _descriptionController = TextEditingController();
   final _titleFocus = FocusNode();
-  final _descriptionFocus = FocusNode();
   final _scrollController = ScrollController();
   late KeyboardVisibilityController _keyboardVisibilityController;
+  int? _bpm;
 
   @override
   void initState() {
@@ -61,9 +61,7 @@ class _SongDetailsViewState extends State<SongDetailsView> {
   @override
   void dispose() {
     _titleController.dispose();
-    _descriptionController.dispose();
     _titleFocus.dispose();
-    _descriptionFocus.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -84,7 +82,7 @@ class _SongDetailsViewState extends State<SongDetailsView> {
                 const SizedBox(height: 24),
                 _buildTitleField(),
                 const SizedBox(height: 20),
-                _buildDescriptionField(),
+                _buildBpmSection(),
                 const SizedBox(height: 20),
               ],
             ),
@@ -112,6 +110,104 @@ class _SongDetailsViewState extends State<SongDetailsView> {
             ),
           ),
           child: _buildButtons(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBpmSection() {
+    if (_bpm == null) {
+      return _buildAddBpmButton();
+    } else {
+      return _buildBpmControl();
+    }
+  }
+
+  Widget _buildAddBpmButton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Tempo (opcjonalnie)',
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 56,
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () {
+              setState(() {
+                _bpm = 120;
+              });
+            },
+            icon: Icon(
+              LucideIcons.music,
+              size: 20,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            label: Text(
+              'Ustaw tempo (BPM)',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              backgroundColor: AppColors.surfaceDark,
+              foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+              side: BorderSide(
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBpmControl() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Tempo (BPM)',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _bpm = null;
+                });
+              },
+              child: Text(
+                'Usuń',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        BpmControl(
+          initialBpm: _bpm!,
+          onBpmChanged: (newBpm) {
+            setState(() {
+              _bpm = newBpm;
+            });
+          },
         ),
       ],
     );
@@ -215,84 +311,26 @@ class _SongDetailsViewState extends State<SongDetailsView> {
             contentPadding: const EdgeInsets.all(16),
           ),
           textCapitalization: TextCapitalization.words,
-          textInputAction: TextInputAction.next,
-          onSubmitted: (_) => _descriptionFocus.requestFocus(),
-          maxLength: 100,
-          buildCounter:
-              (
-                context, {
-                required currentLength,
-                required isFocused,
-                maxLength,
-              }) {
-                return Text(
-                  '$currentLength/${maxLength ?? 0}',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                );
-              },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDescriptionField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Opis (opcjonalnie)',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _descriptionController,
-          focusNode: _descriptionFocus,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textPrimary,
-          ),
-          decoration: InputDecoration(
-            hintText: 'Dodaj opis utworu...',
-            hintStyle: AppTextStyles.bodyMedium.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            filled: true,
-            fillColor: AppColors.surfaceDark,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
-            ),
-            contentPadding: const EdgeInsets.all(16),
-          ),
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _titleController.text.trim().isNotEmpty
               ? context.read<NewSongCubit>().uploadFile(
                   CreateSongData(
                     title: _titleController.text.trim(),
-                    description: _descriptionController.text.trim(),
+                    bpm: _bpm,
                   ),
                 )
               : null,
-          maxLines: 3,
-          maxLength: 500,
+          maxLength: 100,
           buildCounter:
               (
                 context, {
-                required currentLength,
-                required isFocused,
-                maxLength,
+                required int currentLength,
+                required bool isFocused,
+                int? maxLength,
               }) {
                 return Text(
                   '$currentLength/${maxLength ?? 0}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  style: AppTextStyles.bodySmall.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 );
@@ -348,7 +386,7 @@ class _SongDetailsViewState extends State<SongDetailsView> {
                           context.read<NewSongCubit>().uploadFile(
                             CreateSongData(
                               title: _titleController.text.trim(),
-                              description: _descriptionController.text.trim(),
+                              bpm: _bpm,
                             ),
                           );
                         }

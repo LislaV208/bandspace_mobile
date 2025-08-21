@@ -61,3 +61,4 @@ To build the app for a specific platform, use the standard Flutter build command
 *   **Environment Variables:** All environment-specific configurations (like API endpoints) are stored in `.env` files and accessed through the `EnvConfig` class.
 *   **Null Safety:** The project is null-safe.
 *   **Linting:** The project uses `flutter_lints` for code analysis. Adhere to the linting rules defined in `analysis_options.yaml`.
+*   **Widgets:** Prefer creating new `StatelessWidget` or `StatefulWidget` classes over using `_build` methods in a larger widget. This improves performance and readability.
