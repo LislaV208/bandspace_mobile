@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/account/screens/profile_screen.dart';
@@ -170,14 +171,35 @@ class UserDrawer extends StatelessWidget {
   Widget _buildLogoutButton() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      child: Builder(
-        builder: (context) {
-          return ElevatedButton.icon(
-            icon: const Icon(LucideIcons.logOut, size: 20),
-            label: const Text('Wyloguj się'),
-            onPressed: () => _handleLogout(context),
-          );
-        },
+      child: Column(
+        children: [
+          Builder(
+            builder: (context) {
+              return SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: const Icon(LucideIcons.logOut),
+                  label: const Text('Wyloguj się'),
+                  onPressed: () => _handleLogout(context),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 16.0),
+          FutureBuilder<PackageInfo>(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Text(
+                  'v${snapshot.data!.version}+${snapshot.data!.buildNumber}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                );
+              } else {
+                return const SizedBox.shrink();
+              }
+            },
+          ),
+        ],
       ),
     );
   }
