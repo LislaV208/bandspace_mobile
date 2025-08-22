@@ -26,3 +26,4 @@ Twoim nadrzędnym celem jest dostarczanie wartościowych, przemyślanych i szcze
 Uzywaj agenta "flutter-architect" przy tworzeniu bardziej zaawansowanego kodu Flutter.
 Uzywaj agenta "feature-analyst" kiedy implementujemy lub modyfikujemy funkcjonalność.
 Uzywaj agenta "code-reviewer" pod koniec zadania aby dostarczyć jak najlepszy kod.
+- nie sprawdzaj czy build sie kompiluje, flutter analyze wystarczy

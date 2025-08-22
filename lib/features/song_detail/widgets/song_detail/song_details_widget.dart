@@ -15,7 +15,7 @@ class SongDetailsWidget extends StatelessWidget {
       selector: (state) => state.currentSong,
       builder: (context, song) {
         return AnimatedOpacity(
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 150),
           opacity: song.bpm != null ? 1.0 : 0.0,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(32.0, 16.0, 32.0, 0.0),
@@ -23,7 +23,7 @@ class SongDetailsWidget extends StatelessWidget {
               context,
               icon: Icons.speed,
               label: 'Tempo',
-              value: '${song.bpm} BPM',
+              value: '${song.bpm ?? ''} BPM',
             ),
           ),
         );

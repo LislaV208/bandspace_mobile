@@ -9,6 +9,28 @@ abstract class SongDetailState extends Equatable {
 
   const SongDetailState(this.songs, this.currentSong);
 
+  // === METODY NAWIGACYJNE ===
+  
+  /// Sprawdza czy można przejść do następnego utworu
+  bool get canGoNext {
+    final currentIndex = _getCurrentSongIndex();
+    return currentIndex < songs.length - 1;
+  }
+  
+  /// Sprawdza czy można przejść do poprzedniego utworu
+  bool get canGoPrevious {
+    final currentIndex = _getCurrentSongIndex();
+    return currentIndex > 0;
+  }
+  
+  /// Zwraca aktualny indeks utworu w liście wszystkich utworów
+  int get currentSongIndex => _getCurrentSongIndex();
+  
+  /// Prywatna metoda do znajdowania indeksu aktualnego utworu
+  int _getCurrentSongIndex() {
+    return songs.indexWhere((song) => song.id == currentSong.id);
+  }
+
   @override
   List<Object?> get props => [songs, currentSong];
 }

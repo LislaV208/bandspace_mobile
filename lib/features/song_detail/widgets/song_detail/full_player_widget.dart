@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/core/cubits/audio_player/audio_player_cubit.dart';
-import 'package:bandspace_mobile/core/cubits/audio_player/audio_player_state.dart';
 import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_cubit.dart';
 import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_state.dart';
 import 'package:bandspace_mobile/features/song_detail/screens/add_song_file_screen.dart';
@@ -82,12 +80,12 @@ class FullPlayerWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              BlocBuilder<AudioPlayerCubit, AudioPlayerState>(
-                builder: (context, audioState) {
+              BlocBuilder<SongDetailCubit, SongDetailState>(
+                builder: (context, songState) {
                   return IconButton(
-                    onPressed: audioState.canPlayPrevious
+                    onPressed: songState.canGoPrevious
                         ? () {
-                            context.read<AudioPlayerCubit>().playPrevious();
+                            context.read<SongDetailCubit>().goToPreviousSong();
                           }
                         : null,
                     icon: const Icon(LucideIcons.skipBack),
@@ -132,12 +130,12 @@ class FullPlayerWidget extends StatelessWidget {
                   color: Theme.of(context).colorScheme.onPrimary,
                 ),
               ),
-              BlocBuilder<AudioPlayerCubit, AudioPlayerState>(
-                builder: (context, audioState) {
+              BlocBuilder<SongDetailCubit, SongDetailState>(
+                builder: (context, songState) {
                   return IconButton(
-                    onPressed: audioState.canPlayNext
+                    onPressed: songState.canGoNext
                         ? () {
-                            context.read<AudioPlayerCubit>().playNext();
+                            context.read<SongDetailCubit>().goToNextSong();
                           }
                         : null,
                     icon: const Icon(LucideIcons.skipForward),

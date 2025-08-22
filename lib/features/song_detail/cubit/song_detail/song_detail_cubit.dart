@@ -37,11 +37,44 @@ class SongDetailCubit extends Cubit<SongDetailState> {
         song,
       ),
     );
+    
+    // Automatycznie przeładuj URL-e dla nowego utworu
+    // To spowoduje emisję SongDetailLoadUrlsSuccess, która zsynchronizuje AudioPlayerCubit
+    _downloadUrls();
   }
 
   void setReady() {
     emit(SongDetailReady(state.songs, state.currentSong));
   }
+
+  // === METODY NAWIGACYJNE ===
+  
+  /// Przechodzi do następnego utworu w liście (niezależnie od pliku audio)
+  void goToNextSong() {
+    final currentIndex = state.currentSongIndex;
+    if (currentIndex < state.songs.length - 1) {
+      final nextSong = state.songs[currentIndex + 1];
+      selectSong(nextSong);
+    }
+  }
+  
+  /// Przechodzi do poprzedniego utworu w liście (niezależnie od pliku audio)
+  void goToPreviousSong() {
+    final currentIndex = state.currentSongIndex;
+    if (currentIndex > 0) {
+      final previousSong = state.songs[currentIndex - 1];
+      selectSong(previousSong);
+    }
+  }
+  
+  /// Sprawdza czy można przejść do następnego utworu
+  bool get canGoNext => state.canGoNext;
+  
+  /// Sprawdza czy można przejść do poprzedniego utworu
+  bool get canGoPrevious => state.canGoPrevious;
+  
+  /// Zwraca aktualny indeks utworu w liście wszystkich utworów
+  int get currentSongIndex => state.currentSongIndex;
 
   void updateSong(Song song) {
     final songs = [...state.songs];

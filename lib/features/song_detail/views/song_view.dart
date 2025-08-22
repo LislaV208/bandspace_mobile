@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 
@@ -51,26 +50,35 @@ class _SongViewState extends State<SongView> {
         if (state is SongDetailLoadUrlsSuccess) {
           _songIndexMap = <int, int>{};
           _indexToSongIdMap = <int, int>{};
-          
+
           // Filtruj utwory, które mają pliki
           final songsWithFiles = state.downloadUrls.songUrls
               .where((item) => item.url.isNotEmpty)
               .toList();
-          
+
           for (int i = 0; i < songsWithFiles.length; i++) {
             final songId = songsWithFiles[i].songId;
             _songIndexMap[songId] = i;
             _indexToSongIdMap[i] = songId;
           }
 
-          if (songsWithFiles.isNotEmpty) {
+          // Sprawdź czy aktualny utwór ma plik audio
+          final currentSongHasFile = state.downloadUrls.songUrls.any(
+            (item) =>
+                item.songId == state.currentSong.id && item.url.isNotEmpty,
+          );
+
+          if (currentSongHasFile && songsWithFiles.isNotEmpty) {
+            // Aktualny utwór ma plik - załaduj playlistę
             context.read<AudioPlayerCubit>().loadPlaylist(
               songsWithFiles.map((item) => item.url).toList(),
               initialIndex: _songIndexMap[state.currentSong.id] ?? 0,
             );
           } else {
-            // Jeśli żaden utwór nie ma pliku, załaduj utwór bez pliku
-            context.read<AudioPlayerCubit>().loadSongWithoutFile(state.currentSong.title);
+            // Aktualny utwór nie ma pliku - załaduj utwór bez pliku
+            context.read<AudioPlayerCubit>().loadSongWithoutFile(
+              state.currentSong.title,
+            );
           }
         }
         if (state is SongDetailReady) {
@@ -86,24 +94,9 @@ class _SongViewState extends State<SongView> {
             context.read<SongDetailCubit>().setReady();
           }
 
-          final currentIndex = state.currentIndex;
-          if (currentIndex != null) {
-            final songId = _indexToSongIdMap[currentIndex];
-            if (songId != null) {
-              final songDetailState = context.read<SongDetailCubit>().state;
-              try {
-                final songUnderIndex = songDetailState.songs.firstWhere(
-                  (song) => song.id == songId,
-                );
-                final currentSong = songDetailState.currentSong;
-                if (songUnderIndex != currentSong) {
-                  context.read<SongDetailCubit>().selectSong(songUnderIndex);
-                }
-              } catch (e) {
-                log('Song with id $songId not found in songs list: $e');
-              }
-            }
-          }
+          // USUNIĘTO: Automatyczne przełączanie currentSong na podstawie currentIndex
+          // Nawigacja między utworami będzie zarządzana przez SongDetailCubit
+          // zamiast być wymuszana przez zmiany w AudioPlayerCubit
         },
         child: PopScope(
           onPopInvokedWithResult: (didPop, result) {
@@ -138,12 +131,12 @@ class _SongViewState extends State<SongView> {
                         builder: (context, _) {
                           final percentageScrolled =
                               _draggableScrollableController.isAttached
-                                  ? PlayerMathUtils.calculatePercentageScrolled(
-                                      _draggableScrollableController.size,
-                                      minDraggableScrollSize,
-                                      maxDraggableScrollSize,
-                                    )
-                                  : 0.0;
+                              ? PlayerMathUtils.calculatePercentageScrolled(
+                                  _draggableScrollableController.size,
+                                  minDraggableScrollSize,
+                                  maxDraggableScrollSize,
+                                )
+                              : 0.0;
 
                           return Stack(
                             children: [
@@ -183,13 +176,12 @@ class _SongViewState extends State<SongView> {
                             builder: (context, _) {
                               final percentageScrolled =
                                   _draggableScrollableController.isAttached
-                                      ? PlayerMathUtils
-                                          .calculatePercentageScrolled(
-                                        _draggableScrollableController.size,
-                                        minDraggableScrollSize,
-                                        maxDraggableScrollSize,
-                                      )
-                                      : 0.0;
+                                  ? PlayerMathUtils.calculatePercentageScrolled(
+                                      _draggableScrollableController.size,
+                                      minDraggableScrollSize,
+                                      maxDraggableScrollSize,
+                                    )
+                                  : 0.0;
 
                               return Container(
                                 decoration: BoxDecoration(
@@ -215,21 +207,23 @@ class _SongViewState extends State<SongView> {
                                             if (percentageScrolled >= 0.9) {
                                               _draggableScrollableController
                                                   .animateTo(
-                                                minDraggableScrollSize,
-                                                duration: const Duration(
-                                                    milliseconds: 400),
-                                                curve: Curves.easeInOut,
-                                              );
+                                                    minDraggableScrollSize,
+                                                    duration: const Duration(
+                                                      milliseconds: 400,
+                                                    ),
+                                                    curve: Curves.easeInOut,
+                                                  );
                                               return;
                                             }
 
                                             _draggableScrollableController
                                                 .animateTo(
-                                              maxDraggableScrollSize,
-                                              duration: const Duration(
-                                                  milliseconds: 400),
-                                              curve: Curves.easeInOut,
-                                            );
+                                                  maxDraggableScrollSize,
+                                                  duration: const Duration(
+                                                    milliseconds: 400,
+                                                  ),
+                                                  curve: Curves.easeInOut,
+                                                );
                                           },
                                           label: const Text('WIĘCEJ UTWORÓW'),
                                           icon: const Icon(

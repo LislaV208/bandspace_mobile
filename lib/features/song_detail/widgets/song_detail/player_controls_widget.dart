@@ -6,6 +6,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:bandspace_mobile/core/cubits/audio_player/audio_player_cubit.dart';
 import 'package:bandspace_mobile/core/cubits/audio_player/audio_player_state.dart';
 import 'package:bandspace_mobile/core/cubits/audio_player/player_status.dart';
+import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_cubit.dart';
+import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_state.dart';
 
 class PlayerControlsWidget extends StatelessWidget {
   const PlayerControlsWidget({super.key});
@@ -17,20 +19,22 @@ class PlayerControlsWidget extends StatelessWidget {
         final isPlaying = audioState.status == PlayerStatus.playing;
         final hasFile = audioState.currentPlayingUrl != null && audioState.currentPlayingUrl!.isNotEmpty;
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              IconButton(
-                onPressed: audioState.canPlayPrevious
-                    ? () {
-                        context.read<AudioPlayerCubit>().playPrevious();
-                      }
-                    : null,
-                icon: const Icon(LucideIcons.skipBack),
-                iconSize: 32,
-              ),
+        return BlocBuilder<SongDetailCubit, SongDetailState>(
+          builder: (context, songState) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  IconButton(
+                    onPressed: songState.canGoPrevious
+                        ? () {
+                            context.read<SongDetailCubit>().goToPreviousSong();
+                          }
+                        : null,
+                    icon: const Icon(LucideIcons.skipBack),
+                    iconSize: 32,
+                  ),
               Container(
                 width: 72,
                 height: 72,
@@ -58,17 +62,19 @@ class PlayerControlsWidget extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
-              IconButton(
-                onPressed: audioState.canPlayNext
-                    ? () {
-                        context.read<AudioPlayerCubit>().playNext();
-                      }
-                    : null,
-                icon: const Icon(LucideIcons.skipForward),
-                iconSize: 32,
+                  IconButton(
+                    onPressed: songState.canGoNext
+                        ? () {
+                            context.read<SongDetailCubit>().goToNextSong();
+                          }
+                        : null,
+                    icon: const Icon(LucideIcons.skipForward),
+                    iconSize: 32,
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
