@@ -22,7 +22,7 @@ class FilePickerView extends StatelessWidget {
           const Spacer(),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(32),
+            padding: const EdgeInsets.fromLTRB(32, 32, 32, 16),
             decoration: BoxDecoration(
               color: Theme.of(
                 context,
@@ -94,27 +94,17 @@ class FilePickerView extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: isPickingFile
+                      ? null
+                      : () {
+                          context.read<NewSongCubit>().skipFileSelection();
+                        },
+                  child: Text('Pomiń plik audio'),
+                ),
               ],
             ),
-          ),
-          const SizedBox(height: 32),
-          Column(
-            children: [
-              Text(
-                'Obsługiwane formaty:',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'MP3, WAV, M4A, FLAC, AAC',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
           ),
           const Spacer(),
         ],

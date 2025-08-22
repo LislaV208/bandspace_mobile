@@ -322,6 +322,24 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     ); // Resetuj stan do początkowego
   }
 
+  /// Ładuje utwór bez pliku audio.
+  /// Ustawia stan odtwarzacza na "brak pliku" bez próby załadowania żadnego audio.
+  Future<void> loadSongWithoutFile(String songTitle) async {
+    // Zatrzymaj aktualne odtwarzanie
+    await _audioPlayer.stop();
+    
+    // Emituj stan bez pliku
+    emit(
+      const AudioPlayerState(
+        status: PlayerStatus.completed,
+        totalDuration: Duration.zero,
+        currentPosition: Duration.zero,
+        isReady: false,
+        hasPlaylist: false,
+      ),
+    );
+  }
+
   // =======================================================
   // ===          PUBLICZNE API PLAYLIST                 ===
   // =======================================================

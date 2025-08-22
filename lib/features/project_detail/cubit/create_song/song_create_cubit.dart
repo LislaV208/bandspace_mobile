@@ -29,7 +29,7 @@ class NewSongCubit extends Cubit<NewSongState> {
       if (result != null && result.files.single.path != null) {
         final file = File(result.files.single.path!);
         final songInitialName = file.path.split('/').last.split('.').first;
-        emit(NewSongFileSelected(file, songInitialName));
+        emit(NewSongFileSelected(file: file, songInitialName: songInitialName));
       } else {
         emit(const NewSongInitial());
       }
@@ -38,23 +38,39 @@ class NewSongCubit extends Cubit<NewSongState> {
     }
   }
 
+  void skipFileSelection() {
+    emit(const NewSongFileSelected());
+  }
+
   Future<void> uploadFile(CreateSongData songData) async {
     final currentState = state;
+    
     if (currentState is NewSongFileSelected) {
-      final file = currentState.file;
       final songName = songData.title;
 
       emit(NewSongUploading(0.0, songName));
 
       try {
-        await projectsRepository.createSong(
-          projectId,
-          songData,
-          file,
-          onProgress: (sent, total) {
-            emit(NewSongUploading(sent / total, songName));
-          },
-        );
+        if (currentState.file != null) {
+          // Utwór z plikiem
+          await projectsRepository.createSong(
+            projectId,
+            songData,
+            currentState.file!,
+            onProgress: (sent, total) {
+              emit(NewSongUploading(sent / total, songName));
+            },
+          );
+        } else {
+          // Utwór bez pliku
+          await projectsRepository.createSongWithoutFile(
+            projectId,
+            songData,
+            onProgress: (sent, total) {
+              emit(NewSongUploading(sent / total, songName));
+            },
+          );
+        }
 
         emit(NewSongUploadSuccess(1.0, songName));
       } catch (e) {

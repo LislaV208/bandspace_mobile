@@ -128,12 +128,21 @@ class _SongDetailsViewState extends State<SongDetailsView> {
     return BlocBuilder<NewSongCubit, NewSongState>(
       builder: (context, state) {
         if (state is NewSongFileSelected) {
-          return AudioPreviewPlayer(
-            audioFile: state.file,
-            onRemoveFile: () {
-              context.read<NewSongCubit>().goToInitialStep();
-            },
-          );
+          if (state.file != null) {
+            return AudioPreviewPlayer(
+              audioFile: state.file,
+              onRemoveFile: () {
+                context.read<NewSongCubit>().goToInitialStep();
+              },
+            );
+          } else {
+            return AudioPreviewPlayer(
+              audioFile: null,
+              onRemoveFile: () {
+                context.read<NewSongCubit>().goToInitialStep();
+              },
+            );
+          }
         }
 
         // Fallback - nie powinno się zdarzyć w tym kroku

@@ -13,6 +13,33 @@ class ProgressBarWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AudioPlayerCubit, AudioPlayerState>(
       builder: (context, audioState) {
+        final hasFile = audioState.currentPlayingUrl != null && audioState.currentPlayingUrl!.isNotEmpty;
+        
+        // Jeśli nie ma pliku, pokaż komunikat
+        if (!hasFile) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+            child: Column(
+              children: [
+                Container(
+                  height: 4.0,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Brak pliku audio',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
         final progress = audioState.progress.clamp(0.0, 1.0);
 
         return Column(

@@ -6,12 +6,12 @@ import 'package:just_audio/just_audio.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class AudioPreviewPlayer extends StatefulWidget {
-  final File audioFile;
+  final File? audioFile;
   final VoidCallback? onRemoveFile;
 
   const AudioPreviewPlayer({
     super.key,
-    required this.audioFile,
+    this.audioFile,
     this.onRemoveFile,
   });
 
@@ -40,9 +40,17 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
   }
 
   Future<void> _initializePlayer() async {
+    // Jeśli nie ma pliku, nie inicjalizujemy odtwarzacza
+    if (widget.audioFile == null) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+
     try {
       _player = AudioPlayer();
-      await _player!.setFilePath(widget.audioFile.path);
+      await _player!.setFilePath(widget.audioFile!.path);
 
       _player!.playerStateStream.listen((state) {
         if (mounted) {
@@ -82,7 +90,8 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
   }
 
   void _togglePlayPause() async {
-    if (_player == null) return;
+    // Jeśli nie ma pliku, nie można odtwarzać
+    if (widget.audioFile == null || _player == null) return;
 
     try {
       if (_isPlaying) {
@@ -104,11 +113,12 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
   }
 
   String _getFileName() {
-    return widget.audioFile.path.split('/').last;
+    return widget.audioFile != null ? widget.audioFile!.path.split('/').last : 'Brak pliku';
   }
 
   String _getFileSize() {
-    final bytes = widget.audioFile.lengthSync();
+    if (widget.audioFile == null) return '';
+    final bytes = widget.audioFile!.lengthSync();
     final mb = bytes / (1024 * 1024);
     return '${mb.toStringAsFixed(1)} MB';
   }
@@ -133,8 +143,8 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
                   color: Theme.of(context).colorScheme.primary,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
-                  LucideIcons.fileAudio,
+                child: Icon(
+                  widget.audioFile != null ? LucideIcons.fileAudio : Icons.music_off,
                   size: 24,
                   color: Colors.white,
                 ),
@@ -150,11 +160,13 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _getFileSize(),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
+                    if (widget.audioFile != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        _getFileSize(),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -176,7 +188,31 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
           const SizedBox(height: 16),
 
           // Player controls
-          if (_hasError)
+          if (widget.audioFile == null)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Brak pliku audio',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else if (_hasError)
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(

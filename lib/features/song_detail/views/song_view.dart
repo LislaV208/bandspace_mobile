@@ -51,21 +51,35 @@ class _SongViewState extends State<SongView> {
         if (state is SongDetailLoadUrlsSuccess) {
           _songIndexMap = <int, int>{};
           _indexToSongIdMap = <int, int>{};
-          for (int i = 0; i < state.downloadUrls.songUrls.length; i++) {
-            final songId = state.downloadUrls.songUrls[i].songId;
+          
+          // Filtruj utwory, które mają pliki
+          final songsWithFiles = state.downloadUrls.songUrls
+              .where((item) => item.url.isNotEmpty)
+              .toList();
+          
+          for (int i = 0; i < songsWithFiles.length; i++) {
+            final songId = songsWithFiles[i].songId;
             _songIndexMap[songId] = i;
             _indexToSongIdMap[i] = songId;
           }
 
-          context.read<AudioPlayerCubit>().loadPlaylist(
-            state.downloadUrls.songUrls.map((item) => item.url).toList(),
-            initialIndex: _songIndexMap[state.currentSong.id] ?? 0,
-          );
+          if (songsWithFiles.isNotEmpty) {
+            context.read<AudioPlayerCubit>().loadPlaylist(
+              songsWithFiles.map((item) => item.url).toList(),
+              initialIndex: _songIndexMap[state.currentSong.id] ?? 0,
+            );
+          } else {
+            // Jeśli żaden utwór nie ma pliku, załaduj utwór bez pliku
+            context.read<AudioPlayerCubit>().loadSongWithoutFile(state.currentSong.title);
+          }
         }
         if (state is SongDetailReady) {
           final currentIndex = _songIndexMap[state.currentSong.id];
           if (currentIndex != null) {
             context.read<AudioPlayerCubit>().playTrackAt(currentIndex);
+          } else {
+            // Jeśli utwór nie ma indeksu, to prawdopodobnie nie ma pliku
+            context.read<AudioPlayerCubit>().loadSongWithoutFile(state.currentSong.title);
           }
         }
       },

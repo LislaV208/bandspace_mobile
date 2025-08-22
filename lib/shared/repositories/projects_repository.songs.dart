@@ -55,6 +55,29 @@ extension SongsManagement on ProjectsRepository {
     );
   }
 
+  // Tworzy nowy utwór bez pliku w projekcie.
+  // POST /api/projects/{projectId}/songs
+  Future<Song> createSongWithoutFile(
+    int projectId,
+    CreateSongData songData, {
+    required void Function(int sent, int total)? onProgress,
+  }) async {
+    return addToList<Song>(
+      listMethodName: 'getSongs',
+      listParameters: {'projectId': projectId},
+      createCall: () async {
+        final response = await apiClient.post(
+          '/api/projects/$projectId/songs',
+          data: songData.toJson(),
+          onSendProgress: onProgress,
+        );
+
+        return Song.fromJson(response.data);
+      },
+      fromJson: (json) => _songFromJson(json),
+    );
+  }
+
   Stream<Song> getSong(int projectId, int songId) {
     return reactiveStream<Song>(
       methodName: 'getSong',

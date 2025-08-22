@@ -27,10 +27,10 @@ class NewSongSelectFileFailure extends NewSongState {
 }
 
 class NewSongFileSelected extends NewSongState {
-  final File file;
+  final File? file;
   final String songInitialName;
 
-  const NewSongFileSelected(this.file, this.songInitialName);
+  const NewSongFileSelected({this.file, this.songInitialName = 'Nowy utwór'});
 
   @override
   List<Object?> get props => [file, songInitialName];

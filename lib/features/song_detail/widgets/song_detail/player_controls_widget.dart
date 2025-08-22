@@ -15,6 +15,7 @@ class PlayerControlsWidget extends StatelessWidget {
     return BlocBuilder<AudioPlayerCubit, AudioPlayerState>(
       builder: (context, audioState) {
         final isPlaying = audioState.status == PlayerStatus.playing;
+        final hasFile = audioState.currentPlayingUrl != null && audioState.currentPlayingUrl!.isNotEmpty;
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32.0),
@@ -45,9 +46,11 @@ class PlayerControlsWidget extends StatelessWidget {
                   ),
                 ),
                 child: IconButton(
-                  onPressed: () {
-                    context.read<AudioPlayerCubit>().togglePlayPause();
-                  },
+                  onPressed: hasFile
+                      ? () {
+                          context.read<AudioPlayerCubit>().togglePlayPause();
+                        }
+                      : null,
                   icon: Icon(
                     isPlaying ? LucideIcons.pause : LucideIcons.play,
                   ),

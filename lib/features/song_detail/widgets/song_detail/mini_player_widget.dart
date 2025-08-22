@@ -53,10 +53,14 @@ class MiniPlayerWidget extends StatelessWidget {
               child: BlocBuilder<AudioPlayerCubit, AudioPlayerState>(
                 builder: (context, state) {
                   final isPlaying = state.status == PlayerStatus.playing;
+                  final hasFile = state.currentPlayingUrl != null && state.currentPlayingUrl!.isNotEmpty;
+                  
                   return IconButton(
-                    onPressed: () {
-                      context.read<AudioPlayerCubit>().togglePlayPause();
-                    },
+                    onPressed: hasFile
+                        ? () {
+                            context.read<AudioPlayerCubit>().togglePlayPause();
+                          }
+                        : null,
                     icon: Icon(
                       isPlaying ? LucideIcons.pause : LucideIcons.play,
                     ),
