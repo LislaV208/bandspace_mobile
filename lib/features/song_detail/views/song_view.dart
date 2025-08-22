@@ -33,6 +33,15 @@ class _SongViewState extends State<SongView> {
   Map<int, int> _songIndexMap = {};
   Map<int, int> _indexToSongIdMap = {};
 
+  /// Porównuje dwie playlisty (listy URL-ów) 
+  bool _playlistsEqual(List<String> playlist1, List<String> playlist2) {
+    if (playlist1.length != playlist2.length) return false;
+    for (int i = 0; i < playlist1.length; i++) {
+      if (playlist1[i] != playlist2[i]) return false;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -68,15 +77,29 @@ class _SongViewState extends State<SongView> {
                 item.songId == state.currentSong.id && item.url.isNotEmpty,
           );
 
+          // Sprawdź czy AudioPlayerCubit nie jest już załadowany z właściwymi danymi
+          final audioPlayerCubit = context.read<AudioPlayerCubit>();
+          final currentPlaylist = audioPlayerCubit.state.playlist;
+          final expectedPlaylist = songsWithFiles.map((item) => item.url).toList();
+          
           if (currentSongHasFile && songsWithFiles.isNotEmpty) {
-            // Aktualny utwór ma plik - załaduj playlistę
-            context.read<AudioPlayerCubit>().loadPlaylist(
-              songsWithFiles.map((item) => item.url).toList(),
-              initialIndex: _songIndexMap[state.currentSong.id] ?? 0,
-            );
+            // Sprawdź czy playlist już jest załadowana z tymi samymi URL-ami
+            if (!_playlistsEqual(currentPlaylist, expectedPlaylist)) {
+              // Aktualny utwór ma plik - załaduj playlistę
+              audioPlayerCubit.loadPlaylist(
+                expectedPlaylist,
+                initialIndex: _songIndexMap[state.currentSong.id] ?? 0,
+              );
+            } else {
+              // Playlist już jest załadowana, tylko przejdź do właściwego utworu
+              final targetIndex = _songIndexMap[state.currentSong.id] ?? 0;
+              if (audioPlayerCubit.state.currentIndex != targetIndex) {
+                audioPlayerCubit.playTrackAt(targetIndex);
+              }
+            }
           } else {
             // Aktualny utwór nie ma pliku - załaduj utwór bez pliku
-            context.read<AudioPlayerCubit>().loadSongWithoutFile(
+            audioPlayerCubit.loadSongWithoutFile(
               state.currentSong.title,
             );
           }

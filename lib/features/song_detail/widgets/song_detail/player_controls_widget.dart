@@ -17,10 +17,12 @@ class PlayerControlsWidget extends StatelessWidget {
     return BlocBuilder<AudioPlayerCubit, AudioPlayerState>(
       builder: (context, audioState) {
         final isPlaying = audioState.status == PlayerStatus.playing;
-        final hasFile = audioState.currentPlayingUrl != null && audioState.currentPlayingUrl!.isNotEmpty;
 
         return BlocBuilder<SongDetailCubit, SongDetailState>(
           builder: (context, songState) {
+            // Sprawdź czy aktualny utwór ma plik na podstawie SongDetailState
+            final hasFile = songState.hasFileInfo && songState.currentSongHasFile;
+            
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32.0),
               child: Row(

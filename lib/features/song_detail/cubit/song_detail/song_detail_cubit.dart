@@ -31,19 +31,43 @@ class SongDetailCubit extends Cubit<SongDetailState> {
   }
 
   void selectSong(Song song) {
-    emit(
-      SongDetailReady(
-        state.songs,
-        song,
-      ),
-    );
+    log('[SongDetailCubit] selectSong called for: ${song.title} (id: ${song.id})');
+    log('[SongDetailCubit] Current state: ${state.runtimeType}');
     
-    // Automatycznie przeładuj URL-e dla nowego utworu
-    // To spowoduje emisję SongDetailLoadUrlsSuccess, która zsynchronizuje AudioPlayerCubit
-    _downloadUrls();
+    // Przeładuj URL-e tylko jeśli jeszcze ich nie mamy
+    if (state is! SongDetailLoadUrlsSuccess) {
+      log('[SongDetailCubit] No URLs yet, emitting SongDetailReady and downloading URLs');
+      // Emit SongDetailReady przed ładowaniem URL-ów
+      emit(
+        SongDetailReady(
+          state.songs,
+          song,
+        ),
+      );
+      _downloadUrls();
+    } else {
+      log('[SongDetailCubit] URLs available, emitting SongDetailLoadUrlsSuccess directly');
+      // Jeśli już mamy URL-e, przejdź bezpośrednio do SongDetailLoadUrlsSuccess
+      // bez przechodzenia przez SongDetailReady
+      final urlsState = state as SongDetailLoadUrlsSuccess;
+      emit(
+        SongDetailLoadUrlsSuccess(
+          state.songs,
+          song, // zaktualizowany currentSong
+          urlsState.downloadUrls,
+        ),
+      );
+    }
   }
 
   void setReady() {
+    log('[SongDetailCubit] setReady called, current state: ${state.runtimeType}');
+    // Nie przechodź do SongDetailReady jeśli już mamy informacje o URL-ach
+    if (state is SongDetailLoadUrlsSuccess) {
+      log('[SongDetailCubit] Already have URLs, staying in SongDetailLoadUrlsSuccess');
+      return; // Zostań w SongDetailLoadUrlsSuccess
+    }
+    log('[SongDetailCubit] Emitting SongDetailReady');
     emit(SongDetailReady(state.songs, state.currentSong));
   }
 
@@ -105,12 +129,14 @@ class SongDetailCubit extends Cubit<SongDetailState> {
 
   Future<void> _downloadUrls() async {
     try {
+      log('[SongDetailCubit] _downloadUrls started');
       var refreshUrls = true;
 
       final urls = await songListUrlsCacheStorage.getSongListUrls(projectId);
       final urlsValid = _validateUrls(urls);
 
       if (urlsValid) {
+        log('[SongDetailCubit] URLs valid from cache, emitting SongDetailLoadUrlsSuccess');
         refreshUrls = false;
         emit(
           SongDetailLoadUrlsSuccess(
@@ -122,11 +148,13 @@ class SongDetailCubit extends Cubit<SongDetailState> {
       }
 
       if (refreshUrls) {
+        log('[SongDetailCubit] Refreshing URLs, emitting SongDetailLoadUrls');
         emit(SongDetailLoadUrls(state.songs, state.currentSong));
         final newUrls = await projectsRepository.getPlaylistDownloadUrls(
           projectId,
         );
 
+        log('[SongDetailCubit] URLs refreshed, emitting SongDetailLoadUrlsSuccess');
         emit(
           SongDetailLoadUrlsSuccess(
             state.songs,
