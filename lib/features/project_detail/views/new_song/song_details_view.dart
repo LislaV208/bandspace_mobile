@@ -81,8 +81,17 @@ class _SongDetailsViewState extends State<SongDetailsView> {
                 _buildFileInfo(),
                 const SizedBox(height: 24),
                 _buildTitleField(),
-                const SizedBox(height: 20),
-                _buildBpmSection(),
+                const SizedBox(height: 8),
+                BpmControl(
+                  initialBpm: _bpm,
+                  showRemoveButton: true,
+
+                  onBpmChanged: (bpm) {
+                    setState(() {
+                      _bpm = bpm;
+                    });
+                  },
+                ),
                 const SizedBox(height: 20),
               ],
             ),
@@ -115,104 +124,6 @@ class _SongDetailsViewState extends State<SongDetailsView> {
     );
   }
 
-  Widget _buildBpmSection() {
-    if (_bpm == null) {
-      return _buildAddBpmButton();
-    } else {
-      return _buildBpmControl();
-    }
-  }
-
-  Widget _buildAddBpmButton() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Tempo (opcjonalnie)',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 56,
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () {
-              setState(() {
-                _bpm = 120;
-              });
-            },
-            icon: Icon(
-              LucideIcons.music,
-              size: 20,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            label: Text(
-              'Ustaw tempo (BPM)',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            style: OutlinedButton.styleFrom(
-              backgroundColor: AppColors.surfaceDark,
-              foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
-              side: BorderSide(
-                color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBpmControl() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Tempo (BPM)',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  _bpm = null;
-                });
-              },
-              child: Text(
-                'Usuń',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        BpmControl(
-          initialBpm: _bpm!,
-          onBpmChanged: (newBpm) {
-            setState(() {
-              _bpm = newBpm;
-            });
-          },
-        ),
-      ],
-    );
-  }
-
   Widget _buildFileInfo() {
     return BlocBuilder<NewSongCubit, NewSongState>(
       builder: (context, state) {
@@ -229,9 +140,8 @@ class _SongDetailsViewState extends State<SongDetailsView> {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surfaceDark,
+            color: Theme.of(context).colorScheme.secondaryContainer,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
@@ -239,13 +149,12 @@ class _SongDetailsViewState extends State<SongDetailsView> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
+                  color: Theme.of(context).colorScheme.primary,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
-                  LucideIcons.music,
+                  Icons.music_off,
                   size: 24,
-                  color: AppColors.primary,
                 ),
               ),
               const SizedBox(width: 12),
@@ -254,18 +163,13 @@ class _SongDetailsViewState extends State<SongDetailsView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Brak pliku audio',
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      'Nie dodano pliku audio',
+                      style: Theme.of(context).textTheme.titleSmall,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Wróć do poprzedniego kroku',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                      'Będziesz mógł go dodać później',
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
                 ),
@@ -283,32 +187,15 @@ class _SongDetailsViewState extends State<SongDetailsView> {
       children: [
         Text(
           'Nazwa utworu',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w500,
-          ),
+          style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 8),
         TextField(
           controller: _titleController,
           focusNode: _titleFocus,
-          style: AppTextStyles.bodyLarge.copyWith(color: AppColors.textPrimary),
+
           decoration: InputDecoration(
             hintText: 'Wprowadź nazwę utworu...',
-            hintStyle: AppTextStyles.bodyLarge.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            filled: true,
-            fillColor: AppColors.surfaceDark,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
-            ),
-            contentPadding: const EdgeInsets.all(16),
           ),
           textCapitalization: TextCapitalization.words,
           textInputAction: TextInputAction.done,
@@ -330,9 +217,7 @@ class _SongDetailsViewState extends State<SongDetailsView> {
               }) {
                 return Text(
                   '$currentLength/${maxLength ?? 0}',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                  style: AppTextStyles.bodySmall,
                 );
               },
         ),
@@ -346,27 +231,13 @@ class _SongDetailsViewState extends State<SongDetailsView> {
         Expanded(
           child: SizedBox(
             height: 56,
-            child: OutlinedButton(
+            child: OutlinedButton.icon(
               onPressed: () {
                 context.read<NewSongCubit>().goToInitialStep();
               },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
-                side: BorderSide(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'Wstecz',
-                style: AppTextStyles.bodyLarge.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+
+              icon: const Icon(LucideIcons.arrowLeft),
+              label: Text('Wstecz'),
             ),
           ),
         ),
@@ -392,19 +263,7 @@ class _SongDetailsViewState extends State<SongDetailsView> {
                         }
                       : null,
                   icon: const Icon(LucideIcons.plus, size: 20),
-                  label: Text(
-                    'Utwórz utwór',
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.onPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                  label: Text('Utwórz utwór'),
                 );
               },
             ),

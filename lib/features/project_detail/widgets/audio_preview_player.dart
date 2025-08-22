@@ -1,10 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
 import 'package:just_audio/just_audio.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-
-import 'package:bandspace_mobile/core/theme/theme.dart';
 
 class AudioPreviewPlayer extends StatefulWidget {
   final File audioFile;
@@ -44,7 +43,7 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
     try {
       _player = AudioPlayer();
       await _player!.setFilePath(widget.audioFile.path);
-      
+
       _player!.playerStateStream.listen((state) {
         if (mounted) {
           setState(() {
@@ -84,7 +83,7 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
 
   void _togglePlayPause() async {
     if (_player == null) return;
-    
+
     try {
       if (_isPlaying) {
         await _player!.pause();
@@ -117,15 +116,10 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceDark,
+        color: Theme.of(context).colorScheme.secondaryContainer,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.primary,
-          width: 2,
-        ),
       ),
       child: Column(
         children: [
@@ -133,15 +127,16 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
+                  color: Theme.of(context).colorScheme.primary,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
                   LucideIcons.fileAudio,
-                  size: 20,
-                  color: AppColors.primary,
+                  size: 24,
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(width: 12),
@@ -151,19 +146,14 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
                   children: [
                     Text(
                       _getFileName(),
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      style: Theme.of(context).textTheme.titleSmall,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       _getFileSize(),
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
                 ),
@@ -171,38 +161,40 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
               if (widget.onRemoveFile != null)
                 IconButton(
                   onPressed: widget.onRemoveFile,
-                  icon: const Icon(
+                  icon: Icon(
                     LucideIcons.x,
                     size: 18,
-                    color: AppColors.textSecondary,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                   tooltip: 'Usuń plik',
                 ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Player controls
           if (_hasError)
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.error.withValues(alpha: 0.1),
+                color: Theme.of(context).colorScheme.errorContainer,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     LucideIcons.triangle,
                     size: 16,
-                    color: AppColors.error,
+                    color: Theme.of(context).colorScheme.onErrorContainer,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'Nie można odtworzyć pliku',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.error,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onErrorContainer,
                     ),
                   ),
                 ],
@@ -212,20 +204,20 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(
+                SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'Ładowanie...',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
             )
@@ -239,7 +231,7 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: Theme.of(context).colorScheme.primary,
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: IconButton(
@@ -247,7 +239,7 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
                         icon: Icon(
                           _isPlaying ? LucideIcons.pause : LucideIcons.play,
                           size: 20,
-                          color: AppColors.onPrimary,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -261,40 +253,50 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
                             children: [
                               Text(
                                 _formatDuration(_position),
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  color: AppColors.textPrimary,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                    ),
                               ),
                               Text(
                                 _formatDuration(_duration),
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  color: AppColors.textSecondary,
-                                ),
+                                style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],
                           ),
                           const SizedBox(height: 8),
                           // Progress bar
-                          Container(
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: AppColors.textSecondary.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                            child: _duration.inMilliseconds > 0
-                                ? FractionallySizedBox(
-                                    alignment: Alignment.centerLeft,
-                                    widthFactor: (_position.inMilliseconds / _duration.inMilliseconds)
-                                        .clamp(0.0, 1.0),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: AppColors.primary,
-                                        borderRadius: BorderRadius.circular(2),
-                                      ),
+                          Stack(
+                            children: [
+                              // Tło progress bara
+                              Container(
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHigh,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              // Progress
+                              if (_duration.inMilliseconds > 0)
+                                FractionallySizedBox(
+                                  alignment: Alignment.centerLeft,
+                                  widthFactor:
+                                      (_position.inMilliseconds /
+                                              _duration.inMilliseconds)
+                                          .clamp(0.0, 1.0),
+                                  child: Container(
+                                    height: 4,
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                      borderRadius: BorderRadius.circular(2),
                                     ),
-                                  )
-                                : null,
+                                  ),
+                                ),
+                            ],
                           ),
                         ],
                       ),

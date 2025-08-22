@@ -37,8 +37,8 @@ class PlayerControlsWidget extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Theme.of(context).colorScheme.secondary,
-                      Theme.of(context).colorScheme.secondaryContainer,
+                      Theme.of(context).colorScheme.tertiary,
+                      Theme.of(context).colorScheme.primary,
                     ],
                   ),
                 ),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:bandspace_mobile/shared/models/song.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'animated_music_icon.dart';
+import 'package:bandspace_mobile/shared/models/song.dart';
 
 class SongListItemWidget extends StatelessWidget {
   final Song song;
@@ -69,8 +69,8 @@ class SongListItemWidget extends StatelessWidget {
                       : Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: AnimatedMusicIcon(
-                  isPlaying: isPlaying,
+                child: Icon(
+                  isPlaying ? LucideIcons.pause : LucideIcons.play,
                   size: 20,
                 ),
               ),

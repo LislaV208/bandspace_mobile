@@ -14,27 +14,26 @@ class _AppColors {
   ); // blue-600 - oryginalny BandSpace Blue
   static const Color onPrimary = Colors.white;
   static const Color primaryContainer = Color(
-    0xFF1E40AF,
-  ); // blue-800 - ciemniejszy kontener
-  static const Color onPrimaryContainer = Color(0xFFDDD6FE); // blue-100 tint
+    0x801E3A8A,
+  ); // blue-900 z opacity 50% - subtelne tło kontenera
+  static const Color onPrimaryContainer = Color.fromARGB(
+    255,
+    238,
+    243,
+    249,
+  ); // blue-300 - lepszy kontrast na ciemnym tle
 
   // SECONDARY - jaśniejszy niebieski
   static const Color secondary = Color(
     0xFF3B82F6,
   ); // blue-500 - jaśniejszy od primary
   static const Color onSecondary = Colors.white;
-  static const Color secondaryContainer = Color.fromARGB(
-    178,
-    37,
-    100,
-    235,
-  ); // blue-600 - bazuje na primary
-  static const Color onSecondaryContainer = Color.fromARGB(
-    255,
-    246,
-    247,
-    255,
-  ); // blue-100 tint
+  static const Color secondaryContainer = Color(
+    0x80334155,
+  ); // slate-700 z opacity 50% - niebieskawy-szary kontener
+  static const Color onSecondaryContainer = Color(
+    0xFF94A3B8,
+  ); // slate-400 - dobry kontrast na ciemnym tle
 
   // TERTIARY - niebieski-fioletowy
   static const Color tertiary = Color.fromARGB(
@@ -45,17 +44,52 @@ class _AppColors {
   ); // violet-500 - niebieski-fioletowy
   static const Color onTertiary = Colors.white;
   static const Color tertiaryContainer = Color.fromARGB(
+    128,
+    65,
+    69,
+    200,
+  ); // ciemniejsza wersja tertiary z opacity 50%
+  static const Color onTertiaryContainer = Color.fromARGB(
+    255,
+    196,
+    198,
+    250,
+  ); // jaśniejszy fioletowy dla lepszego kontrastu
+
+  // FIXED kolory - stałe niezależnie od motywu (jasny/ciemny)
+  // PRIMARY FIXED - dla komponentów marki, które muszą być zawsze rozpoznawalne
+  static const Color primaryFixed = Color(
+    0xFF2563EB,
+  ); // blue-600 - zawsze ten sam
+  static const Color primaryFixedDim = Color(
+    0xFF1E40AF,
+  ); // blue-800 - przyciemniony
+  static const Color onPrimaryFixed = Colors.white;
+  static const Color onPrimaryFixedVariant = Color(
+    0xFFE0E7FF,
+  ); // blue-100 - większy kontrast
+
+  // SECONDARY FIXED
+  static const Color secondaryFixed = Color(0xFF3B82F6); // blue-500
+  static const Color secondaryFixedDim = Color(0xFF2563EB); // blue-600
+  static const Color onSecondaryFixed = Colors.white;
+  static const Color onSecondaryFixedVariant = Color(0xFFDDD6FE); // blue-100
+
+  // TERTIARY FIXED
+  static const Color tertiaryFixed = tertiary; // Twój kolor
+  static const Color tertiaryFixedDim = Color.fromARGB(
     255,
     65,
     69,
     200,
-  ); // ciemniejsza wersja tertiary
-  static const Color onTertiaryContainer = Color.fromARGB(
+  ); // ciemniejszy
+  static const Color onTertiaryFixed = Colors.white;
+  static const Color onTertiaryFixedVariant = Color.fromARGB(
     255,
-    241,
-    242,
-    252,
-  ); // jasny odcień dla tekstu na kontenerze
+    220,
+    222,
+    255,
+  ); // większy kontrast
 
   // Deprecated - zachowane dla kompatybilności wstecznej
   static const Color primaryLight = Color(
@@ -239,6 +273,19 @@ class AppTheme {
       onTertiary: _AppColors.onTertiary,
       tertiaryContainer: _AppColors.tertiaryContainer,
       onTertiaryContainer: _AppColors.onTertiaryContainer,
+      // FIXED kolory - stałe dla wszystkich motywów
+      primaryFixed: _AppColors.primaryFixed,
+      primaryFixedDim: _AppColors.primaryFixedDim,
+      onPrimaryFixed: _AppColors.onPrimaryFixed,
+      onPrimaryFixedVariant: _AppColors.onPrimaryFixedVariant,
+      secondaryFixed: _AppColors.secondaryFixed,
+      secondaryFixedDim: _AppColors.secondaryFixedDim,
+      onSecondaryFixed: _AppColors.onSecondaryFixed,
+      onSecondaryFixedVariant: _AppColors.onSecondaryFixedVariant,
+      tertiaryFixed: _AppColors.tertiaryFixed,
+      tertiaryFixedDim: _AppColors.tertiaryFixedDim,
+      onTertiaryFixed: _AppColors.onTertiaryFixed,
+      onTertiaryFixedVariant: _AppColors.onTertiaryFixedVariant,
       error: _AppColors.error,
       onError: Colors.white,
       errorContainer: _AppColors.errorBackground,
