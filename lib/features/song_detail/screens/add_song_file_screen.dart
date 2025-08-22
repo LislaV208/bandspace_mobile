@@ -23,7 +23,12 @@ class AddSongFileScreen extends StatelessWidget {
     required this.onSongUpdated,
   });
 
-  static Widget create(Project project, int projectId, int songId, Function(Song updatedSong) onSongUpdated) {
+  static Widget create(
+    Project project,
+    int projectId,
+    int songId,
+    Function(Song updatedSong) onSongUpdated,
+  ) {
     return BlocProvider(
       create: (context) {
         return AddSongFileCubit(
@@ -57,7 +62,7 @@ class AddSongFileScreen extends StatelessWidget {
         onUploadSuccess: (Song updatedSong) {
           // Powrót do głównego ekranu z zaktualizowanym utworem
           Navigator.of(context).pop(updatedSong);
-          
+
           // Pokaż komunikat o sukcesie
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
