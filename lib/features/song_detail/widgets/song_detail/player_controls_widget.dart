@@ -22,9 +22,11 @@ class PlayerControlsWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               IconButton(
-                onPressed: () {
-                  context.read<AudioPlayerCubit>().playPrevious();
-                },
+                onPressed: audioState.canPlayPrevious
+                    ? () {
+                        context.read<AudioPlayerCubit>().playPrevious();
+                      }
+                    : null,
                 icon: const Icon(LucideIcons.skipBack),
                 iconSize: 32,
               ),
@@ -54,9 +56,11 @@ class PlayerControlsWidget extends StatelessWidget {
                 ),
               ),
               IconButton(
-                onPressed: () {
-                  context.read<AudioPlayerCubit>().playNext();
-                },
+                onPressed: audioState.canPlayNext
+                    ? () {
+                        context.read<AudioPlayerCubit>().playNext();
+                      }
+                    : null,
                 icon: const Icon(LucideIcons.skipForward),
                 iconSize: 32,
               ),

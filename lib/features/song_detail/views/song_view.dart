@@ -129,12 +129,12 @@ class _SongViewState extends State<SongView> {
                         builder: (context, _) {
                           final percentageScrolled =
                               _draggableScrollableController.isAttached
-                              ? PlayerMathUtils.calculatePercentageScrolled(
-                                  _draggableScrollableController.size,
-                                  minDraggableScrollSize,
-                                  maxDraggableScrollSize,
-                                )
-                              : 0.0;
+                                  ? PlayerMathUtils.calculatePercentageScrolled(
+                                      _draggableScrollableController.size,
+                                      minDraggableScrollSize,
+                                      maxDraggableScrollSize,
+                                    )
+                                  : 0.0;
 
                           return Stack(
                             children: [
@@ -174,12 +174,13 @@ class _SongViewState extends State<SongView> {
                             builder: (context, _) {
                               final percentageScrolled =
                                   _draggableScrollableController.isAttached
-                                  ? PlayerMathUtils.calculatePercentageScrolled(
-                                      _draggableScrollableController.size,
-                                      minDraggableScrollSize,
-                                      maxDraggableScrollSize,
-                                    )
-                                  : 0.0;
+                                      ? PlayerMathUtils
+                                          .calculatePercentageScrolled(
+                                        _draggableScrollableController.size,
+                                        minDraggableScrollSize,
+                                        maxDraggableScrollSize,
+                                      )
+                                      : 0.0;
 
                               return Container(
                                 decoration: BoxDecoration(
@@ -205,23 +206,21 @@ class _SongViewState extends State<SongView> {
                                             if (percentageScrolled >= 0.9) {
                                               _draggableScrollableController
                                                   .animateTo(
-                                                    minDraggableScrollSize,
-                                                    duration: const Duration(
-                                                      milliseconds: 400,
-                                                    ),
-                                                    curve: Curves.easeInOut,
-                                                  );
+                                                minDraggableScrollSize,
+                                                duration: const Duration(
+                                                    milliseconds: 400),
+                                                curve: Curves.easeInOut,
+                                              );
                                               return;
                                             }
 
                                             _draggableScrollableController
                                                 .animateTo(
-                                                  maxDraggableScrollSize,
-                                                  duration: const Duration(
-                                                    milliseconds: 400,
-                                                  ),
-                                                  curve: Curves.easeInOut,
-                                                );
+                                              maxDraggableScrollSize,
+                                              duration: const Duration(
+                                                  milliseconds: 400),
+                                              curve: Curves.easeInOut,
+                                            );
                                           },
                                           label: const Text('WIĘCEJ UTWORÓW'),
                                           icon: const Icon(
