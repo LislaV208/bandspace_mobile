@@ -10,7 +10,7 @@ import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/create_song/new_song_state.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/create_song/song_create_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/audio_preview_player.dart';
-import 'package:bandspace_mobile/features/project_detail/widgets/bpm_control.dart';
+import 'package:bandspace_mobile/shared/widgets/bpm_control.dart';
 import 'package:bandspace_mobile/shared/models/song_create_data.dart';
 
 /// Step 2: Uzupełnienie szczegółów utworu

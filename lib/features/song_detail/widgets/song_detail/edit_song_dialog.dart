@@ -9,6 +9,7 @@ import 'package:bandspace_mobile/features/song_detail/cubit/edit_song/edit_song_
 import 'package:bandspace_mobile/shared/models/song.dart';
 import 'package:bandspace_mobile/shared/models/update_song_data.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
+import 'package:bandspace_mobile/shared/widgets/bpm_control.dart';
 
 /// Dialog do edycji utworu
 class EditSongDialog extends StatefulWidget {
@@ -22,12 +23,12 @@ class EditSongDialog extends StatefulWidget {
   });
 
   /// Statyczna metoda do wyświetlania dialogu edycji utworu
-  static Future<bool?> show({
+  static Future<Song?> show({
     required BuildContext context,
     required Song song,
     required int projectId,
   }) {
-    return showDialog<bool>(
+    return showDialog<Song>(
       context: context,
       barrierDismissible: false,
       builder: (context) => BlocProvider(
@@ -51,12 +52,14 @@ class EditSongDialog extends StatefulWidget {
 class _EditSongDialogState extends State<EditSongDialog> {
   late TextEditingController _titleController;
   late FocusNode _titleFocusNode;
+  int? _bpm;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.song.title);
     _titleFocusNode = FocusNode();
+    _bpm = widget.song.bpm;
 
     // Automatycznie zaznacz cały tekst po otwarciu dialogu
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -80,7 +83,7 @@ class _EditSongDialogState extends State<EditSongDialog> {
     return BlocConsumer<EditSongCubit, EditSongState>(
       listener: (context, state) {
         if (state is EditSongSuccess) {
-          Navigator.of(context).pop(true);
+          Navigator.of(context).pop(state.song);
         }
       },
       builder: (context, state) {
@@ -193,6 +196,16 @@ class _EditSongDialogState extends State<EditSongDialog> {
                   ),
                   onSubmitted: isLoading ? null : (_) => _saveChanges(),
                 ),
+                const SizedBox(height: 16),
+                BpmControl(
+                  initialBpm: _bpm,
+                  onBpmChanged: (newBpm) {
+                    setState(() {
+                      _bpm = newBpm;
+                    });
+                  },
+                  showRemoveButton: true,
+                ),
 
                 if (state is EditSongFailure) ...[
                   const SizedBox(height: 16),
@@ -223,7 +236,7 @@ class _EditSongDialogState extends State<EditSongDialog> {
               TextButton(
                 onPressed: isLoading
                     ? null
-                    : () => Navigator.of(context).pop(false),
+                    : () => Navigator.of(context).pop(),
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.textSecondary,
                   padding: const EdgeInsets.symmetric(
@@ -285,7 +298,7 @@ class _EditSongDialogState extends State<EditSongDialog> {
   void _saveChanges() {
     final newTitle = _titleController.text.trim();
 
-    final updateData = UpdateSongData(title: newTitle);
+    final updateData = UpdateSongData(title: newTitle, bpm: _bpm);
     context.read<EditSongCubit>().updateSong(updateData);
   }
 }

@@ -22,11 +22,11 @@ class EditSongCubit extends Cubit<EditSongState> {
       emit(const EditSongLoading());
 
       // Wywołanie API do aktualizacji utworu
-      await projectsRepository.updateSong(projectId, songId, updateData);
+      final updatedSong = await projectsRepository.updateSong(projectId, songId, updateData);
 
       await projectsRepository.refreshSongs(projectId);
 
-      emit(const EditSongSuccess());
+      emit(EditSongSuccess(updatedSong));
     } catch (e) {
       emit(
         EditSongFailure(

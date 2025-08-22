@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:bandspace_mobile/shared/models/project.dart';
+
 import 'album_art_widget.dart';
-import 'song_info_widget.dart';
-import 'progress_bar_widget.dart';
 import 'player_controls_widget.dart';
+import 'progress_bar_widget.dart';
+import 'song_info_widget.dart';
 
 class FullPlayerWidget extends StatelessWidget {
   final Project project;

@@ -43,6 +43,16 @@ class SongDetailCubit extends Cubit<SongDetailState> {
     emit(SongDetailReady(state.songs, state.currentSong));
   }
 
+  void updateSong(Song song) {
+    final songs = [...state.songs];
+    final index = songs.indexWhere((s) => s.id == song.id);
+
+    if (index != -1) {
+      songs[index] = song;
+      emit(SongDetailReady(songs, song));
+    }
+  }
+
   Future<void> _downloadUrls() async {
     try {
       var refreshUrls = true;

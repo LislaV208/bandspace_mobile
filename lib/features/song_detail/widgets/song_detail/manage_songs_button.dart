@@ -7,6 +7,7 @@ import 'package:bandspace_mobile/core/widgets/options_bottom_sheet.dart';
 import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_cubit.dart';
 import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_state.dart';
 import 'package:bandspace_mobile/features/song_detail/widgets/song_detail/delete_song_dialog.dart';
+import 'package:bandspace_mobile/shared/models/song.dart';
 import 'package:bandspace_mobile/features/song_detail/widgets/song_detail/edit_song_dialog.dart';
 
 class ManageSongsButton extends StatelessWidget {
@@ -53,14 +54,14 @@ class ManageSongsButton extends StatelessWidget {
             final cubit = context.read<SongDetailCubit>();
             Navigator.pop(context);
 
-            final edited = await EditSongDialog.show(
+            final editedSong = await EditSongDialog.show(
               context: context,
               song: state.currentSong,
               projectId: cubit.projectId,
             );
 
-            if (edited == true) {
-              // TODO: Implement refresh song detail
+            if (editedSong is Song) {
+              cubit.updateSong(editedSong);
             }
           },
         ),

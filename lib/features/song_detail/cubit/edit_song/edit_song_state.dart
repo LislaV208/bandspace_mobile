@@ -1,3 +1,4 @@
+import 'package:bandspace_mobile/shared/models/song.dart';
 import 'package:equatable/equatable.dart';
 
 /// Stan procesu edycji utworu
@@ -20,7 +21,12 @@ class EditSongLoading extends EditSongState {
 
 /// Stan sukcesu - utwór został zaktualizowany
 class EditSongSuccess extends EditSongState {
-  const EditSongSuccess();
+  final Song song;
+
+  const EditSongSuccess(this.song);
+
+  @override
+  List<Object?> get props => [song];
 }
 
 /// Stan błędu - edycja nie powiodła się
