@@ -21,7 +21,7 @@ class FullPlayerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Opacity(
-      opacity: 1 - percentageScrolled,
+      opacity: (1 - percentageScrolled).clamp(0.0, 1.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [

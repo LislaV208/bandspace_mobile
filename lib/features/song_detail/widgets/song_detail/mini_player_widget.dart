@@ -25,8 +25,10 @@ class MiniPlayerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final clampedOpacity = opacity.clamp(0.0, 1.0);
+
     return Opacity(
-      opacity: opacity,
+      opacity: clampedOpacity,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
@@ -35,9 +37,9 @@ class MiniPlayerWidget extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: AlbumArtWidget(
-                size: 50 * opacity,
+                size: 50 * clampedOpacity,
                 borderRadius: 10,
-                iconSize: 24 * opacity,
+                iconSize: 24 * clampedOpacity,
               ),
             ),
             Expanded(

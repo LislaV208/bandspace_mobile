@@ -130,9 +130,9 @@ class _SongViewState extends State<SongView> {
                           final percentageScrolled =
                               _draggableScrollableController.isAttached
                               ? PlayerMathUtils.calculatePercentageScrolled(
-                                  _draggableScrollableController.pixels,
-                                  _minBottomHeight,
-                                  maxHeight,
+                                  _draggableScrollableController.size,
+                                  minDraggableScrollSize,
+                                  maxDraggableScrollSize,
                                 )
                               : 0.0;
 
@@ -143,7 +143,7 @@ class _SongViewState extends State<SongView> {
                                 opacity: percentageScrolled,
                                 onTap: () {
                                   _draggableScrollableController.animateTo(
-                                    0.0,
+                                    maxDraggableScrollSize,
                                     duration: const Duration(milliseconds: 300),
                                     curve: Curves.easeInOut,
                                   );
@@ -173,16 +173,18 @@ class _SongViewState extends State<SongView> {
                             listenable: _draggableScrollableController,
                             builder: (context, _) {
                               final percentageScrolled =
-                                  PlayerMathUtils.calculatePercentageScrolled(
-                                    _draggableScrollableController.pixels,
-                                    _minBottomHeight,
-                                    maxHeight,
-                                  );
+                                  _draggableScrollableController.isAttached
+                                  ? PlayerMathUtils.calculatePercentageScrolled(
+                                      _draggableScrollableController.size,
+                                      minDraggableScrollSize,
+                                      maxDraggableScrollSize,
+                                    )
+                                  : 0.0;
 
                               return Container(
                                 decoration: BoxDecoration(
                                   color: Theme.of(context).colorScheme.surface
-                                      .withValues(alpha: percentageScrolled),
+                                      .withOpacity(percentageScrolled),
                                   borderRadius: BorderRadius.only(
                                     topLeft: Radius.circular(
                                       percentageScrolled * 16,
@@ -201,12 +203,20 @@ class _SongViewState extends State<SongView> {
                                         child: TextButton.icon(
                                           onPressed: () {
                                             if (percentageScrolled >= 0.9) {
+                                              _draggableScrollableController
+                                                  .animateTo(
+                                                    minDraggableScrollSize,
+                                                    duration: const Duration(
+                                                      milliseconds: 400,
+                                                    ),
+                                                    curve: Curves.easeInOut,
+                                                  );
                                               return;
                                             }
 
                                             _draggableScrollableController
                                                 .animateTo(
-                                                  1.0,
+                                                  maxDraggableScrollSize,
                                                   duration: const Duration(
                                                     milliseconds: 400,
                                                   ),

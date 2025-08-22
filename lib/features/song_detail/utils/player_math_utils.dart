@@ -8,18 +8,19 @@ class PlayerMathUtils {
     if (originalRange == 0) {
       return 0.0;
     }
-    return (value - originalMin) / originalRange;
+    final clampedValue = value.clamp(originalMin, originalMax);
+    return (clampedValue - originalMin) / originalRange;
   }
 
   static double calculatePercentageScrolled(
-    double pixels,
-    double minBottomHeight,
-    double maxHeight,
+    double size,
+    double minSize,
+    double maxSize,
   ) {
     return normalizeValue(
-      pixels.roundToDouble(),
-      minBottomHeight,
-      maxHeight - minBottomHeight,
+      size,
+      minSize,
+      maxSize,
     );
   }
 
