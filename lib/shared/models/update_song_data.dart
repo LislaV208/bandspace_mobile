@@ -9,16 +9,9 @@ class UpdateSongData {
   });
 
   Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-
-    if (title != null) {
-      json['title'] = title;
-    }
-
-    if (bpm != null) {
-      json['bpm'] = bpm;
-    }
-
-    return json;
+    return {
+      'title': title,
+      'bpm': bpm,
+    };
   }
 }

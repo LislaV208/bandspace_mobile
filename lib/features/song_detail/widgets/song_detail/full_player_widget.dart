@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:bandspace_mobile/features/song_detail/widgets/song_detail/song_details_widget.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 
 import 'album_art_widget.dart';
@@ -24,19 +25,26 @@ class FullPlayerWidget extends StatelessWidget {
     return Opacity(
       opacity: (1 - percentageScrolled).clamp(0.0, 1.0),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          AlbumArtWidget(
-            size: ((screenWidth * 0.7) * (1 - percentageScrolled)).clamp(
-              54.0,
-              320.0,
+          const SongDetailsWidget(),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                AlbumArtWidget(
+                  size: ((screenWidth * 0.7) * (1 - percentageScrolled)).clamp(
+                    54.0,
+                    320.0,
+                  ),
+                  borderRadius: 20,
+                  iconSize: (80 * (1 - percentageScrolled)).clamp(24.0, 80.0),
+                ),
+                SongInfoWidget(project: project),
+                const ProgressBarWidget(),
+                const PlayerControlsWidget(),
+              ],
             ),
-            borderRadius: 20,
-            iconSize: (80 * (1 - percentageScrolled)).clamp(24.0, 80.0),
           ),
-          SongInfoWidget(project: project),
-          const ProgressBarWidget(),
-          const PlayerControlsWidget(),
         ],
       ),
     );

@@ -46,30 +46,11 @@ class SongInfoWidget extends StatelessWidget {
             },
           ),
           if (!isCompact) const SizedBox(height: 8),
-          BlocSelector<SongDetailCubit, SongDetailState, Song>(
-            selector: (state) => state.currentSong,
-            builder: (context, song) {
-              return Row(
-                mainAxisAlignment: isCompact
-                    ? MainAxisAlignment.start
-                    : MainAxisAlignment.center,
-                children: [
-                  Text(
-                    project.name,
-                    style: isCompact
-                        ? Theme.of(context).textTheme.bodyMedium
-                        : Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  if (song.bpm != null)
-                    Text(
-                      ' • ${song.bpm} BPM',
-                      style: isCompact
-                          ? Theme.of(context).textTheme.bodyMedium
-                          : Theme.of(context).textTheme.bodyLarge,
-                    ),
-                ],
-              );
-            },
+          Text(
+            project.name,
+            style: isCompact
+                ? Theme.of(context).textTheme.bodyMedium
+                : Theme.of(context).textTheme.bodyLarge,
           ),
         ],
       ),
