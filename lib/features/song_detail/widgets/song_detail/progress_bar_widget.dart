@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,39 +18,14 @@ class ProgressBarWidget extends StatelessWidget {
         // Sprawdź czy utwór ma plik na podstawie SongDetailState
         final hasFileInfo = songState.hasFileInfo;
         final hasFile = hasFileInfo && songState.currentSongHasFile;
-        
-        log('[ProgressBarWidget] State: ${songState.runtimeType}');
-        log('[ProgressBarWidget] hasFileInfo: $hasFileInfo, hasFile: $hasFile');
-        
-        // Jeśli nie wiemy jeszcze czy ma plik (ładowanie), pokaż placeholder
-        if (!hasFileInfo) {
+
+        // Jeśli nie ma pliku (po załadowaniu URL-ów), pokaż komunikat
+        if (hasFileInfo && !hasFile) {
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-            child: Column(
-              children: [
-                Container(
-                  height: 4.0,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Ładowanie...',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                ),
-              ],
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 16.0,
             ),
-          );
-        }
-        
-        // Jeśli nie ma pliku, pokaż komunikat
-        if (!hasFile) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
             child: Column(
               children: [
                 Container(
@@ -66,7 +39,9 @@ class ProgressBarWidget extends StatelessWidget {
                 Text(
                   'Brak pliku audio',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
               ],
@@ -99,7 +74,9 @@ class ProgressBarWidget extends StatelessWidget {
                       context.read<AudioPlayerCubit>().startSeeking();
                     },
                     onChanged: (value) {
-                      context.read<AudioPlayerCubit>().updateSeekPosition(value);
+                      context.read<AudioPlayerCubit>().updateSeekPosition(
+                        value,
+                      );
                     },
                     onChangeEnd: (value) {
                       context.read<AudioPlayerCubit>().endSeeking();
