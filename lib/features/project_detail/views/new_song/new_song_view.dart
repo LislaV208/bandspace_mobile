@@ -37,11 +37,15 @@ class _NewSongViewState extends State<NewSongView> {
           );
           // kolejność jest ważna
         } else if (state is NewSongUploading) {
-          _pageController.animateToPage(
-            2,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
+          if (state.hasFile) {
+            // Jeśli jest plik → idź do step 3 (upload page)
+            _pageController.animateToPage(
+              2,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
+          // Jeśli brak pliku → zostań w step 2 z loaderem w przycisku
         } else if (state is NewSongFileSelected) {
           _pageController.animateToPage(
             1,

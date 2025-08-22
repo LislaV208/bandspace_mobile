@@ -48,17 +48,18 @@ class NewSongCubit extends Cubit<NewSongState> {
     if (currentState is NewSongFileSelected) {
       final songName = songData.title;
 
-      emit(NewSongUploading(0.0, songName));
+      final hasFile = currentState.file != null;
+      emit(NewSongUploading(0.0, songName, hasFile: hasFile));
 
       try {
-        if (currentState.file != null) {
+        if (hasFile) {
           // Utwór z plikiem
           await projectsRepository.createSong(
             projectId,
             songData,
             currentState.file!,
             onProgress: (sent, total) {
-              emit(NewSongUploading(sent / total, songName));
+              emit(NewSongUploading(sent / total, songName, hasFile: true));
             },
           );
         } else {
@@ -67,7 +68,7 @@ class NewSongCubit extends Cubit<NewSongState> {
             projectId,
             songData,
             onProgress: (sent, total) {
-              emit(NewSongUploading(sent / total, songName));
+              emit(NewSongUploading(sent / total, songName, hasFile: false));
             },
           );
         }

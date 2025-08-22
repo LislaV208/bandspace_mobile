@@ -14,17 +14,17 @@ class SongDetailsWidget extends StatelessWidget {
     return BlocSelector<SongDetailCubit, SongDetailState, Song>(
       selector: (state) => state.currentSong,
       builder: (context, song) {
-        if (song.bpm == null) {
-          return const SizedBox.shrink();
-        }
-
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(32.0, 16.0, 32.0, 0.0),
-          child: _buildDetailRow(
-            context,
-            icon: Icons.speed,
-            label: 'Tempo',
-            value: '${song.bpm} BPM',
+        return AnimatedOpacity(
+          duration: const Duration(milliseconds: 300),
+          opacity: song.bpm != null ? 1.0 : 0.0,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(32.0, 16.0, 32.0, 0.0),
+            child: _buildDetailRow(
+              context,
+              icon: Icons.speed,
+              label: 'Tempo',
+              value: '${song.bpm} BPM',
+            ),
           ),
         );
       },

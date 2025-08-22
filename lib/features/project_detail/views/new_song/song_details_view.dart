@@ -255,24 +255,41 @@ class _SongDetailsViewState extends State<SongDetailsView> {
           flex: 2,
           child: SizedBox(
             height: 56,
-            child: ValueListenableBuilder(
-              valueListenable: _titleController,
-              builder: (context, value, child) {
-                final isEnabled = value.text.trim().isNotEmpty;
+            child: BlocBuilder<NewSongCubit, NewSongState>(
+              builder: (context, state) {
+                final isUploading = state is NewSongUploading;
+                
+                return ValueListenableBuilder(
+                  valueListenable: _titleController,
+                  builder: (context, value, child) {
+                    final isEnabled = value.text.trim().isNotEmpty && !isUploading;
 
-                return ElevatedButton.icon(
-                  onPressed: isEnabled
-                      ? () {
-                          context.read<NewSongCubit>().uploadFile(
-                            CreateSongData(
-                              title: _titleController.text.trim(),
-                              bpm: _bpm,
-                            ),
-                          );
-                        }
-                      : null,
-                  icon: const Icon(LucideIcons.plus, size: 20),
-                  label: Text('Utwórz utwór'),
+                    return ElevatedButton.icon(
+                      onPressed: isEnabled
+                          ? () {
+                              context.read<NewSongCubit>().uploadFile(
+                                CreateSongData(
+                                  title: _titleController.text.trim(),
+                                  bpm: _bpm,
+                                ),
+                              );
+                            }
+                          : null,
+                      icon: isUploading
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Theme.of(context).colorScheme.onPrimary,
+                                ),
+                              ),
+                            )
+                          : const Icon(LucideIcons.plus, size: 20),
+                      label: Text(isUploading ? '' : 'Utwórz utwór'),
+                    );
+                  },
                 );
               },
             ),

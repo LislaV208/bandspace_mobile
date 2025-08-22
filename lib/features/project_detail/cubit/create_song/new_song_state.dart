@@ -39,11 +39,12 @@ class NewSongFileSelected extends NewSongState {
 class NewSongUploading extends NewSongState {
   final double uploadProgress;
   final String songName;
+  final bool hasFile;
 
-  const NewSongUploading(this.uploadProgress, this.songName);
+  const NewSongUploading(this.uploadProgress, this.songName, {this.hasFile = true});
 
   @override
-  List<Object?> get props => [uploadProgress, songName];
+  List<Object?> get props => [uploadProgress, songName, hasFile];
 }
 
 class NewSongUploadFailure extends NewSongUploading {
