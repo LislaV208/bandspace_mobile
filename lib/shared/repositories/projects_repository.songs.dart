@@ -78,6 +78,33 @@ extension SongsManagement on ProjectsRepository {
     );
   }
 
+  // Dodaje plik do istniejącego utworu.
+  // POST /api/projects/{projectId}/songs/{songId}/file
+  Future<Song> addSongFile(
+    int projectId,
+    int songId,
+    File file, {
+    required void Function(int sent, int total)? onProgress,
+  }) async {
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(
+        file.path,
+        filename: file.path.split('/').last,
+      ),
+    });
+
+    final response = await apiClient.post(
+      '/api/projects/$projectId/songs/$songId/file',
+      data: formData,
+      onSendProgress: onProgress,
+    );
+
+    // Odśwież listę utworów po dodaniu pliku
+    await refreshSongs(projectId);
+    
+    return Song.fromJson(response.data);
+  }
+
   Stream<Song> getSong(int projectId, int songId) {
     return reactiveStream<Song>(
       methodName: 'getSong',

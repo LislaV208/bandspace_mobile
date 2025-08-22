@@ -50,6 +50,23 @@ class SongDetailCubit extends Cubit<SongDetailState> {
     if (index != -1) {
       songs[index] = song;
       emit(SongDetailReady(songs, song));
+      // Pobierz nowe URL-e po aktualizacji utworu
+      _downloadUrls();
+    }
+  }
+
+  Future<void> refreshSong() async {
+    try {
+      // Odśwież szczegóły utworu
+      await projectsRepository.refreshSong(projectId, songId);
+
+      // Odśwież listę utworów
+      await projectsRepository.refreshSongs(projectId);
+
+      // Odśwież URL-e
+      await _downloadUrls();
+    } catch (e) {
+      log('Error refreshing song: $e');
     }
   }
 

@@ -74,13 +74,8 @@ class _SongViewState extends State<SongView> {
           }
         }
         if (state is SongDetailReady) {
-          final currentIndex = _songIndexMap[state.currentSong.id];
-          if (currentIndex != null) {
-            context.read<AudioPlayerCubit>().playTrackAt(currentIndex);
-          } else {
-            // Jeśli utwór nie ma indeksu, to prawdopodobnie nie ma pliku
-            context.read<AudioPlayerCubit>().loadSongWithoutFile(state.currentSong.title);
-          }
+          // Poczekaj na załadowanie URL-ów, nie próbuj ładować playlisty z fileKey
+          // URL-e zostaną załadowane przez SongDetailLoadUrlsSuccess
         }
       },
       child: BlocListener<AudioPlayerCubit, AudioPlayerState>(
@@ -199,7 +194,7 @@ class _SongViewState extends State<SongView> {
                               return Container(
                                 decoration: BoxDecoration(
                                   color: Theme.of(context).colorScheme.surface
-                                      .withOpacity(percentageScrolled),
+                                      .withValues(alpha: percentageScrolled),
                                   borderRadius: BorderRadius.only(
                                     topLeft: Radius.circular(
                                       percentageScrolled * 16,

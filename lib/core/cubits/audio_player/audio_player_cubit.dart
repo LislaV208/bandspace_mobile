@@ -123,8 +123,7 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     // Anuluj poprzednie subskrypcje jeśli istnieją
     _currentIndexSubscription?.cancel();
     _sequenceStateSubscription?.cancel();
-    
-    
+
     // Nasłuchiwanie na zmiany indeksu w playlist
     _currentIndexSubscription = _audioPlayer.currentIndexStream.listen((index) {
       if (state.hasPlaylist) {
@@ -327,7 +326,7 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
   Future<void> loadSongWithoutFile(String songTitle) async {
     // Zatrzymaj aktualne odtwarzanie
     await _audioPlayer.stop();
-    
+
     // Emituj stan bez pliku
     emit(
       const AudioPlayerState(
@@ -381,7 +380,7 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
         initialIndex: targetIndex,
         initialPosition: Duration.zero,
       );
-      
+
       // TERAZ zacznij nasłuchiwać na playlist events
       _listenToPlaylistEvents();
 
