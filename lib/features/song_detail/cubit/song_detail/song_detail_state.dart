@@ -26,20 +26,10 @@ abstract class SongDetailState extends Equatable {
   /// Zwraca aktualny indeks utworu w liście wszystkich utworów
   int get currentSongIndex => _getCurrentSongIndex();
   
-  /// Sprawdza czy aktualny utwór ma plik audio (tylko jeśli URL-e są załadowane)
-  bool get currentSongHasFile {
-    // Jeśli to SongDetailLoadUrlsSuccess, sprawdź URL-e
-    if (this is SongDetailLoadUrlsSuccess) {
-      final urlsState = this as SongDetailLoadUrlsSuccess;
-      return urlsState.downloadUrls.songUrls.any(
-        (item) => item.songId == currentSong.id && item.url.isNotEmpty,
-      );
-    }
-    // Dla innych stanów nie wiemy jeszcze czy ma plik
-    return false;
-  }
+  /// Sprawdza czy aktualny utwór ma plik audio
+  bool get currentSongHasFile => currentSong.file != null;
   
-  /// Sprawdza czy informacja o plikach jest dostępna
+  /// Sprawdza czy informacja o plikach jest dostępna  
   bool get hasFileInfo => this is SongDetailLoadUrlsSuccess;
 
   /// Prywatna metoda do znajdowania indeksu aktualnego utworu

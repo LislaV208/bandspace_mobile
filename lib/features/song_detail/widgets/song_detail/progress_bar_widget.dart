@@ -15,12 +15,11 @@ class ProgressBarWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SongDetailCubit, SongDetailState>(
       builder: (context, songState) {
-        // Sprawdź czy utwór ma plik na podstawie SongDetailState
-        final hasFileInfo = songState.hasFileInfo;
-        final hasFile = hasFileInfo && songState.currentSongHasFile;
+        // Sprawdź czy utwór ma plik na podstawie Song.file
+        final hasFile = songState.currentSong.file != null;
 
-        // Jeśli nie ma pliku (po załadowaniu URL-ów), pokaż komunikat
-        if (hasFileInfo && !hasFile) {
+        // Jeśli nie ma pliku, pokaż komunikat
+        if (!hasFile) {
           return Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 20.0,

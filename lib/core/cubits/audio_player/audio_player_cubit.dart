@@ -53,6 +53,7 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
           );
           break;
         case ProcessingState.loading:
+          // Zachowaj obecną wartość isUserInitiatedLoading podczas loading
           emit(state.copyWith(status: PlayerStatus.loading));
           break;
         case ProcessingState.buffering:
@@ -67,6 +68,8 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
             state.copyWith(
               status: newStatus,
               isReady: true,
+              // Reset user-initiated loading po gotowości
+              isUserInitiatedLoading: false,
             ),
           );
           break;
@@ -231,14 +234,14 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
         await pause();
         break;
       case PlayerStatus.paused:
-        await play();
+        await _playWithUserInitiation();
         break;
       case PlayerStatus.ready:
-        await play();
+        await _playWithUserInitiation();
         break;
       case PlayerStatus.completed:
         await _audioPlayer.seek(Duration.zero);
-        await play();
+        await _playWithUserInitiation();
         break;
       case PlayerStatus.idle:
       case PlayerStatus.loading:
@@ -246,6 +249,13 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
         // Nie możemy odtworzyć w tych stanach
         break;
     }
+  }
+
+  /// Rozpoczyna odtwarzanie z flagą user-initiated loading
+  Future<void> _playWithUserInitiation() async {
+    // Ustaw flagę user-initiated loading PRZED wywołaniem play()
+    emit(state.copyWith(isUserInitiatedLoading: true));
+    await play();
   }
 
   /// Rozpoczyna lub wznawia odtwarzanie.

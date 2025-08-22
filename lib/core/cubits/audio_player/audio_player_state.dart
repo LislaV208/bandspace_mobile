@@ -51,6 +51,9 @@ class AudioPlayerState extends Equatable {
   /// Postęp pobierania aktualnego pliku (0.0 - 1.0)
   final double downloadProgress;
 
+  /// Czy loading został zainicjowany przez akcję użytkownika (play/pause)
+  final bool isUserInitiatedLoading;
+
   const AudioPlayerState({
     this.status = PlayerStatus.idle,
     this.currentUrl,
@@ -67,6 +70,7 @@ class AudioPlayerState extends Equatable {
     this.loopMode = LoopMode.off,
     this.hasPlaylist = false,
     this.downloadProgress = 0.0,
+    this.isUserInitiatedLoading = false,
   });
 
   double get progress {
@@ -129,6 +133,7 @@ class AudioPlayerState extends Equatable {
     LoopMode? loopMode,
     bool? hasPlaylist,
     double? downloadProgress,
+    bool? isUserInitiatedLoading,
   }) {
     return AudioPlayerState(
       status: status ?? this.status,
@@ -152,6 +157,7 @@ class AudioPlayerState extends Equatable {
       loopMode: loopMode ?? this.loopMode,
       hasPlaylist: hasPlaylist ?? this.hasPlaylist,
       downloadProgress: downloadProgress ?? this.downloadProgress,
+      isUserInitiatedLoading: isUserInitiatedLoading ?? this.isUserInitiatedLoading,
     );
   }
 
@@ -172,6 +178,7 @@ class AudioPlayerState extends Equatable {
     loopMode,
     hasPlaylist,
     downloadProgress,
+    isUserInitiatedLoading,
   ];
 
   @override
@@ -192,6 +199,7 @@ class AudioPlayerState extends Equatable {
         'loopMode: $loopMode, '
         'hasPlaylist: $hasPlaylist, '
         'downloadProgress: $downloadProgress, '
+        'isUserInitiatedLoading: $isUserInitiatedLoading, '
         '}';
   }
 }
