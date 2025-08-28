@@ -19,7 +19,6 @@ class ProjectTracksList extends StatelessWidget {
         ? (state as ProjectTracksFiltered).filteredTracks
         : state.tracks;
 
-    // Gdy brak ścieżek, używamy struktury podobnej do ProjectsList._buildEmptyState()
     if (tracks.isEmpty) {
       return Column(
         children: [
@@ -174,18 +173,18 @@ class ProjectTracksList extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                LucideIcons.music4, // Zmieniona ikona
+                Icons.music_off,
                 size: 64,
                 color: Theme.of(context).colorScheme.tertiary,
               ),
               const SizedBox(height: 16),
               const Text(
-                'Brak ścieżek w projekcie',
+                'Brak utworów w projekcie',
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               const Text(
-                'Dodaj pierwszą ścieżkę, aby rozpocząć pracę',
+                'Dodaj pierwszy utwór, aby rozpocząć pracę',
                 textAlign: TextAlign.center,
               ),
             ],

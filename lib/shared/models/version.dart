@@ -7,7 +7,7 @@ class Version extends Equatable {
   final int uploaderId;
   final int fileId;
   final String name;
-  final VersionCategory category;
+  final VersionCategory? category;
   final int durationMs;
   final DateTime createdAt;
 
@@ -17,7 +17,7 @@ class Version extends Equatable {
     required this.uploaderId,
     required this.fileId,
     required this.name,
-    required this.category,
+    this.category,
     required this.durationMs,
     required this.createdAt,
   });
@@ -29,7 +29,7 @@ class Version extends Equatable {
       uploaderId: json['uploader_id'],
       fileId: json['file_id'],
       name: json['name'],
-      category: VersionCategory.values.firstWhere((e) => e.apiValue == json['category']),
+      category: VersionCategory.fromJson(json['category']),
       durationMs: json['duration_ms'],
       createdAt: DateTime.parse(json['created_at']),
     );
@@ -42,7 +42,7 @@ class Version extends Equatable {
       'uploader_id': uploaderId,
       'file_id': fileId,
       'name': name,
-      'category': category.apiValue,
+      'category': category?.apiValue,
       'duration_ms': durationMs,
       'created_at': createdAt.toIso8601String(),
     };
