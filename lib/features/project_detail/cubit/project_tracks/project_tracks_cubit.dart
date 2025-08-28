@@ -58,7 +58,26 @@ class ProjectTracksCubit extends Cubit<ProjectTracksState> {
   }
 
   Future<void> refreshTracks() async {
-    // Implementacja analogiczna do refreshSongs, jeśli będzie potrzebna
+    final currentState = state;
+
+    if (currentState is ProjectTracksRefreshing) return;
+
+    if (currentState is ProjectTracksReady) {
+      try {
+        emit(ProjectTracksRefreshing(currentState.tracks));
+        await Future.delayed(const Duration(milliseconds: 500));
+        await projectsRepository.refreshTracks(projectId);
+      } catch (e) {
+        emit(ProjectTracksRefreshFailure(currentState.tracks, e.toString()));
+      }
+    } else if (currentState is ProjectTracksLoadFailure) {
+      try {
+        emit(const ProjectTracksLoading());
+        await projectsRepository.refreshTracks(projectId);
+      } catch (e) {
+        emit(ProjectTracksLoadFailure(e.toString()));
+      }
+    }
   }
 
   Future<void> filterTracks(String query) async {

@@ -12,6 +12,16 @@ extension TracksManagement on ProjectsRepository {
     );
   }
 
+  // Odświeża listę ścieżek dla danego projektu.
+  Future<void> refreshTracks(int projectId) async {
+    await refreshList<Track>(
+      listMethodName: 'getTracks',
+      listParameters: {'projectId': projectId},
+      remoteCall: () async => _fetchTracks(projectId),
+      fromJson: (json) => _trackFromJson(json),
+    );
+  }
+
   // Pobiera listę wersji dla danej ścieżki.
   // GET /api/tracks/{trackId}/versions
   Future<RepositoryResponse<List<Version>>> getVersions(int trackId) {
