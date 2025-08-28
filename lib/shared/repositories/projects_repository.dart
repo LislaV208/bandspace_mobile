@@ -9,8 +9,12 @@ import 'package:bandspace_mobile/shared/models/song.dart';
 import 'package:bandspace_mobile/shared/models/song_create_data.dart';
 import 'package:bandspace_mobile/shared/models/song_download_url.dart';
 import 'package:bandspace_mobile/shared/models/update_song_data.dart';
+import 'package:bandspace_mobile/shared/models/track.dart';
+import 'package:bandspace_mobile/shared/models/version.dart';
+import 'package:bandspace_mobile/shared/models/comment.dart';
 
 part 'projects_repository.songs.dart';
+part 'projects_repository.tracks.dart';
 part 'projects_repository.members.dart';
 
 class ProjectsRepository extends CachedRepository {
