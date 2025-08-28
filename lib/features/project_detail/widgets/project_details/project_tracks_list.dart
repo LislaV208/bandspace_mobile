@@ -20,7 +20,7 @@ class ProjectTracksList extends StatelessWidget {
         : state.tracks;
 
     // Gdy brak ścieżek, używamy struktury podobnej do ProjectsList._buildEmptyState()
-    if (tracks.isEmpty && state is! ProjectTracksFiltered) {
+    if (tracks.isEmpty) {
       return Column(
         children: [
           Row(
@@ -79,24 +79,17 @@ class ProjectTracksList extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         _buildRefreshStatusContent(context),
-        if (tracks.isEmpty && state is ProjectTracksFiltered) ...[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0, 32, 0, 80),
-            child: _buildEmptyState(context, state),
-          ),
-        ] else ...[
-          ...tracks.map(
-            (track) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: ProjectTrackListItem(
-                  tracksList: state.tracks,
-                  track: track,
-                ),
-              );
-            },
-          ),
-        ],
+        ...tracks.map(
+          (track) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: ProjectTrackListItem(
+                tracksList: state.tracks,
+                track: track,
+              ),
+            );
+          },
+        ),
       ],
     );
   }
@@ -132,7 +125,6 @@ class ProjectTracksList extends StatelessWidget {
                 )
               : const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  // spacing: 12, // Row nie ma spacing
                   children: [
                     SizedBox(
                       width: 18,
@@ -147,9 +139,7 @@ class ProjectTracksList extends StatelessWidget {
                 ),
         ),
       ),
-      secondChild: const Row(
-        children: [],
-      ),
+      secondChild: const SizedBox.shrink(),
       crossFadeState:
           state is ProjectTracksRefreshing ||
               state is ProjectTracksRefreshFailure
@@ -184,18 +174,18 @@ class ProjectTracksList extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.music_off,
+                LucideIcons.music4, // Zmieniona ikona
                 size: 64,
                 color: Theme.of(context).colorScheme.tertiary,
               ),
               const SizedBox(height: 16),
               const Text(
-                'Brak utworów w projekcie',
+                'Brak ścieżek w projekcie',
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               const Text(
-                'Dodaj pierwszy utwór, aby rozpocząć pracę',
+                'Dodaj pierwszą ścieżkę, aby rozpocząć pracę',
                 textAlign: TextAlign.center,
               ),
             ],

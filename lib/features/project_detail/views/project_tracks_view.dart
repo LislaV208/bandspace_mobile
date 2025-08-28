@@ -25,7 +25,7 @@ class ProjectTracksView extends StatelessWidget {
               state: state,
             ),
             ProjectTracksLoadFailure() => LoadFailureView(
-              title: 'Wystąpił błąd podczas ładowania ścieżek',
+              title: 'Wystąpił błąd podczas ładowania utworów',
               errorMessage: state.message,
               onRetry: () => context.read<ProjectTracksCubit>().refreshTracks(),
             ),

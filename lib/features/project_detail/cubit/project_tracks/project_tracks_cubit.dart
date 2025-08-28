@@ -81,13 +81,21 @@ class ProjectTracksCubit extends Cubit<ProjectTracksState> {
   }
 
   Future<void> filterTracks(String query) async {
-    if (state is ProjectTracksReady) {
-      final currentState = state as ProjectTracksReady;
-      final filteredTracks = currentState.tracks.where((track) {
-        return track.title.toLowerCase().contains(query.toLowerCase());
-      }).toList();
+    if (state is! ProjectTracksReady) return;
 
-      emit(ProjectTracksFiltered(currentState.tracks, filteredTracks));
+    final originalTracks = (state as ProjectTracksReady).tracks;
+
+    if (query.isEmpty) {
+      if (state is! ProjectTracksFiltered) return;
+      
+      emit(ProjectTracksReady(originalTracks));
+      return;
     }
+
+    final filteredList = originalTracks
+        .where((track) => track.title.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+
+    emit(ProjectTracksFiltered(originalTracks, filteredList));
   }
 }
