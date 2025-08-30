@@ -10,6 +10,7 @@ import 'package:bandspace_mobile/shared/models/song_create_data.dart';
 import 'package:bandspace_mobile/shared/models/song_download_url.dart';
 import 'package:bandspace_mobile/shared/models/update_song_data.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
+import 'package:bandspace_mobile/shared/models/track_create_data.dart';
 import 'package:bandspace_mobile/shared/models/version.dart';
 import 'package:bandspace_mobile/shared/models/comment.dart';
 

@@ -7,7 +7,7 @@ import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_state.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_tracks/project_tracks_cubit.dart';
-import 'package:bandspace_mobile/features/project_detail/screens/new_song_screen.dart';
+import 'package:bandspace_mobile/features/project_detail/screens/new_track_screen.dart';
 import 'package:bandspace_mobile/features/project_detail/views/project_tracks_view.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/project_details/manage_project_button.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
@@ -60,7 +60,7 @@ class ProjectDetailScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => NewSongScreen.create(
+              builder: (_) => NewTrackScreen.create(
                 context.read<ProjectDetailCubit>().state.project,
               ),
             ),

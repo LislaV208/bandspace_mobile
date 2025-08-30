@@ -1,6 +1,50 @@
 part of 'projects_repository.dart';
 
 extension TracksManagement on ProjectsRepository {
+  // Tworzy nowy track w projekcie.
+  // POST /api/projects/{projectId}/tracks
+  Future<Track> createTrack(
+    int projectId,
+    CreateTrackData trackData,
+    File? file, {
+    required void Function(int sent, int total)? onProgress,
+  }) async {
+    return addToList<Track>(
+      listMethodName: 'getTracks',
+      listParameters: {'projectId': projectId},
+      createCall: () async {
+        if (file != null) {
+          // Utwór z plikiem - multipart
+          final formData = FormData.fromMap({
+            'title': trackData.title,
+            if (trackData.bpm != null) 'bpm': trackData.bpm,
+            'file': await MultipartFile.fromFile(
+              file.path,
+              filename: file.path.split('/').last,
+            ),
+          });
+
+          final response = await apiClient.post(
+            '/api/projects/$projectId/tracks',
+            data: formData,
+            onSendProgress: onProgress,
+          );
+
+          return Track.fromJson(response.data);
+        } else {
+          // Utwór bez pliku - JSON
+          final response = await apiClient.post(
+            '/api/projects/$projectId/tracks',
+            data: trackData.toJson(),
+            onSendProgress: onProgress,
+          );
+
+          return Track.fromJson(response.data);
+        }
+      },
+      fromJson: (json) => _trackFromJson(json),
+    );
+  }
   // Pobiera listę ścieżek dla danego projektu.
   // GET /api/projects/{projectId}/tracks
   Future<RepositoryResponse<List<Track>>> getTracks(int projectId) {

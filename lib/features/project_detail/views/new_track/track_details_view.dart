@@ -7,29 +7,29 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/theme/theme.dart';
-import 'package:bandspace_mobile/features/project_detail/cubit/create_song/new_song_state.dart';
-import 'package:bandspace_mobile/features/project_detail/cubit/create_song/song_create_cubit.dart';
+import 'package:bandspace_mobile/features/project_detail/cubit/create_track/create_track_state.dart';
+import 'package:bandspace_mobile/features/project_detail/cubit/create_track/create_track_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/audio_preview_player.dart';
-import 'package:bandspace_mobile/shared/models/song_create_data.dart';
 import 'package:bandspace_mobile/shared/widgets/bpm_control.dart';
+import 'package:bandspace_mobile/shared/models/track_create_data.dart';
 
 /// Step 2: Uzupełnienie szczegółów utworu
-class SongDetailsView extends StatefulWidget {
-  final NewSongState state;
+class TrackDetailsView extends StatefulWidget {
+  final CreateTrackState state;
 
-  const SongDetailsView({
+  const TrackDetailsView({
     super.key,
     required this.state,
   });
 
   @override
-  State<SongDetailsView> createState() => _SongDetailsViewState();
+  State<TrackDetailsView> createState() => _TrackDetailsViewState();
 }
 
-class _SongDetailsViewState extends State<SongDetailsView> {
+class _TrackDetailsViewState extends State<TrackDetailsView> {
   late final _titleController = TextEditingController(
-    text: widget.state is NewSongFileSelected
-        ? (widget.state as NewSongFileSelected).songInitialName
+    text: widget.state is CreateTrackFileSelected
+        ? (widget.state as CreateTrackFileSelected).trackInitialName
         : '',
   );
   final _titleFocus = FocusNode();
@@ -125,21 +125,21 @@ class _SongDetailsViewState extends State<SongDetailsView> {
   }
 
   Widget _buildFileInfo() {
-    return BlocBuilder<NewSongCubit, NewSongState>(
+    return BlocBuilder<CreateTrackCubit, CreateTrackState>(
       builder: (context, state) {
-        if (state is NewSongFileSelected) {
+        if (state is CreateTrackFileSelected) {
           if (state.file != null) {
             return AudioPreviewPlayer(
               audioFile: state.file,
               onRemoveFile: () {
-                context.read<NewSongCubit>().goToInitialStep();
+                context.read<CreateTrackCubit>().goToInitialStep();
               },
             );
           } else {
             return AudioPreviewPlayer(
               audioFile: null,
               onRemoveFile: () {
-                context.read<NewSongCubit>().goToInitialStep();
+                context.read<CreateTrackCubit>().goToInitialStep();
               },
             );
           }
@@ -209,8 +209,8 @@ class _SongDetailsViewState extends State<SongDetailsView> {
           textCapitalization: TextCapitalization.words,
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _titleController.text.trim().isNotEmpty
-              ? context.read<NewSongCubit>().uploadFile(
-                  CreateSongData(
+              ? context.read<CreateTrackCubit>().uploadFile(
+                  CreateTrackData(
                     title: _titleController.text.trim(),
                     bpm: _bpm,
                   ),
@@ -242,7 +242,7 @@ class _SongDetailsViewState extends State<SongDetailsView> {
             height: 56,
             child: OutlinedButton.icon(
               onPressed: () {
-                context.read<NewSongCubit>().goToInitialStep();
+                context.read<CreateTrackCubit>().goToInitialStep();
               },
 
               icon: const Icon(LucideIcons.arrowLeft),
@@ -255,21 +255,20 @@ class _SongDetailsViewState extends State<SongDetailsView> {
           flex: 2,
           child: SizedBox(
             height: 56,
-            child: BlocBuilder<NewSongCubit, NewSongState>(
+            child: BlocBuilder<CreateTrackCubit, CreateTrackState>(
               builder: (context, state) {
-                final isUploading = state is NewSongUploading;
-
+                final isUploading = state is CreateTrackUploading;
+                
                 return ValueListenableBuilder(
                   valueListenable: _titleController,
                   builder: (context, value, child) {
-                    final isEnabled =
-                        value.text.trim().isNotEmpty && !isUploading;
+                    final isEnabled = value.text.trim().isNotEmpty && !isUploading;
 
                     return ElevatedButton.icon(
                       onPressed: isEnabled
                           ? () {
-                              context.read<NewSongCubit>().uploadFile(
-                                CreateSongData(
+                              context.read<CreateTrackCubit>().uploadFile(
+                                CreateTrackData(
                                   title: _titleController.text.trim(),
                                   bpm: _bpm,
                                 ),
