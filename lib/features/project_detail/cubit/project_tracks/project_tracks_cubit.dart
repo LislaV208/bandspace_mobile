@@ -10,10 +10,12 @@ import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 class ProjectTracksCubit extends Cubit<ProjectTracksState> {
   final ProjectsRepository projectsRepository;
   final int projectId;
+  final bool isNewlyCreated;
 
   ProjectTracksCubit({
     required this.projectsRepository,
     required this.projectId,
+    this.isNewlyCreated = false,
   }) : super(const ProjectTracksInitial()) {
     loadTracks();
   }
@@ -28,6 +30,29 @@ class ProjectTracksCubit extends Cubit<ProjectTracksState> {
   }
 
   Future<void> loadTracks() async {
+    // Dla nowo utworzonych projektów od razu pokazuj pustą listę utworów
+    if (isNewlyCreated) {
+      emit(const ProjectTracksReady([]));
+      
+      // W tle i tak pobierz dane z serwera (na wypadek gdyby coś było)
+      final response = await projectsRepository.getTracks(projectId);
+      final stream = response.stream;
+      
+      _tracksSubscription =
+          stream.listen((tracks) {
+            // Jeśli jednak coś przyszło z serwera, zaktualizuj stan
+            if (tracks.isNotEmpty) {
+              emit(ProjectTracksReady(tracks));
+            }
+            log(tracks.toString());
+          })..onError((error) {
+            // Dla nowo utworzonych projektów ignoruj błędy ładowania
+            log('Error loading tracks for newly created project: $error');
+          });
+      return;
+    }
+
+    // Standardowy przepływ dla istniejących projektów
     final response = await projectsRepository.getTracks(projectId);
     final cached = response.cached;
     final stream = response.stream;

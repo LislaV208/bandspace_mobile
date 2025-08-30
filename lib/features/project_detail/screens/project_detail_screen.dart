@@ -15,16 +15,18 @@ import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 /// Ekran szczegółów projektu z listą utworów
 class ProjectDetailScreen extends StatelessWidget {
-  const ProjectDetailScreen({super.key});
+  final bool isNewlyCreated;
+  
+  const ProjectDetailScreen({super.key, this.isNewlyCreated = false});
 
-  static Widget create(Project project) {
+  static Widget create(Project project, {bool isNewlyCreated = false}) {
     return BlocProvider(
       create: (context) => ProjectDetailCubit(
         projectsRepository: context.read<ProjectsRepository>(),
         projectId: project.id,
         initialProject: project,
       ),
-      child: ProjectDetailScreen(),
+      child: ProjectDetailScreen(isNewlyCreated: isNewlyCreated),
     );
   }
 
@@ -51,6 +53,7 @@ class ProjectDetailScreen extends StatelessWidget {
         create: (context) => ProjectTracksCubit(
           projectsRepository: context.read<ProjectsRepository>(),
           projectId: context.read<ProjectDetailCubit>().state.project.id,
+          isNewlyCreated: isNewlyCreated,
         ),
         child: const ProjectTracksView(),
       ),

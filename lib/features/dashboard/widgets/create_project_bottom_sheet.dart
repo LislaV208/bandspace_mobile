@@ -53,7 +53,10 @@ class _CreateProjectBottomSheetState extends State<CreateProjectBottomSheet> {
           Navigator.of(context).pop(true);
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => ProjectDetailScreen.create(state.project),
+              builder: (context) => ProjectDetailScreen.create(
+                state.project,
+                isNewlyCreated: true,
+              ),
             ),
           );
         }
