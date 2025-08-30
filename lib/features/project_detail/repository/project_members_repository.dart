@@ -4,6 +4,7 @@ import 'package:bandspace_mobile/shared/models/project_user.dart';
 class ProjectMembersRepository extends CachedRepository {
   const ProjectMembersRepository({
     required super.apiClient,
+    required super.databaseStorage,
   });
 
   /// Pobiera listę członków projektu.

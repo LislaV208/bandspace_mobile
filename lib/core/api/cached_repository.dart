@@ -1,7 +1,7 @@
 import 'package:rxdart/rxdart.dart';
 
 import 'package:bandspace_mobile/core/api/api_repository.dart';
-import 'package:bandspace_mobile/core/api/sembast_cache_manager.dart';
+import 'package:bandspace_mobile/core/storage/database_storage.dart';
 
 class RepositoryResponse<T> {
   final T? cached;
@@ -18,9 +18,12 @@ class RepositoryResponse<T> {
 /// Wszystkie repozytoria dziedziczące po tej klasie będą automatycznie
 /// cache'ować wyniki swoich metod i wspierać tryb offline-first.
 abstract class CachedRepository extends ApiRepository {
+  final DatabaseStorage _databaseStorage;
+
   const CachedRepository({
     required super.apiClient,
-  });
+    required DatabaseStorage databaseStorage,
+  }) : _databaseStorage = databaseStorage;
 
   /// Mapa przechowująca PublishSubject streams dla reaktywnych list.
   /// Klucz: cache key, wartość: PublishSubject z danymi.
@@ -40,8 +43,8 @@ abstract class CachedRepository extends ApiRepository {
       runtimeType.toString().replaceAll('Repository', '').toLowerCase();
 
   /// Invaliduje wszystkie cache.
-  static Future<void> invalidateAll() async {
-    await SembastCacheManager.instance.clear();
+  Future<void> invalidateAll() async {
+    await _databaseStorage.clear();
     // Zamknij wszystkie reaktywne streamy
     for (final subject in _reactiveStreams.values) {
       subject.close();
@@ -65,7 +68,8 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<List<T>> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
+    Duration?
+    cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
     bool forceRefresh = false,
   }) async* {
     final cacheKey = _generateCacheKey(methodName, parameters);
@@ -76,7 +80,7 @@ abstract class CachedRepository extends ApiRepository {
       if (!forceRefresh) {
         // Najpierw próbuj pobrać z cache (tylko jeśli nie forceRefresh)
         try {
-          final cachedData = await SembastCacheManager.instance.get(cacheKey);
+          final cachedData = await _databaseStorage.get(cacheKey);
           if (cachedData != null && cachedData['data'] is List) {
             cachedResult = (cachedData['data'] as List)
                 .map((item) => fromJson(item as Map<String, dynamic>))
@@ -95,9 +99,9 @@ abstract class CachedRepository extends ApiRepository {
 
       // Zawsze pobierz świeże dane z API
       final freshResult = await remoteCall();
-      
+
       // Zapisz w cache
-      await SembastCacheManager.instance.set(cacheKey, {
+      await _databaseStorage.set(cacheKey, {
         'data': freshResult.map((item) => (item as dynamic).toJson()).toList(),
       });
 
@@ -123,7 +127,8 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<List<T>> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
+    Duration?
+    cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
     String? customCacheKeyPrefix,
   }) async {
     final cacheKey = _generateCacheKeyWithPrefix(
@@ -135,7 +140,7 @@ abstract class CachedRepository extends ApiRepository {
     // Pobierz dane z cache (asynchronicznie)
     List<T>? cachedData;
     try {
-      final cachedResult = await SembastCacheManager.instance.get(cacheKey);
+      final cachedResult = await _databaseStorage.get(cacheKey);
       if (cachedResult != null && cachedResult['data'] is List) {
         cachedData = (cachedResult['data'] as List)
             .map((item) => fromJson(item as Map<String, dynamic>))
@@ -176,7 +181,8 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<T> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
+    Duration?
+    cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
   }) {
     final cacheKey = _generateCacheKey(methodName, parameters);
 
@@ -209,7 +215,7 @@ abstract class CachedRepository extends ApiRepository {
       // Najpierw próbuj pobrać z cache
       T? cachedResult;
       try {
-        final cachedData = await SembastCacheManager.instance.get(cacheKey);
+        final cachedData = await _databaseStorage.get(cacheKey);
         if (cachedData != null && cachedData['data'] is Map) {
           cachedResult = fromJson(cachedData['data'] as Map<String, dynamic>);
         }
@@ -224,9 +230,9 @@ abstract class CachedRepository extends ApiRepository {
 
       // Zawsze pobierz świeże dane z API
       final freshResult = await remoteCall();
-      
+
       // Zapisz w cache
-      await SembastCacheManager.instance.set(cacheKey, {
+      await _databaseStorage.set(cacheKey, {
         'data': (freshResult as dynamic).toJson(),
       });
 
@@ -251,9 +257,9 @@ abstract class CachedRepository extends ApiRepository {
     try {
       // Zawsze pobierz świeże dane z API
       final freshResult = await remoteCall();
-      
+
       // Zapisz w cache
-      await SembastCacheManager.instance.set(cacheKey, {
+      await _databaseStorage.set(cacheKey, {
         'data': freshResult.map((item) => (item as dynamic).toJson()).toList(),
       });
 
@@ -270,7 +276,7 @@ abstract class CachedRepository extends ApiRepository {
     Map<String, dynamic>? parameters,
   ]) async {
     final cacheKey = _generateCacheKey(methodName, parameters ?? {});
-    await SembastCacheManager.instance.delete(cacheKey);
+    await _databaseStorage.delete(cacheKey);
   }
 
   /// Generuje unikalny klucz cache na podstawie nazwy metody i parametrów.
@@ -309,7 +315,8 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> listParameters,
     required Future<T> Function() createCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
+    Duration?
+    cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
     bool addFirst = true,
     String? customCacheKeyPrefix,
   }) async {
@@ -325,7 +332,7 @@ abstract class CachedRepository extends ApiRepository {
     // Pobierz aktualną listę z cache
     List<T>? currentList;
     try {
-      final cachedData = await SembastCacheManager.instance.get(listCacheKey);
+      final cachedData = await _databaseStorage.get(listCacheKey);
       if (cachedData != null && cachedData['data'] is List) {
         currentList = (cachedData['data'] as List)
             .map((item) => fromJson(item as Map<String, dynamic>))
@@ -340,8 +347,8 @@ abstract class CachedRepository extends ApiRepository {
       final updatedList = addFirst
           ? [createdItem, ...currentList]
           : [...currentList, createdItem];
-      
-      await SembastCacheManager.instance.set(listCacheKey, {
+
+      await _databaseStorage.set(listCacheKey, {
         'data': updatedList.map((item) => (item as dynamic).toJson()).toList(),
       });
 
@@ -365,7 +372,8 @@ abstract class CachedRepository extends ApiRepository {
     required Future<void> Function() deleteCall,
     required T Function(Map<String, dynamic>) fromJson,
     required bool Function(T) predicate,
-    Duration? cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
+    Duration?
+    cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
     String? customCacheKeyPrefix,
   }) async {
     final listCacheKey = _generateCacheKeyWithPrefix(
@@ -380,7 +388,7 @@ abstract class CachedRepository extends ApiRepository {
     // Pobierz aktualną listę z cache
     List<T>? currentList;
     try {
-      final cachedData = await SembastCacheManager.instance.get(listCacheKey);
+      final cachedData = await _databaseStorage.get(listCacheKey);
       if (cachedData != null && cachedData['data'] is List) {
         currentList = (cachedData['data'] as List)
             .map((item) => fromJson(item as Map<String, dynamic>))
@@ -395,8 +403,8 @@ abstract class CachedRepository extends ApiRepository {
       final updatedList = currentList
           .where((item) => !predicate(item))
           .toList();
-      
-      await SembastCacheManager.instance.set(listCacheKey, {
+
+      await _databaseStorage.set(listCacheKey, {
         'data': updatedList.map((item) => (item as dynamic).toJson()).toList(),
       });
 
@@ -416,7 +424,8 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<T> Function() updateCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
+    Duration?
+    cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
   }) async {
     final cacheKey = _generateCacheKey(methodName, parameters);
 
@@ -424,9 +433,8 @@ abstract class CachedRepository extends ApiRepository {
     final updatedItem = await updateCall();
 
     // Zaktualizuj cache
-    await SembastCacheManager.instance.set(cacheKey, {
+    await _databaseStorage.set(cacheKey, {
       'data': (updatedItem as dynamic).toJson(),
-      'timestamp': DateTime.now().millisecondsSinceEpoch,
     });
 
     // Jeśli istnieje reaktywny stream, zaktualizuj go
@@ -446,7 +454,8 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> listParameters,
     required Future<List<T>> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
+    Duration?
+    cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
     String? customCacheKeyPrefix,
   }) async {
     final cacheKey = _generateCacheKeyWithPrefix(
@@ -457,10 +466,9 @@ abstract class CachedRepository extends ApiRepository {
 
     // Wykonaj API call - to zaktualizuje cache
     final freshData = await remoteCall();
-    
-    await SembastCacheManager.instance.set(cacheKey, {
+
+    await _databaseStorage.set(cacheKey, {
       'data': freshData.map((item) => (item as dynamic).toJson()).toList(),
-      'timestamp': DateTime.now().millisecondsSinceEpoch,
     });
 
     // Jeśli istnieje reaktywny stream, zaktualizuj go
@@ -478,16 +486,16 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<T> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
+    Duration?
+    cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
   }) async {
     final cacheKey = _generateCacheKey(methodName, parameters);
 
     // Wykonaj API call - to zaktualizuje cache
     final freshData = await remoteCall();
-    
-    await SembastCacheManager.instance.set(cacheKey, {
+
+    await _databaseStorage.set(cacheKey, {
       'data': (freshData as dynamic).toJson(),
-      'timestamp': DateTime.now().millisecondsSinceEpoch,
     });
 
     // Jeśli istnieje reaktywny stream, zaktualizuj go

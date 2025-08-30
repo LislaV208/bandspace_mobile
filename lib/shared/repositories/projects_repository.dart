@@ -21,6 +21,7 @@ part 'projects_repository.members.dart';
 class ProjectsRepository extends CachedRepository {
   const ProjectsRepository({
     required super.apiClient,
+    required super.databaseStorage,
   });
 
   // Pobiera listę wszystkich projektów użytkownika.
