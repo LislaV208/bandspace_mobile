@@ -1,7 +1,7 @@
-import 'package:remote_caching/remote_caching.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'package:bandspace_mobile/core/api/api_repository.dart';
+import 'package:bandspace_mobile/core/api/sembast_cache_manager.dart';
 
 class RepositoryResponse<T> {
   final T? cached;
@@ -30,15 +30,6 @@ abstract class CachedRepository extends ApiRepository {
   /// Klucz: cache key, wartość: PublishSubject z danymi.
   static final Map<String, PublishSubject<dynamic>> _reactiveSingleStreams = {};
 
-  /// Domyślny czas cache'owania dla tego repozytorium.
-  /// Może być nadpisany w konkretnych implementacjach.
-  Duration? get defaultCacheDuration => null;
-
-  /// Strategia cache'owania dla poszczególnych metod.
-  /// Klucz: nazwa metody, wartość: czas cache'owania.
-  /// Jeśli metoda nie jest zdefiniowana, używany jest defaultCacheDuration.
-  Map<String, Duration> get methodCacheStrategies => {};
-
   /// Metody, które powinny invalidować cache innych metod po wykonaniu.
   /// Klucz: nazwa metody wywołującej, wartość: lista metod do invalidacji.
   Map<String, List<String>> get invalidationTriggers => {};
@@ -50,7 +41,7 @@ abstract class CachedRepository extends ApiRepository {
 
   /// Invaliduje wszystkie cache.
   static Future<void> invalidateAll() async {
-    await RemoteCaching.instance.clearCache();
+    await SembastCacheManager.instance.clear();
     // Zamknij wszystkie reaktywne streamy
     for (final subject in _reactiveStreams.values) {
       subject.close();
@@ -74,14 +65,10 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<List<T>> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
+    Duration? cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
     bool forceRefresh = false,
   }) async* {
     final cacheKey = _generateCacheKey(methodName, parameters);
-    final duration =
-        cacheDuration ??
-        methodCacheStrategies[methodName] ??
-        defaultCacheDuration;
 
     try {
       List<T>? cachedResult;
@@ -89,19 +76,12 @@ abstract class CachedRepository extends ApiRepository {
       if (!forceRefresh) {
         // Najpierw próbuj pobrać z cache (tylko jeśli nie forceRefresh)
         try {
-          cachedResult = await RemoteCaching.instance.call<List<T>>(
-            cacheKey,
-            remote: () async => throw Exception('Cache miss'),
-            fromJson: (json) {
-              if (json is List) {
-                return json
-                    .map((item) => fromJson(item as Map<String, dynamic>))
-                    .toList();
-              }
-              return <T>[];
-            },
-            cacheDuration: duration,
-          );
+          final cachedData = await SembastCacheManager.instance.get(cacheKey);
+          if (cachedData != null && cachedData['data'] is List) {
+            cachedResult = (cachedData['data'] as List)
+                .map((item) => fromJson(item as Map<String, dynamic>))
+                .toList();
+          }
         } catch (error) {
           // Jeśli cache miss - cachedResult pozostaje null
           cachedResult = null;
@@ -114,20 +94,12 @@ abstract class CachedRepository extends ApiRepository {
       }
 
       // Zawsze pobierz świeże dane z API
-      final freshResult = await RemoteCaching.instance.call<List<T>>(
-        cacheKey,
-        remote: remoteCall,
-        fromJson: (json) {
-          if (json is List) {
-            return json
-                .map((item) => fromJson(item as Map<String, dynamic>))
-                .toList();
-          }
-          return <T>[];
-        },
-        cacheDuration: duration,
-        forceRefresh: true,
-      );
+      final freshResult = await remoteCall();
+      
+      // Zapisz w cache
+      await SembastCacheManager.instance.set(cacheKey, {
+        'data': freshResult.map((item) => (item as dynamic).toJson()).toList(),
+      });
 
       // Emit świeże dane (jeśli różnią się od cache lub jeśli forceRefresh)
       if (forceRefresh ||
@@ -151,7 +123,7 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<List<T>> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
+    Duration? cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
     String? customCacheKeyPrefix,
   }) async {
     final cacheKey = _generateCacheKeyWithPrefix(
@@ -160,27 +132,15 @@ abstract class CachedRepository extends ApiRepository {
       customCacheKeyPrefix,
     );
 
-    final duration =
-        cacheDuration ??
-        methodCacheStrategies[methodName] ??
-        defaultCacheDuration;
-
     // Pobierz dane z cache (asynchronicznie)
     List<T>? cachedData;
     try {
-      cachedData = await RemoteCaching.instance.call<List<T>>(
-        cacheKey,
-        remote: () async => throw Exception('Cache miss'),
-        fromJson: (json) {
-          if (json is List) {
-            return json
-                .map((item) => fromJson(item as Map<String, dynamic>))
-                .toList();
-          }
-          return <T>[];
-        },
-        cacheDuration: duration,
-      );
+      final cachedResult = await SembastCacheManager.instance.get(cacheKey);
+      if (cachedResult != null && cachedResult['data'] is List) {
+        cachedData = (cachedResult['data'] as List)
+            .map((item) => fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
     } catch (_) {
       // Cache miss - cachedData pozostaje null
       cachedData = null;
@@ -197,7 +157,6 @@ abstract class CachedRepository extends ApiRepository {
       parameters: parameters,
       remoteCall: remoteCall,
       fromJson: fromJson,
-      cacheDuration: cacheDuration,
       customCacheKeyPrefix: customCacheKeyPrefix,
     );
 
@@ -217,7 +176,7 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<T> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
+    Duration? cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
   }) {
     final cacheKey = _generateCacheKey(methodName, parameters);
 
@@ -232,7 +191,6 @@ abstract class CachedRepository extends ApiRepository {
         parameters: parameters,
         remoteCall: remoteCall,
         fromJson: fromJson,
-        cacheDuration: cacheDuration,
       );
     }
 
@@ -246,23 +204,15 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<T> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
   }) async {
-    final duration =
-        cacheDuration ??
-        methodCacheStrategies[methodName] ??
-        defaultCacheDuration;
-
     try {
       // Najpierw próbuj pobrać z cache
       T? cachedResult;
       try {
-        cachedResult = await RemoteCaching.instance.call<T>(
-          cacheKey,
-          remote: () async => throw Exception('Cache miss'),
-          fromJson: (json) => fromJson(json as Map<String, dynamic>),
-          cacheDuration: duration,
-        );
+        final cachedData = await SembastCacheManager.instance.get(cacheKey);
+        if (cachedData != null && cachedData['data'] is Map) {
+          cachedResult = fromJson(cachedData['data'] as Map<String, dynamic>);
+        }
       } catch (error) {
         cachedResult = null;
       }
@@ -273,15 +223,12 @@ abstract class CachedRepository extends ApiRepository {
       }
 
       // Zawsze pobierz świeże dane z API
-      final freshResult = await RemoteCaching.instance.call<T>(
-        cacheKey,
-        remote: remoteCall,
-        fromJson: (json) {
-          return fromJson(json as Map<String, dynamic>);
-        },
-        cacheDuration: duration,
-        forceRefresh: true,
-      );
+      final freshResult = await remoteCall();
+      
+      // Zapisz w cache
+      await SembastCacheManager.instance.set(cacheKey, {
+        'data': (freshResult as dynamic).toJson(),
+      });
 
       // Emit świeże dane (jeśli różnią się od cache)
       if (cachedResult == null || cachedResult != freshResult) {
@@ -299,30 +246,16 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<List<T>> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
     String? customCacheKeyPrefix,
   }) async {
-    final duration =
-        cacheDuration ??
-        methodCacheStrategies[methodName] ??
-        defaultCacheDuration;
-
     try {
       // Zawsze pobierz świeże dane z API
-      final freshResult = await RemoteCaching.instance.call<List<T>>(
-        cacheKey,
-        remote: remoteCall,
-        fromJson: (json) {
-          if (json is List) {
-            return json
-                .map((item) => fromJson(item as Map<String, dynamic>))
-                .toList();
-          }
-          return <T>[];
-        },
-        cacheDuration: duration,
-        forceRefresh: true,
-      );
+      final freshResult = await remoteCall();
+      
+      // Zapisz w cache
+      await SembastCacheManager.instance.set(cacheKey, {
+        'data': freshResult.map((item) => (item as dynamic).toJson()).toList(),
+      });
 
       // Emit świeże dane
       _reactiveStreams[cacheKey]?.add(freshResult);
@@ -337,7 +270,7 @@ abstract class CachedRepository extends ApiRepository {
     Map<String, dynamic>? parameters,
   ]) async {
     final cacheKey = _generateCacheKey(methodName, parameters ?? {});
-    await RemoteCaching.instance.clearCacheForKey(cacheKey);
+    await SembastCacheManager.instance.delete(cacheKey);
   }
 
   /// Generuje unikalny klucz cache na podstawie nazwy metody i parametrów.
@@ -376,7 +309,7 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> listParameters,
     required Future<T> Function() createCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
+    Duration? cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
     bool addFirst = true,
     String? customCacheKeyPrefix,
   }) async {
@@ -392,19 +325,12 @@ abstract class CachedRepository extends ApiRepository {
     // Pobierz aktualną listę z cache
     List<T>? currentList;
     try {
-      currentList = await RemoteCaching.instance.call<List<T>>(
-        listCacheKey,
-        remote: () async => throw Exception('Cache miss'),
-        fromJson: (json) {
-          if (json is List) {
-            return json
-                .map((item) => fromJson(item as Map<String, dynamic>))
-                .toList();
-          }
-          return <T>[];
-        },
-        cacheDuration: cacheDuration,
-      );
+      final cachedData = await SembastCacheManager.instance.get(listCacheKey);
+      if (cachedData != null && cachedData['data'] is List) {
+        currentList = (cachedData['data'] as List)
+            .map((item) => fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
     } catch (e) {
       currentList = null;
     }
@@ -414,20 +340,10 @@ abstract class CachedRepository extends ApiRepository {
       final updatedList = addFirst
           ? [createdItem, ...currentList]
           : [...currentList, createdItem];
-      await RemoteCaching.instance.call<List<T>>(
-        listCacheKey,
-        remote: () async => updatedList,
-        fromJson: (json) {
-          if (json is List) {
-            return json
-                .map((item) => fromJson(item as Map<String, dynamic>))
-                .toList();
-          }
-          return updatedList;
-        },
-        cacheDuration: cacheDuration,
-        forceRefresh: true,
-      );
+      
+      await SembastCacheManager.instance.set(listCacheKey, {
+        'data': updatedList.map((item) => (item as dynamic).toJson()).toList(),
+      });
 
       // Jeśli istnieje reaktywny stream, zaktualizuj go
       if (_reactiveStreams.containsKey(listCacheKey)) {
@@ -449,7 +365,7 @@ abstract class CachedRepository extends ApiRepository {
     required Future<void> Function() deleteCall,
     required T Function(Map<String, dynamic>) fromJson,
     required bool Function(T) predicate,
-    Duration? cacheDuration,
+    Duration? cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
     String? customCacheKeyPrefix,
   }) async {
     final listCacheKey = _generateCacheKeyWithPrefix(
@@ -464,19 +380,12 @@ abstract class CachedRepository extends ApiRepository {
     // Pobierz aktualną listę z cache
     List<T>? currentList;
     try {
-      currentList = await RemoteCaching.instance.call<List<T>>(
-        listCacheKey,
-        remote: () async => throw Exception('Cache miss'),
-        fromJson: (json) {
-          if (json is List) {
-            return json
-                .map((item) => fromJson(item as Map<String, dynamic>))
-                .toList();
-          }
-          return <T>[];
-        },
-        cacheDuration: cacheDuration,
-      );
+      final cachedData = await SembastCacheManager.instance.get(listCacheKey);
+      if (cachedData != null && cachedData['data'] is List) {
+        currentList = (cachedData['data'] as List)
+            .map((item) => fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
     } catch (e) {
       currentList = null;
     }
@@ -486,20 +395,10 @@ abstract class CachedRepository extends ApiRepository {
       final updatedList = currentList
           .where((item) => !predicate(item))
           .toList();
-      await RemoteCaching.instance.call<List<T>>(
-        listCacheKey,
-        remote: () async => updatedList,
-        fromJson: (json) {
-          if (json is List) {
-            return json
-                .map((item) => fromJson(item as Map<String, dynamic>))
-                .toList();
-          }
-          return updatedList;
-        },
-        cacheDuration: cacheDuration,
-        forceRefresh: true,
-      );
+      
+      await SembastCacheManager.instance.set(listCacheKey, {
+        'data': updatedList.map((item) => (item as dynamic).toJson()).toList(),
+      });
 
       // Jeśli istnieje reaktywny stream, zaktualizuj go
       if (_reactiveStreams.containsKey(listCacheKey)) {
@@ -517,26 +416,18 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<T> Function() updateCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
+    Duration? cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
   }) async {
     final cacheKey = _generateCacheKey(methodName, parameters);
 
     // Wykonaj API call
     final updatedItem = await updateCall();
 
-    final duration =
-        cacheDuration ??
-        methodCacheStrategies[methodName] ??
-        defaultCacheDuration;
-
     // Zaktualizuj cache
-    await RemoteCaching.instance.call<T>(
-      cacheKey,
-      remote: () async => updatedItem,
-      fromJson: (json) => fromJson(json as Map<String, dynamic>),
-      cacheDuration: duration,
-      forceRefresh: true,
-    );
+    await SembastCacheManager.instance.set(cacheKey, {
+      'data': (updatedItem as dynamic).toJson(),
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    });
 
     // Jeśli istnieje reaktywny stream, zaktualizuj go
     if (_reactiveSingleStreams.containsKey(cacheKey)) {
@@ -555,7 +446,7 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> listParameters,
     required Future<List<T>> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
+    Duration? cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
     String? customCacheKeyPrefix,
   }) async {
     final cacheKey = _generateCacheKeyWithPrefix(
@@ -564,26 +455,13 @@ abstract class CachedRepository extends ApiRepository {
       customCacheKeyPrefix,
     );
 
-    final duration =
-        cacheDuration ??
-        methodCacheStrategies[listMethodName] ??
-        defaultCacheDuration;
-
-    // Wykonaj API call z forceRefresh - to zaktualizuje cache
-    final freshData = await RemoteCaching.instance.call<List<T>>(
-      cacheKey,
-      remote: remoteCall,
-      fromJson: (json) {
-        if (json is List) {
-          return json
-              .map((item) => fromJson(item as Map<String, dynamic>))
-              .toList();
-        }
-        return <T>[];
-      },
-      cacheDuration: duration,
-      forceRefresh: true,
-    );
+    // Wykonaj API call - to zaktualizuje cache
+    final freshData = await remoteCall();
+    
+    await SembastCacheManager.instance.set(cacheKey, {
+      'data': freshData.map((item) => (item as dynamic).toJson()).toList(),
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    });
 
     // Jeśli istnieje reaktywny stream, zaktualizuj go
     if (_reactiveStreams.containsKey(cacheKey)) {
@@ -600,23 +478,17 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<T> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
+    Duration? cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
   }) async {
     final cacheKey = _generateCacheKey(methodName, parameters);
 
-    final duration =
-        cacheDuration ??
-        methodCacheStrategies[methodName] ??
-        defaultCacheDuration;
-
-    // Wykonaj API call z forceRefresh - to zaktualizuje cache
-    final freshData = await RemoteCaching.instance.call<T>(
-      cacheKey,
-      remote: remoteCall,
-      fromJson: (json) => fromJson(json as Map<String, dynamic>),
-      cacheDuration: duration,
-      forceRefresh: true,
-    );
+    // Wykonaj API call - to zaktualizuje cache
+    final freshData = await remoteCall();
+    
+    await SembastCacheManager.instance.set(cacheKey, {
+      'data': (freshData as dynamic).toJson(),
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    });
 
     // Jeśli istnieje reaktywny stream, zaktualizuj go
     if (_reactiveSingleStreams.containsKey(cacheKey)) {

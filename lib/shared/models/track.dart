@@ -29,6 +29,16 @@ class Track extends Equatable {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+      'createdBy': createdBy?.toMap(),
+    };
+  }
+
   @override
   List<Object?> get props => [
     id,
