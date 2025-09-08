@@ -57,14 +57,15 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     int projectId,
   ) async {
     _currentProjectId = projectId;
-    
-    // Znajdź initial track index i ustaw state od razu
+
     final initialIndex = tracks.indexWhere((t) => t.id == initialTrackId);
-    
-    emit(state.copyWith(
-      tracks: tracks,
-      currentTrackIndex: initialIndex != -1 ? initialIndex : 0,
-    ));
+
+    emit(
+      state.copyWith(
+        tracks: tracks,
+        currentTrackIndex: initialIndex != -1 ? initialIndex : 0,
+      ),
+    );
 
     await _processTracks(tracks, initialTrackId, isInitialLoad: true);
 
