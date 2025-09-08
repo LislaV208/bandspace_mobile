@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/core/cubits/audio_player/audio_player_cubit.dart';
 import 'package:bandspace_mobile/core/utils/duration_format_utils.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_cubit.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_state.dart';
@@ -65,15 +64,13 @@ class ProgressBarWidget extends StatelessWidget {
               child: Slider(
                 value: progress,
                 onChangeStart: (value) {
-                  // context.read<AudioPlayerCubit>().startSeeking();
+                  context.read<TrackPlayerCubit>().startSeeking();
                 },
                 onChanged: (value) {
-                  // context.read<AudioPlayerCubit>().updateSeekPosition(
-                  //   value,
-                  // );
+                  context.read<TrackPlayerCubit>().updateSeekPosition(value);
                 },
                 onChangeEnd: (value) {
-                  // context.read<AudioPlayerCubit>().endSeeking();
+                  context.read<TrackPlayerCubit>().endSeeking();
                 },
               ),
             ),
@@ -85,8 +82,9 @@ class ProgressBarWidget extends StatelessWidget {
                 children: [
                   Text(
                     DurationFormatUtils.formatDuration(
-                      state.currentPosition,
-                      // state.seekPosition ?? state.currentPosition,
+                      state.isSeeking && state.seekPosition != null
+                          ? state.seekPosition!
+                          : state.currentPosition,
                     ),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),

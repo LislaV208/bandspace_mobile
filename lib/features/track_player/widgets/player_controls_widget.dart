@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/core/cubits/audio_player/audio_player_cubit.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_cubit.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_state.dart';
 
@@ -55,7 +54,6 @@ class PlayerControlsWidget extends StatelessWidget {
                   onPressed: hasFile
                       ? () {
                           context.read<TrackPlayerCubit>().togglePlayPause();
-                          // context.read<AudioPlayerCubit>().togglePlayPause();
                         }
                       : null,
                   icon:

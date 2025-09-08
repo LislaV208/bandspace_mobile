@@ -22,6 +22,7 @@ class TrackPlayerState extends Equatable {
   final Duration bufferedPosition;
   final Duration totalDuration;
   final bool isSeeking;
+  final Duration? seekPosition;
   final LoopMode loopMode;
   final bool isShuffleEnabled;
   final bool hasNext;
@@ -37,6 +38,7 @@ class TrackPlayerState extends Equatable {
     this.bufferedPosition = Duration.zero,
     this.totalDuration = Duration.zero,
     this.isSeeking = false,
+    this.seekPosition,
     this.loopMode = LoopMode.off,
     this.isShuffleEnabled = false,
     this.hasNext = false,
@@ -53,9 +55,8 @@ class TrackPlayerState extends Equatable {
 
   double get progress {
     if (totalDuration.inMilliseconds == 0) return 0.0;
-    //TODO: dodaj seekPosition do cubita i uzywaj go tutaj
-    // Podczas przesuwania użyj seekPosition, w przeciwnym razie current
-    final position = isSeeking ? currentPosition : currentPosition;
+    // Podczas przesuwania użyj seekPosition, w przeciwnym razie currentPosition
+    final position = isSeeking && seekPosition != null ? seekPosition! : currentPosition;
 
     return position.inMilliseconds / totalDuration.inMilliseconds;
   }
@@ -70,6 +71,7 @@ class TrackPlayerState extends Equatable {
     Duration? bufferedPosition,
     Duration? totalDuration,
     bool? isSeeking,
+    Duration? seekPosition,
     LoopMode? loopMode,
     bool? isShuffleEnabled,
     bool? hasNext,
@@ -85,6 +87,7 @@ class TrackPlayerState extends Equatable {
       bufferedPosition: bufferedPosition ?? this.bufferedPosition,
       totalDuration: totalDuration ?? this.totalDuration,
       isSeeking: isSeeking ?? this.isSeeking,
+      seekPosition: seekPosition ?? this.seekPosition,
       loopMode: loopMode ?? this.loopMode,
       isShuffleEnabled: isShuffleEnabled ?? this.isShuffleEnabled,
       hasNext: hasNext ?? this.hasNext,
@@ -103,6 +106,7 @@ class TrackPlayerState extends Equatable {
     bufferedPosition,
     totalDuration,
     isSeeking,
+    seekPosition,
     loopMode,
     isShuffleEnabled,
     hasNext,

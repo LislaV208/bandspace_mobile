@@ -211,6 +211,45 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     _audioPlayer.seek(position);
   }
 
+  void startSeeking() {
+    emit(
+      state.copyWith(
+        isSeeking: true,
+        seekPosition: state.currentPosition,
+      ),
+    );
+  }
+
+  void updateSeekPosition(double value) {
+    if (!state.isSeeking) return;
+
+    final newPosition = Duration(
+      milliseconds: (value * state.totalDuration.inMilliseconds).round(),
+    );
+
+    emit(
+      state.copyWith(
+        seekPosition: newPosition,
+      ),
+    );
+  }
+
+  Future<void> endSeeking() async {
+    if (!state.isSeeking || state.seekPosition == null) return;
+
+    final targetPosition = state.seekPosition!;
+
+    emit(
+      state.copyWith(
+        isSeeking: false,
+        seekPosition: null,
+        currentPosition: targetPosition,
+      ),
+    );
+
+    await _audioPlayer.seek(targetPosition);
+  }
+
   void seekToNext() {
     _audioPlayer.seekToNext();
   }
