@@ -1,19 +1,20 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:crypto/crypto.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_state.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
-import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 class TrackPlayerCubit extends Cubit<TrackPlayerState> {
-  final ProjectsRepository _projectsRepository;
   final AudioPlayer _audioPlayer = AudioPlayer();
   final Map<int, int> _trackIdToPlayerIndex = {};
+  final Map<int, AudioSource> _audioSources = {};
+  final Dio _dio = Dio();
+  int? _currentProjectId;
 
   StreamSubscription? _playerStateSubscription;
   StreamSubscription? _positionSubscription;
@@ -23,9 +24,7 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
   StreamSubscription? _sequenceStateSubscription;
   StreamSubscription<List<Track>>? _tracksSubscription;
 
-  TrackPlayerCubit({required ProjectsRepository projectsRepository})
-    : _projectsRepository = projectsRepository,
-      super(const TrackPlayerState()) {
+  TrackPlayerCubit() : super(const TrackPlayerState()) {
     _listenToPlayerEvents();
   }
 
@@ -92,37 +91,16 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     });
   }
 
-  Future<void> loadProjectTracks(int projectId, int initialTrackId) async {
-    if (state.fetchStatus == FetchStatus.loading ||
-        state.fetchStatus == FetchStatus.refreshing) {
-      return;
-    }
+  Future<void> loadTracksDirectly(
+    List<Track> tracks,
+    int initialTrackId,
+    int projectId,
+  ) async {
+    _currentProjectId = projectId;
 
-    await _tracksSubscription?.cancel();
+    await _processTracks(tracks, initialTrackId, isInitialLoad: true);
 
-    final response = await _projectsRepository.getTracks(projectId);
-    final cachedTracks = response.cached;
-
-    if (cachedTracks != null) {
-      emit(state.copyWith(fetchStatus: FetchStatus.refreshing));
-      await _processTracks(cachedTracks, initialTrackId, isInitialLoad: true);
-    } else {
-      emit(state.copyWith(fetchStatus: FetchStatus.loading));
-    }
-
-    _tracksSubscription = response.stream.listen(
-      (tracks) {
-        _processTracks(tracks, initialTrackId);
-      },
-      onError: (error) {
-        emit(
-          state.copyWith(
-            fetchStatus: FetchStatus.failure,
-            errorMessage: error.toString(),
-          ),
-        );
-      },
-    );
+    _startPreCaching();
   }
 
   Future<void> _processTracks(
@@ -136,7 +114,7 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     for (final track in tracks) {
       final url = track.mainVersion?.file?.downloadUrl;
       if (url != null) {
-        final audioSource = await _createCachingAudioSource(url);
+        final audioSource = await _createCachingAudioSource(url, track.id);
         _trackIdToPlayerIndex[track.id] = playableSources.length;
         playableSources.add(audioSource);
       }
@@ -152,7 +130,6 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
 
     emit(
       state.copyWith(
-        fetchStatus: FetchStatus.success,
         tracks: tracks,
         currentTrackIndex: state.currentTrackIndex == 0 && initialIndex != -1
             ? initialIndex
@@ -186,24 +163,31 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       return;
     }
 
-    final track = state.tracks[index];
     emit(state.copyWith(currentTrackIndex: index));
+  }
+
+  Future<void> playSelectedTrack() async {
+    final track = state.currentTrack;
+    if (track == null) return;
 
     final playerIndex = _trackIdToPlayerIndex[track.id];
 
     if (playerIndex != null) {
-      _audioPlayer.seek(Duration.zero, index: playerIndex);
-      _audioPlayer.play();
+      await _audioPlayer.seek(Duration.zero, index: playerIndex);
+      await _audioPlayer.play();
     } else {
-      _audioPlayer.stop();
+      await _audioPlayer.stop();
     }
   }
 
-  void togglePlayPause() {
+  Future<void> togglePlayPause() async {
     if (state.playerUiStatus == PlayerUiStatus.playing) {
-      _audioPlayer.pause();
+      await _audioPlayer.pause();
+    } else if (state.playerUiStatus == PlayerUiStatus.paused) {
+      await _audioPlayer.play();
     } else {
-      _audioPlayer.play();
+      // Jeśli idle/completed - rozpocznij odtwarzanie wybranego utworu
+      await playSelectedTrack();
     }
   }
 
@@ -280,21 +264,116 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     }
   }
 
-  Future<AudioSource> _createCachingAudioSource(String url) async {
+  Future<File> _getCacheFileForTrack(int trackId) async {
     final cacheDir = await getTemporaryDirectory();
-    final audioDir = Directory('${cacheDir.path}/audio_cache');
-    if (!await audioDir.exists()) {
-      await audioDir.create(recursive: true);
+    final projectCacheDir = Directory(
+      '${cacheDir.path}/audio_cache/project_$_currentProjectId',
+    );
+
+    if (!await projectCacheDir.exists()) {
+      await projectCacheDir.create(recursive: true);
     }
 
-    final uri = Uri.parse(url);
-    final baseUrl = uri.origin + uri.path;
-    final urlHash = sha256.convert(baseUrl.codeUnits).toString();
-    final cacheFile = File('${audioDir.path}/$urlHash.cache');
+    return File('${projectCacheDir.path}/track_$trackId.cache');
+  }
+
+  Future<AudioSource> _createCachingAudioSource(String url, int trackId) async {
+    final cacheFile = await _getCacheFileForTrack(trackId);
 
     return LockCachingAudioSource(
       Uri.parse(url),
       cacheFile: cacheFile,
+    );
+  }
+
+  Future<void> _downloadTrackToCache(String url, int trackId) async {
+    final cacheFile = await _getCacheFileForTrack(trackId);
+
+    // Sprawdź czy plik już istnieje
+    if (await cacheFile.exists()) {
+      return; // Już cache'owany
+    }
+
+    // Downloaduj plik używając Dio
+    await _dio.download(url, cacheFile.path);
+  }
+
+  Future<void> _startPreCaching() async {
+    emit(state.copyWith(isPreCaching: true));
+
+    // Inicjalizuj cache status dla wszystkich tracks
+    final initialCacheStatus = <int, CacheStatus>{};
+    for (final track in state.tracks) {
+      initialCacheStatus[track.id] = CacheStatus.notStarted;
+    }
+
+    emit(state.copyWith(tracksCacheStatus: initialCacheStatus));
+
+    // Przetworz wszystkie tracks
+    for (final track in state.tracks) {
+      await _processTrackForCaching(track);
+    }
+  }
+
+  Future<void> _processTrackForCaching(Track track) async {
+    final trackId = track.id;
+    final url = track.mainVersion?.file?.downloadUrl;
+
+    if (url == null) {
+      // Track nie ma pliku - ustaw status noFile
+      final updatedStatus = Map<int, CacheStatus>.from(state.tracksCacheStatus);
+      updatedStatus[trackId] = CacheStatus.noFile;
+      _updateCacheProgress(updatedStatus);
+      return;
+    }
+
+    try {
+      // Update status na caching
+      final updatedStatus = Map<int, CacheStatus>.from(state.tracksCacheStatus);
+      updatedStatus[trackId] = CacheStatus.caching;
+      emit(state.copyWith(tracksCacheStatus: updatedStatus));
+
+      // Utwórz cache file path i downloaduj plik
+      await _downloadTrackToCache(url, trackId);
+
+      // Utwórz audio source (będzie używać już cache'owanego pliku)
+      final audioSource = await _createCachingAudioSource(url, trackId);
+
+      // Zapisz audio source
+      _audioSources[trackId] = audioSource;
+
+      // Update status na cached
+      final finalStatus = Map<int, CacheStatus>.from(state.tracksCacheStatus);
+      finalStatus[trackId] = CacheStatus.cached;
+      _updateCacheProgress(finalStatus);
+    } catch (e) {
+      // Update status na error
+      final errorStatus = Map<int, CacheStatus>.from(state.tracksCacheStatus);
+      errorStatus[trackId] = CacheStatus.error;
+      _updateCacheProgress(errorStatus);
+    }
+  }
+
+  void _updateCacheProgress(Map<int, CacheStatus> statusMap) {
+    final processedCount = statusMap.values
+        .where(
+          (s) =>
+              s == CacheStatus.cached ||
+              s == CacheStatus.noFile ||
+              s == CacheStatus.error,
+        )
+        .length;
+
+    final cachedCount = statusMap.values
+        .where((s) => s == CacheStatus.cached)
+        .length;
+
+    emit(
+      state.copyWith(
+        tracksCacheStatus: statusMap,
+        cachedTracksCount: cachedCount,
+        isPreCaching: processedCount < state.tracks.length,
+      ),
     );
   }
 

@@ -3,13 +3,11 @@ import 'package:just_audio/just_audio.dart';
 
 import 'package:bandspace_mobile/shared/models/track.dart';
 
-enum FetchStatus { initial, loading, refreshing, success, failure }
-
 enum PlayerUiStatus { idle, loading, playing, paused, completed, error }
 
+enum CacheStatus { notStarted, caching, cached, noFile, error }
+
 class TrackPlayerState extends Equatable {
-  // Stan pobierania danych z API
-  final FetchStatus fetchStatus;
   final String? errorMessage;
 
   // Dane
@@ -27,8 +25,12 @@ class TrackPlayerState extends Equatable {
   final bool hasNext;
   final bool hasPrevious;
 
+  // Stan cache'owania
+  final Map<int, CacheStatus> tracksCacheStatus;
+  final bool isPreCaching;
+  final int cachedTracksCount;
+
   const TrackPlayerState({
-    this.fetchStatus = FetchStatus.initial,
     this.errorMessage,
     this.tracks = const [],
     this.currentTrackIndex = 0,
@@ -41,6 +43,9 @@ class TrackPlayerState extends Equatable {
     this.loopMode = LoopMode.off,
     this.hasNext = false,
     this.hasPrevious = false,
+    this.tracksCacheStatus = const {},
+    this.isPreCaching = false,
+    this.cachedTracksCount = 0,
   });
 
   // Wygodne gettery
@@ -54,13 +59,14 @@ class TrackPlayerState extends Equatable {
   double get progress {
     if (totalDuration.inMilliseconds == 0) return 0.0;
     // Podczas przesuwania użyj seekPosition, w przeciwnym razie currentPosition
-    final position = isSeeking && seekPosition != null ? seekPosition! : currentPosition;
+    final position = isSeeking && seekPosition != null
+        ? seekPosition!
+        : currentPosition;
 
     return position.inMilliseconds / totalDuration.inMilliseconds;
   }
 
   TrackPlayerState copyWith({
-    FetchStatus? fetchStatus,
     String? errorMessage,
     List<Track>? tracks,
     int? currentTrackIndex,
@@ -73,9 +79,11 @@ class TrackPlayerState extends Equatable {
     LoopMode? loopMode,
     bool? hasNext,
     bool? hasPrevious,
+    Map<int, CacheStatus>? tracksCacheStatus,
+    bool? isPreCaching,
+    int? cachedTracksCount,
   }) {
     return TrackPlayerState(
-      fetchStatus: fetchStatus ?? this.fetchStatus,
       errorMessage: errorMessage ?? this.errorMessage,
       tracks: tracks ?? this.tracks,
       currentTrackIndex: currentTrackIndex ?? this.currentTrackIndex,
@@ -88,12 +96,14 @@ class TrackPlayerState extends Equatable {
       loopMode: loopMode ?? this.loopMode,
       hasNext: hasNext ?? this.hasNext,
       hasPrevious: hasPrevious ?? this.hasPrevious,
+      tracksCacheStatus: tracksCacheStatus ?? this.tracksCacheStatus,
+      isPreCaching: isPreCaching ?? this.isPreCaching,
+      cachedTracksCount: cachedTracksCount ?? this.cachedTracksCount,
     );
   }
 
   @override
   List<Object?> get props => [
-    fetchStatus,
     errorMessage,
     tracks,
     currentTrackIndex,
@@ -106,5 +116,8 @@ class TrackPlayerState extends Equatable {
     loopMode,
     hasNext,
     hasPrevious,
+    tracksCacheStatus,
+    isPreCaching,
+    cachedTracksCount,
   ];
 }

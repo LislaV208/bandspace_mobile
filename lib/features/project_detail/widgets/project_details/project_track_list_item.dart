@@ -32,6 +32,7 @@ class ProjectTrackListItem extends StatelessWidget {
             MaterialPageRoute(
               builder: (_) => TrackPlayerScreen.create(
                 project: context.read<ProjectDetailCubit>().state.project,
+                tracks: tracksList,
                 initialTrackId: track.id,
               ),
             ),

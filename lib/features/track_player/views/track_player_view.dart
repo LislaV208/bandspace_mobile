@@ -39,19 +39,6 @@ class _TrackPlayerViewState extends State<TrackPlayerView> {
   Widget build(BuildContext context) {
     return BlocBuilder<TrackPlayerCubit, TrackPlayerState>(
       builder: (context, state) {
-        if (state.fetchStatus == FetchStatus.loading ||
-            state.fetchStatus == FetchStatus.initial) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (state.fetchStatus == FetchStatus.failure) {
-          return Center(child: Text('Error: ${state.errorMessage}'));
-        }
-
-        if (state.tracks.isEmpty) {
-          return const Center(child: Text('No tracks in this project.'));
-        }
-
         return SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
