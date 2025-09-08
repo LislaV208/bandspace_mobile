@@ -22,8 +22,6 @@ class TrackPlayerState extends Equatable {
   final bool isSeeking;
   final Duration? seekPosition;
   final LoopMode loopMode;
-  final bool hasNext;
-  final bool hasPrevious;
 
   // Stan cache'owania
   final Map<int, CacheStatus> tracksCacheStatus;
@@ -41,8 +39,6 @@ class TrackPlayerState extends Equatable {
     this.isSeeking = false,
     this.seekPosition,
     this.loopMode = LoopMode.off,
-    this.hasNext = false,
-    this.hasPrevious = false,
     this.tracksCacheStatus = const {},
     this.isPreCaching = false,
     this.cachedTracksCount = 0,
@@ -66,6 +62,10 @@ class TrackPlayerState extends Equatable {
     return position.inMilliseconds / totalDuration.inMilliseconds;
   }
 
+  // Computed properties dla navigation controls
+  bool get hasNext => tracks.isNotEmpty && currentTrackIndex < tracks.length - 1;
+  bool get hasPrevious => tracks.isNotEmpty && currentTrackIndex > 0;
+
   TrackPlayerState copyWith({
     String? errorMessage,
     List<Track>? tracks,
@@ -77,8 +77,6 @@ class TrackPlayerState extends Equatable {
     bool? isSeeking,
     Duration? seekPosition,
     LoopMode? loopMode,
-    bool? hasNext,
-    bool? hasPrevious,
     Map<int, CacheStatus>? tracksCacheStatus,
     bool? isPreCaching,
     int? cachedTracksCount,
@@ -94,8 +92,6 @@ class TrackPlayerState extends Equatable {
       isSeeking: isSeeking ?? this.isSeeking,
       seekPosition: seekPosition ?? this.seekPosition,
       loopMode: loopMode ?? this.loopMode,
-      hasNext: hasNext ?? this.hasNext,
-      hasPrevious: hasPrevious ?? this.hasPrevious,
       tracksCacheStatus: tracksCacheStatus ?? this.tracksCacheStatus,
       isPreCaching: isPreCaching ?? this.isPreCaching,
       cachedTracksCount: cachedTracksCount ?? this.cachedTracksCount,
@@ -114,8 +110,6 @@ class TrackPlayerState extends Equatable {
     isSeeking,
     seekPosition,
     loopMode,
-    hasNext,
-    hasPrevious,
     tracksCacheStatus,
     isPreCaching,
     cachedTracksCount,

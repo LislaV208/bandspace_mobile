@@ -20,8 +20,6 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
   StreamSubscription? _positionSubscription;
   StreamSubscription? _bufferedPositionSubscription;
   StreamSubscription? _durationSubscription;
-  StreamSubscription? _currentIndexSubscription;
-  StreamSubscription? _sequenceStateSubscription;
   StreamSubscription<List<Track>>? _tracksSubscription;
 
   TrackPlayerCubit() : super(const TrackPlayerState()) {
@@ -51,44 +49,6 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     _durationSubscription = _audioPlayer.durationStream.listen((duration) {
       emit(state.copyWith(totalDuration: duration ?? Duration.zero));
     });
-
-    _currentIndexSubscription = _audioPlayer.currentIndexStream.listen((
-      playerIndex,
-    ) {
-      if (playerIndex == null) {
-        return;
-      }
-
-      final entry = _trackIdToPlayerIndex.entries.firstWhere(
-        (entry) => entry.value == playerIndex,
-        orElse: () => const MapEntry(-1, -1),
-      );
-
-      if (entry.key != -1) {
-        final trackId = entry.key;
-        final mainListIndex = state.tracks.indexWhere((t) => t.id == trackId);
-        if (mainListIndex != -1 && state.currentTrackIndex != mainListIndex) {
-          emit(state.copyWith(currentTrackIndex: mainListIndex));
-        }
-      }
-    });
-
-    _sequenceStateSubscription = _audioPlayer.sequenceStateStream.listen((
-      sequenceState,
-    ) {
-      final currentIndex = sequenceState.currentIndex;
-      if (currentIndex == null) return;
-
-      final hasNext = currentIndex < sequenceState.effectiveSequence.length - 1;
-      final hasPrevious = currentIndex > 0;
-
-      emit(
-        state.copyWith(
-          hasNext: hasNext,
-          hasPrevious: hasPrevious,
-        ),
-      );
-    });
   }
 
   Future<void> loadTracksDirectly(
@@ -97,6 +57,14 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     int projectId,
   ) async {
     _currentProjectId = projectId;
+    
+    // Znajdź initial track index i ustaw state od razu
+    final initialIndex = tracks.indexWhere((t) => t.id == initialTrackId);
+    
+    emit(state.copyWith(
+      tracks: tracks,
+      currentTrackIndex: initialIndex != -1 ? initialIndex : 0,
+    ));
 
     await _processTracks(tracks, initialTrackId, isInitialLoad: true);
 
@@ -235,11 +203,17 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
   }
 
   void seekToNext() {
-    _audioPlayer.seekToNext();
+    if (state.hasNext) {
+      selectTrack(state.currentTrackIndex + 1);
+      _audioPlayer.seekToNext();
+    }
   }
 
   void seekToPrevious() {
-    _audioPlayer.seekToPrevious();
+    if (state.hasPrevious) {
+      selectTrack(state.currentTrackIndex - 1);
+      _audioPlayer.seekToPrevious();
+    }
   }
 
   void setLoopMode(LoopMode mode) {
@@ -383,8 +357,6 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     _positionSubscription?.cancel();
     _bufferedPositionSubscription?.cancel();
     _durationSubscription?.cancel();
-    _currentIndexSubscription?.cancel();
-    _sequenceStateSubscription?.cancel();
     _tracksSubscription?.cancel();
     _audioPlayer.dispose();
     return super.close();
