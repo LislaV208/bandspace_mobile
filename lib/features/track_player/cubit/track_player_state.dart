@@ -24,7 +24,6 @@ class TrackPlayerState extends Equatable {
   final bool isSeeking;
   final Duration? seekPosition;
   final LoopMode loopMode;
-  final bool isShuffleEnabled;
   final bool hasNext;
   final bool hasPrevious;
 
@@ -40,7 +39,6 @@ class TrackPlayerState extends Equatable {
     this.isSeeking = false,
     this.seekPosition,
     this.loopMode = LoopMode.off,
-    this.isShuffleEnabled = false,
     this.hasNext = false,
     this.hasPrevious = false,
   });
@@ -73,7 +71,6 @@ class TrackPlayerState extends Equatable {
     bool? isSeeking,
     Duration? seekPosition,
     LoopMode? loopMode,
-    bool? isShuffleEnabled,
     bool? hasNext,
     bool? hasPrevious,
   }) {
@@ -89,7 +86,6 @@ class TrackPlayerState extends Equatable {
       isSeeking: isSeeking ?? this.isSeeking,
       seekPosition: seekPosition ?? this.seekPosition,
       loopMode: loopMode ?? this.loopMode,
-      isShuffleEnabled: isShuffleEnabled ?? this.isShuffleEnabled,
       hasNext: hasNext ?? this.hasNext,
       hasPrevious: hasPrevious ?? this.hasPrevious,
     );
@@ -108,7 +104,6 @@ class TrackPlayerState extends Equatable {
     isSeeking,
     seekPosition,
     loopMode,
-    isShuffleEnabled,
     hasNext,
     hasPrevious,
   ];
