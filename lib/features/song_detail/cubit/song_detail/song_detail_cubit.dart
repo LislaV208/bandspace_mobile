@@ -64,7 +64,7 @@ class SongDetailCubit extends Cubit<SongDetailState> {
   }
 
   // === METODY NAWIGACYJNE ===
-  
+
   /// Przechodzi do następnego utworu w liście (niezależnie od pliku audio)
   void goToNextSong() {
     final currentIndex = state.currentSongIndex;
@@ -73,7 +73,7 @@ class SongDetailCubit extends Cubit<SongDetailState> {
       selectSong(nextSong);
     }
   }
-  
+
   /// Przechodzi do poprzedniego utworu w liście (niezależnie od pliku audio)
   void goToPreviousSong() {
     final currentIndex = state.currentSongIndex;
@@ -82,13 +82,13 @@ class SongDetailCubit extends Cubit<SongDetailState> {
       selectSong(previousSong);
     }
   }
-  
+
   /// Sprawdza czy można przejść do następnego utworu
   bool get canGoNext => state.canGoNext;
-  
+
   /// Sprawdza czy można przejść do poprzedniego utworu
   bool get canGoPrevious => state.canGoPrevious;
-  
+
   /// Zwraca aktualny indeks utworu w liście wszystkich utworów
   int get currentSongIndex => state.currentSongIndex;
 

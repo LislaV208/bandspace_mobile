@@ -6,6 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:bandspace_mobile/core/theme/theme.dart';
 import 'package:bandspace_mobile/core/utils/date_format_utils.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_cubit.dart';
+import 'package:bandspace_mobile/features/track_player/screens/track_player_screen.dart';
 // import 'package:bandspace_mobile/features/track_detail/screens/track_detail_screen.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
 
@@ -26,16 +27,15 @@ class ProjectTrackListItem extends StatelessWidget {
       child: InkWell(
         onTap: () {
           // TODO: Navigate to TrackDetailScreen
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (_) => TrackDetailScreen.create(
-          //       context.read<ProjectDetailCubit>().state.project,
-          //       tracksList,
-          //       track,
-          //     ),
-          //   ),
-          // );
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => TrackPlayerScreen.create(
+                project: context.read<ProjectDetailCubit>().state.project,
+                initialTrackId: track.id,
+              ),
+            ),
+          );
         },
         borderRadius: BorderRadius.circular(12),
         child: Ink(

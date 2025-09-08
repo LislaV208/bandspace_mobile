@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_cubit.dart';
-import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_state.dart';
+import 'package:bandspace_mobile/features/track_player/cubit/track_player_cubit.dart';
+import 'package:bandspace_mobile/features/track_player/cubit/track_player_state.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
-import 'package:bandspace_mobile/shared/models/song.dart';
+import 'package:bandspace_mobile/shared/models/track.dart';
 
-class SongInfoWidget extends StatelessWidget {
+class TrackInfoWidget extends StatelessWidget {
   final Project project;
   final bool isCompact;
 
-  const SongInfoWidget({
+  const TrackInfoWidget({
     super.key,
     required this.project,
     this.isCompact = false,
@@ -29,11 +29,11 @@ class SongInfoWidget extends StatelessWidget {
             ? CrossAxisAlignment.start
             : CrossAxisAlignment.center,
         children: [
-          BlocSelector<SongDetailCubit, SongDetailState, Song>(
-            selector: (state) => state.currentSong,
-            builder: (context, song) {
+          BlocSelector<TrackPlayerCubit, TrackPlayerState, Track?>(
+            selector: (state) => state.currentTrack,
+            builder: (context, track) {
               return Text(
-                song.title,
+                track?.title ?? '',
                 style: isCompact
                     ? Theme.of(context).textTheme.labelLarge?.copyWith()
                     : Theme.of(context).textTheme.headlineSmall?.copyWith(

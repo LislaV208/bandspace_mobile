@@ -1,20 +1,23 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:bandspace_mobile/shared/models/user.dart';
+import 'package:bandspace_mobile/shared/models/version.dart';
 
 class Track extends Equatable {
   final int id;
   final String title;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final User? createdBy;
+  final Version? mainVersion;
+  final User createdBy;
 
   const Track({
     required this.id,
     required this.title,
     required this.createdAt,
     required this.updatedAt,
-    this.createdBy,
+    this.mainVersion,
+    required this.createdBy,
   });
 
   factory Track.fromJson(Map<String, dynamic> json) {
@@ -23,9 +26,10 @@ class Track extends Equatable {
       title: json['title'],
       createdAt: DateTime.parse(json['createdAt']).toLocal(),
       updatedAt: DateTime.parse(json['updatedAt']).toLocal(),
-      createdBy: json['createdBy'] != null
-          ? User.fromMap(json['createdBy'])
+      mainVersion: json['mainVersion'] != null
+          ? Version.fromJson(json['mainVersion'])
           : null,
+      createdBy: User.fromJson(json['createdBy']),
     );
   }
 
@@ -35,7 +39,8 @@ class Track extends Equatable {
       'title': title,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
-      'createdBy': createdBy?.toMap(),
+      'mainVersion': mainVersion?.toJson(),
+      'createdBy': createdBy.toJson(),
     };
   }
 
@@ -45,6 +50,7 @@ class Track extends Equatable {
     title,
     createdAt,
     updatedAt,
+    mainVersion,
     createdBy,
   ];
 }

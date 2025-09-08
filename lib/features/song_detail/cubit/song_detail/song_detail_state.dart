@@ -10,26 +10,26 @@ abstract class SongDetailState extends Equatable {
   const SongDetailState(this.songs, this.currentSong);
 
   // === METODY NAWIGACYJNE ===
-  
+
   /// Sprawdza czy można przejść do następnego utworu
   bool get canGoNext {
     final currentIndex = _getCurrentSongIndex();
     return currentIndex < songs.length - 1;
   }
-  
+
   /// Sprawdza czy można przejść do poprzedniego utworu
   bool get canGoPrevious {
     final currentIndex = _getCurrentSongIndex();
     return currentIndex > 0;
   }
-  
+
   /// Zwraca aktualny indeks utworu w liście wszystkich utworów
   int get currentSongIndex => _getCurrentSongIndex();
-  
+
   /// Sprawdza czy aktualny utwór ma plik audio
   bool get currentSongHasFile => currentSong.file != null;
-  
-  /// Sprawdza czy informacja o plikach jest dostępna  
+
+  /// Sprawdza czy informacja o plikach jest dostępna
   bool get hasFileInfo => this is SongDetailLoadUrlsSuccess;
 
   /// Prywatna metoda do znajdowania indeksu aktualnego utworu
