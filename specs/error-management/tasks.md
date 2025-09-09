@@ -15,19 +15,21 @@
   - _Requirements: 1.1, 1.4, 1.5, 2.1, 2.2, 5.1, 5.2, 5.4_
   - ✅ **COMPLETED**: Created `ErrorInterceptor` and `ErrorMapper` classes. ErrorInterceptor transforms DioExceptions automatically, ErrorMapper maps HTTP status codes to appropriate AppExceptions, includes error message extraction from API responses, and provides debug logging.
 
-- [ ] 3. Refactor ApiClient to use new error system
+- [x] 3. Refactor ApiClient to use new error system
   - Remove existing `_handleError` method and custom exception classes
   - Add `ErrorInterceptor` to Dio interceptors chain
   - Remove try-catch blocks from HTTP method implementations
   - Clean up old exception class definitions (ApiException, NetworkException, etc.)
   - _Requirements: 2.1, 2.3, 4.1, 4.4_
+  - ✅ **COMPLETED**: Refactored ApiClient to use ErrorInterceptor. Removed all try-catch blocks from HTTP methods, deleted _handleError method and old exception classes (ApiException, NetworkException, TimeoutException, etc.). HTTP methods now delegate error handling to ErrorInterceptor.
 
-- [ ] 4. Remove feature-specific error handlers
+- [x] 4. Remove feature-specific error handlers
   - Delete `TrackErrorHandler` class and its usage
   - Update `TrackDetailCubit` to use simple `error.toString()` pattern
   - Remove other feature-specific error handling utilities if they exist
   - Ensure all cubits use consistent error handling approach
   - _Requirements: 2.1, 2.3, 4.2, 4.3_
+  - ✅ **COMPLETED**: Deleted `TrackErrorHandler` class and file. Updated `TrackDetailCubit` to use `error.toString()` pattern for all error handling (load, update, delete operations). All error messages are now handled consistently through the centralized system.
 
 - [ ] 5. Update error handling across cubits
   - Update all cubits to use `error.toString()` for error messages
