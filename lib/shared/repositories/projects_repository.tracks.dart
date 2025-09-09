@@ -45,6 +45,7 @@ extension TracksManagement on ProjectsRepository {
       fromJson: (json) => _trackFromJson(json),
     );
   }
+
   // Pobiera listę ścieżek dla danego projektu.
   // GET /api/projects/{projectId}/tracks
   Future<RepositoryResponse<List<Track>>> getTracks(int projectId) {
@@ -103,7 +104,9 @@ extension TracksManagement on ProjectsRepository {
     );
 
     final List<dynamic> versionsData = response.data;
-    return versionsData.map((versionData) => _versionFromJson(versionData)).toList();
+    return versionsData
+        .map((versionData) => _versionFromJson(versionData))
+        .toList();
   }
 
   Future<List<Comment>> _fetchComments(int versionId) async {
@@ -112,7 +115,9 @@ extension TracksManagement on ProjectsRepository {
     );
 
     final List<dynamic> commentsData = response.data;
-    return commentsData.map((commentData) => _commentFromJson(commentData)).toList();
+    return commentsData
+        .map((commentData) => _commentFromJson(commentData))
+        .toList();
   }
 
   Track _trackFromJson(Map<String, dynamic> json) {
@@ -125,5 +130,71 @@ extension TracksManagement on ProjectsRepository {
 
   Comment _commentFromJson(Map<String, dynamic> json) {
     return Comment.fromJson(json);
+  }
+
+  // Aktualizuje ścieżkę w projekcie.
+  // PATCH /api/projects/{projectId}/tracks/{trackId}
+  Future<Track> updateTrack(
+    int projectId,
+    int trackId,
+    UpdateTrackData updateData,
+  ) async {
+    return updateSingle<Track>(
+      methodName: 'getTrack',
+      parameters: {'projectId': projectId, 'trackId': trackId},
+      updateCall: () async {
+        final response = await apiClient.patch(
+          '/api/projects/$projectId/tracks/$trackId',
+          data: updateData.toJson(),
+        );
+        return Track.fromJson(response.data);
+      },
+      fromJson: (json) => _trackFromJson(json),
+    );
+  }
+
+  // Usuwa ścieżkę z projektu.
+  // DELETE /api/projects/{projectId}/tracks/{trackId}
+  Future<void> deleteTrack(int projectId, int trackId) async {
+    await removeFromList<Track>(
+      listMethodName: 'getTracks',
+      listParameters: {'projectId': projectId},
+      deleteCall: () async {
+        await apiClient.delete('/api/projects/$projectId/tracks/$trackId');
+      },
+      fromJson: (json) => _trackFromJson(json),
+      predicate: (track) => track.id == trackId,
+    );
+  }
+
+  // Pobiera szczegóły pojedynczej ścieżki.
+  // GET /api/projects/{projectId}/tracks/{trackId}
+  Stream<Track> getTrack(int projectId, int trackId) {
+    return reactiveStream<Track>(
+      methodName: 'getTrack',
+      parameters: {'projectId': projectId, 'trackId': trackId},
+      remoteCall: () async {
+        final response = await apiClient.get(
+          '/api/projects/$projectId/tracks/$trackId',
+        );
+        return Track.fromJson(response.data);
+      },
+      fromJson: (json) => _trackFromJson(json),
+    );
+  }
+
+  // Odświeża szczegóły pojedynczej ścieżki.
+  Future<void> refreshTrack(int projectId, int trackId) async {
+    await refreshSingle<Track>(
+      methodName: 'getTrack',
+      parameters: {'projectId': projectId, 'trackId': trackId},
+      remoteCall: () async {
+        final response = await apiClient.get(
+          '/api/projects/$projectId/tracks/$trackId',
+        );
+        return Track.fromJson(response.data);
+      },
+      fromJson: (json) => _trackFromJson(json),
+    );
   }
 }

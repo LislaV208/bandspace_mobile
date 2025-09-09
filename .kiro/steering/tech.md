@@ -135,7 +135,4 @@ flutter pub outdated
 - Screen classes end with `_screen.dart`
 
 ## Agent Integration Guidelines
-- Use `flutter-architect` agent for advanced Flutter code architecture
-- Use `feature-analyst` agent when implementing or modifying functionality
-- Use `code-reviewer` agent for final code quality assurance
 - Code analysis with `flutter analyze` is sufficient (no need to check compilation)
