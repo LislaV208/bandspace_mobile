@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/features/track_detail/cubit/track_detail_state.dart';
+import 'package:bandspace_mobile/features/track_detail/utils/error_handler.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
 import 'package:bandspace_mobile/shared/models/update_track_data.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
@@ -42,7 +43,7 @@ class TrackDetailCubit extends Cubit<TrackDetailState> {
             }
           },
           onError: (error) {
-            emit(TrackDetailError('Failed to load track: ${error.toString()}'));
+            emit(TrackDetailError(TrackErrorHandler.getLoadErrorMessage(error)));
           },
         );
   }
@@ -79,7 +80,7 @@ class TrackDetailCubit extends Cubit<TrackDetailState> {
       emit(TrackDetailUpdateSuccess(updatedTrack));
     } catch (error) {
       emit(TrackDetailUpdateFailure(
-        message: 'Failed to update track: ${error.toString()}',
+        message: TrackErrorHandler.getUpdateErrorMessage(error),
         track: currentTrack,
       ));
     }
@@ -100,7 +101,7 @@ class TrackDetailCubit extends Cubit<TrackDetailState> {
       emit(const TrackDetailDeleteSuccess());
     } catch (error) {
       emit(TrackDetailDeleteFailure(
-        message: 'Failed to delete track: ${error.toString()}',
+        message: TrackErrorHandler.getDeleteErrorMessage(error),
         track: currentTrack,
       ));
     }
@@ -120,7 +121,7 @@ class TrackDetailCubit extends Cubit<TrackDetailState> {
       await _projectsRepository.refreshTrack(_projectId!, currentTrack.id);
       // Nowy stan będzie emitowany przez stream subscription
     } catch (error) {
-      emit(TrackDetailError('Failed to refresh track: ${error.toString()}'));
+      emit(TrackDetailError(TrackErrorHandler.getLoadErrorMessage(error)));
     }
   }
 

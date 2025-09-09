@@ -102,8 +102,14 @@ class _EditTrackDialogState extends State<EditTrackDialog> {
                         }
 
                         if (value.trim().length > 255) {
-                          return 'Tytuł jest za długi (max 255 znaków)';
+                          return 'Tytuł jest za długi (maksymalnie 255 znaków)';
                         }
+                        
+                        // Sprawdź niedozwolone znaki
+                        if (value.contains(RegExp(r'[<>:"/\\|?*]'))) {
+                          return 'Tytuł zawiera niedozwolone znaki';
+                        }
+                        
                         return null;
                       },
                       maxLength: 255,
@@ -132,10 +138,13 @@ class _EditTrackDialogState extends State<EditTrackDialog> {
                             return 'Wprowadź prawidłową liczbę';
                           }
                           if (bpm <= 0) {
-                            return 'BPM musi być liczbą dodatnią';
+                            return 'Tempo musi być liczbą dodatnią';
+                          }
+                          if (bpm < 60) {
+                            return 'Tempo nie może być mniejsze niż 60 BPM';
                           }
                           if (bpm > 300) {
-                            return 'BPM nie może przekraczać 300';
+                            return 'Tempo nie może przekraczać 300 BPM';
                           }
                         }
                         return null;
@@ -147,13 +156,33 @@ class _EditTrackDialogState extends State<EditTrackDialog> {
                     // Error message
                     if (state is TrackDetailUpdateFailure) ...[
                       const SizedBox(height: 16),
-                      Center(
-                        child: Text(
-                          state.message,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.error,
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.error.withValues(alpha: 0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.error_rounded,
+                              color: Theme.of(context).colorScheme.error,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                state.message,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.error,
+                                    ),
                               ),
-                          textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
                       ),
                     ],

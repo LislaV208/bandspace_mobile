@@ -17,13 +17,35 @@ class ManageTracksButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<TrackDetailCubit, TrackDetailState>(
       builder: (context, state) {
+        final cubit = context.read<TrackDetailCubit>();
+        
+        // Jeśli wystąpił błąd ładowania, pokaż ikonę błędu zamiast przycisku zarządzania
+        if (state is TrackDetailError) {
+          return IconButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  action: SnackBarAction(
+                    label: 'Spróbuj ponownie',
+                    onPressed: () {
+                      cubit.refreshTrack();
+                    },
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.error_outline),
+            tooltip: 'Błąd ładowania danych utworu',
+          );
+        }
+        
         // Pokaż przycisk tylko gdy mamy załadowaną ścieżkę
         if (state is! TrackDetailWithData) {
           return const SizedBox.shrink();
         }
 
         final track = state.track;
-        final cubit = context.read<TrackDetailCubit>();
         final isOperationInProgress =
             state is TrackDetailUpdating || state is TrackDetailDeleting;
 

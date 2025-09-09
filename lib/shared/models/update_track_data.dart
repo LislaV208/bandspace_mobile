@@ -19,19 +19,19 @@ class UpdateTrackData {
   String? validate() {
     if (title != null) {
       if (title!.trim().isEmpty) {
-        return 'Title cannot be empty';
+        return 'Tytuł utworu nie może być pusty';
       }
       if (title!.length > 255) {
-        return 'Title cannot exceed 255 characters';
+        return 'Tytuł jest za długi (maksymalnie 255 znaków)';
       }
     }
 
     if (bpm != null) {
       if (bpm! <= 0) {
-        return 'BPM must be a positive number';
+        return 'Tempo (BPM) musi być liczbą dodatnią';
       }
       if (bpm! > 300) {
-        return 'BPM cannot exceed 300';
+        return 'Tempo (BPM) nie może przekraczać 300';
       }
     }
 
