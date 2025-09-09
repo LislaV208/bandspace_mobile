@@ -42,19 +42,7 @@ class ResetPasswordCubit extends Cubit<ResetPasswordState> {
           : "Link do resetowania hasła został wysłany na podany adres email. Sprawdź skrzynkę odbiorczą i kliknij w link, aby dokończyć proces resetowania hasła.",
       ));
     } catch (e) {
-      // Obsługa błędów
-      String errorMessage = "Błąd wysyłania żądania: ${e.toString()}";
-
-      // Sprawdzamy typ wyjątku i dostosowujemy komunikat
-      if (e.toString().contains("ApiException")) {
-        errorMessage = e.toString().replaceAll("ApiException: ", "");
-      } else if (e.toString().contains("NetworkException")) {
-        errorMessage = "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
-      } else if (e.toString().contains("TimeoutException")) {
-        errorMessage = "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
-      }
-
-      emit(ResetPasswordFailure(message: errorMessage));
+      emit(ResetPasswordFailure(message: e.toString()));
     }
   }
 

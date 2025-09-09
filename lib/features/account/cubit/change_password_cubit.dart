@@ -110,19 +110,7 @@ class ChangePasswordCubit extends Cubit<ChangePasswordState> {
       // Wyczyść pola formularza po udanej zmianie hasła
       _clearForm();
     } catch (e) {
-      // Obsługa błędów
-      String errorMessage = "Błąd zmiany hasła: ${e.toString()}";
-
-      // Sprawdzamy typ wyjątku i dostosowujemy komunikat
-      if (e.toString().contains("ApiException")) {
-        errorMessage = e.toString().replaceAll("ApiException: ", "");
-      } else if (e.toString().contains("NetworkException")) {
-        errorMessage = "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
-      } else if (e.toString().contains("TimeoutException")) {
-        errorMessage = "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
-      }
-
-      emit(state.copyWith(isLoading: false, errorMessage: Value(errorMessage)));
+      emit(state.copyWith(isLoading: false, errorMessage: Value(e.toString())));
     }
   }
 

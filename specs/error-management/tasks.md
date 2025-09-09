@@ -31,12 +31,13 @@
   - _Requirements: 2.1, 2.3, 4.2, 4.3_
   - ✅ **COMPLETED**: Deleted `TrackErrorHandler` class and file. Updated `TrackDetailCubit` to use `error.toString()` pattern for all error handling (load, update, delete operations). All error messages are now handled consistently through the centralized system.
 
-- [ ] 5. Update error handling across cubits
+- [x] 5. Update error handling across cubits
   - Update all cubits to use `error.toString()` for error messages
   - Remove custom error message mapping logic from cubit implementations
   - Ensure consistent error state emission patterns
   - Add specific error type handling where needed (e.g., SessionExpiredException)
   - _Requirements: 2.3, 2.4, 4.2, 4.3_
+  - ✅ **COMPLETED**: Updated AuthCubit, ChangePasswordCubit, and ResetPasswordCubit to use simple `error.toString()` pattern. Removed all string parsing logic for old exception types (ApiException, NetworkException, TimeoutException). All cubits now use consistent error handling through the centralized system.
 
 - [ ] 6. Add error logging and monitoring
   - Implement error logging in `ErrorInterceptor`

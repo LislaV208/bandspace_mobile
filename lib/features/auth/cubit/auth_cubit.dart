@@ -129,21 +129,7 @@ class AuthCubit extends Cubit<AuthState> {
         loggedOutDueToTokenFailure: false, // Reset flagi przy udanym logowaniu
       ));
     } catch (e) {
-      // Obsługa błędów
-      String errorMessage = "Błąd logowania: ${e.toString()}";
-
-      // Sprawdzamy typ wyjątku i dostosowujemy komunikat
-      if (e.toString().contains("ApiException")) {
-        errorMessage = e.toString().replaceAll("ApiException: ", "");
-      } else if (e.toString().contains("NetworkException")) {
-        errorMessage =
-            "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
-      } else if (e.toString().contains("TimeoutException")) {
-        errorMessage =
-            "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
-      }
-
-      emit(state.copyWith(isLoading: false, errorMessage: Value(errorMessage)));
+      emit(state.copyWith(isLoading: false, errorMessage: Value(e.toString())));
     }
   }
 
@@ -186,21 +172,7 @@ class AuthCubit extends Cubit<AuthState> {
         loggedOutDueToTokenFailure: false, // Reset flagi przy udanym logowaniu
       ));
     } catch (e) {
-      // Obsługa błędów
-      String errorMessage = "Błąd rejestracji: ${e.toString()}";
-
-      // Sprawdzamy typ wyjątku i dostosowujemy komunikat
-      if (e.toString().contains("ApiException")) {
-        errorMessage = e.toString().replaceAll("ApiException: ", "");
-      } else if (e.toString().contains("NetworkException")) {
-        errorMessage =
-            "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
-      } else if (e.toString().contains("TimeoutException")) {
-        errorMessage =
-            "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
-      }
-
-      emit(state.copyWith(isLoading: false, errorMessage: Value(errorMessage)));
+      emit(state.copyWith(isLoading: false, errorMessage: Value(e.toString())));
     }
   }
 
@@ -271,18 +243,7 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       await authRepository.logout();
     } catch (e) {
-      errorMessage = "Błąd wylogowania: ${e.toString()}";
-
-      // Sprawdzamy typ wyjątku i dostosowujemy komunikat
-      if (e.toString().contains("ApiException")) {
-        errorMessage = e.toString().replaceAll("ApiException: ", "");
-      } else if (e.toString().contains("NetworkException")) {
-        errorMessage =
-            "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
-      } else if (e.toString().contains("TimeoutException")) {
-        errorMessage =
-            "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
-      }
+      errorMessage = e.toString();
     }
 
     emit(const AuthState().copyWith(
