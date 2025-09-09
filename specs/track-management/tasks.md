@@ -11,20 +11,20 @@
   - Add proper error handling and state transitions for all operations
   - _Requirements: 2.1, 2.3, 3.1, 3.5_
 
-- [ ] 3. Create track management UI components
-- [ ] 3.1 Implement ManageTracksButton widget
+- [x] 3. Create track management UI components
+- [x] 3.1 Implement ManageTracksButton widget
   - Create `ManageTracksButton` that displays management options in a bottom sheet
   - Integrate with `TrackDetailCubit` for state management
   - Reuse existing `OptionsBottomSheet` component following established UI patterns
   - _Requirements: 1.1, 1.2, 3.3_
 
-- [ ] 3.2 Implement EditTrackDialog widget
+- [x] 3.2 Implement EditTrackDialog widget
   - Create edit dialog with form fields for track title and BPM
   - Add real-time validation for title (required) and BPM (optional, positive integer)
   - Handle form submission and integration with `TrackDetailCubit.updateTrack`
   - _Requirements: 1.3, 1.6, 4.2_
 
-- [ ] 3.3 Implement DeleteTrackDialog widget
+- [x] 3.3 Implement DeleteTrackDialog widget
   - Create confirmation dialog showing track information before deletion
   - Handle delete confirmation and integration with `TrackDetailCubit.deleteTrack`
   - Display appropriate loading states during deletion process
