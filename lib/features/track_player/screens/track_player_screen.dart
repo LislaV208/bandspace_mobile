@@ -73,6 +73,10 @@ class TrackPlayerScreen extends StatelessWidget {
           if (detailState is TrackDetailDeleteSuccess) {
             Navigator.of(context).pop();
           }
+          // Po pomyślnej aktualizacji ścieżki, zaktualizuj TrackPlayerCubit
+          else if (detailState is TrackDetailUpdateSuccess) {
+            context.read<TrackPlayerCubit>().updateTrack(detailState.track);
+          }
         },
         child: Scaffold(
           appBar: AppBar(

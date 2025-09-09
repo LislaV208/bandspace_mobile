@@ -352,6 +352,17 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     );
   }
 
+  /// Aktualizuje konkretną ścieżkę w liście tracks
+  void updateTrack(Track updatedTrack) {
+    final currentTracks = List<Track>.from(state.tracks);
+    final trackIndex = currentTracks.indexWhere((track) => track.id == updatedTrack.id);
+    
+    if (trackIndex != -1) {
+      currentTracks[trackIndex] = updatedTrack;
+      emit(state.copyWith(tracks: currentTracks));
+    }
+  }
+
   @override
   Future<void> close() {
     _playerStateSubscription?.cancel();

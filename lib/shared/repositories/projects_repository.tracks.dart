@@ -139,7 +139,7 @@ extension TracksManagement on ProjectsRepository {
     int trackId,
     UpdateTrackData updateData,
   ) async {
-    return updateSingle<Track>(
+    final updatedTrack = await updateSingle<Track>(
       methodName: 'getTrack',
       parameters: {'projectId': projectId, 'trackId': trackId},
       updateCall: () async {
@@ -151,6 +151,11 @@ extension TracksManagement on ProjectsRepository {
       },
       fromJson: (json) => _trackFromJson(json),
     );
+
+    // Odśwież listę ścieżek aby zaktualizować cache i reaktywny stream
+    await refreshTracks(projectId);
+
+    return updatedTrack;
   }
 
   // Usuwa ścieżkę z projektu.
