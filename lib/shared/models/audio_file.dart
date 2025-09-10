@@ -6,7 +6,7 @@ class AudioFile extends Equatable {
   final String mimeType;
   final int size;
   final DateTime createdAt;
-  final String downloadUrl;
+  final String? downloadUrl;
 
   const AudioFile({
     required this.id,
@@ -40,5 +40,12 @@ class AudioFile extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, filename, mimeType, size, createdAt, downloadUrl];
+  List<Object?> get props => [
+    id,
+    filename,
+    mimeType,
+    size,
+    createdAt,
+    downloadUrl,
+  ];
 }
