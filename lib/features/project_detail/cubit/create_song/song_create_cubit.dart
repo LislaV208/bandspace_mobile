@@ -22,7 +22,8 @@ class NewSongCubit extends Cubit<NewSongState> {
 
     try {
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.audio,
+        type: FileType.custom,
+        allowedExtensions: ['mp3', 'wav', 'm4a', 'flac', 'aac'],
         allowMultiple: false,
       );
 
