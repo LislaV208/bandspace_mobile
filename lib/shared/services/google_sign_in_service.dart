@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
+
+import 'package:bandspace_mobile/core/config/env_config.dart';
 
 /// Serwis odpowiedzialny za obsługę Google Sign-In
 ///
@@ -14,6 +17,7 @@ class GoogleSignInService {
   GoogleSignInAccount? _currentUser;
   StreamSubscription<GoogleSignInAuthenticationEvent>? _authSubscription;
   bool _isInitialized = false;
+  final _envConfig = EnvConfig();
 
   late final GoogleSignIn _googleSignIn;
 
@@ -52,10 +56,11 @@ class GoogleSignInService {
     if (_isInitialized) return;
 
     try {
-      // TODO: load from env
       await _googleSignIn.initialize(
-        serverClientId:
-            '773891250246-o4b9rrrbrped2joef6dpa4o7mv2blv8m.apps.googleusercontent.com',
+        clientId: Platform.isIOS
+            ? _envConfig.googleIosClientId
+            : null, // Android używa domyślnej konfiguracji
+        serverClientId: _envConfig.googleWebClientId,
       );
 
       // Spróbuj lekkiej autentyfikacji przy starcie

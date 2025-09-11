@@ -67,7 +67,7 @@ class AuthRepository extends ApiRepository {
 
       if (googleAccount == null) {
         throw const InvalidCredentialsException(
-          'Anulowano logowanie przez Google'
+          'Anulowano logowanie przez Google',
         );
       }
 
@@ -77,7 +77,7 @@ class AuthRepository extends ApiRepository {
 
       if (googleAuth.idToken == null) {
         throw const InvalidCredentialsException(
-          'Nie udało się pobrać tokenu ID Google'
+          'Nie udało się pobrać tokenu ID Google',
         );
       }
 
@@ -138,7 +138,7 @@ class AuthRepository extends ApiRepository {
         return session;
       } else {
         throw ValidationException(
-          responseData['message'] ?? 'Nieznany błąd podczas rejestracji'
+          responseData['message'] ?? 'Nieznany błąd podczas rejestracji',
         );
       }
     } catch (e) {
@@ -146,7 +146,7 @@ class AuthRepository extends ApiRepository {
         rethrow;
       }
       throw ValidationException(
-        'Wystąpił nieoczekiwany błąd podczas rejestracji: $e'
+        'Wystąpił nieoczekiwany błąd podczas rejestracji: $e',
       );
     }
   }
@@ -196,7 +196,7 @@ class AuthRepository extends ApiRepository {
       await storageService.clearSession();
     } catch (e) {
       throw ValidationException(
-        'Wystąpił błąd podczas czyszczenia lokalnej sesji: $e'
+        'Wystąpił błąd podczas czyszczenia lokalnej sesji: $e',
       );
     }
   }
@@ -247,7 +247,7 @@ class AuthRepository extends ApiRepository {
         rethrow;
       }
       throw ValidationException(
-        'Wystąpił błąd podczas żądania resetowania hasła: $e'
+        'Wystąpił błąd podczas żądania resetowania hasła: $e',
       );
     }
   }

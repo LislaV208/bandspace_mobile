@@ -29,6 +29,12 @@ class EnvConfig {
   /// Zwraca bazowy URL API z konfiguracji środowiskowej.
   String get apiBaseUrl => dotenv.get('API_BASE_URL');
 
+  /// Zwraca iOS Client ID dla Google Sign-In.
+  String get googleIosClientId => dotenv.get('GOOGLE_IOS_CLIENT_ID');
+
+  /// Zwraca Web Client ID dla Google Sign-In (używany jako serverClientId).
+  String get googleWebClientId => dotenv.get('GOOGLE_WEB_CLIENT_ID');
+
   /// Zwraca wartość zmiennej środowiskowej o podanej nazwie.
   ///
   /// Jeśli zmienna nie istnieje, zwraca wartość domyślną [defaultValue].
