@@ -18,7 +18,7 @@ class TrackVersionDetailsWidget extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           opacity: trackVersion?.bpm != null ? 1.0 : 0.0,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(32.0, 16.0, 32.0, 0.0),
+            padding: const EdgeInsets.fromLTRB(32.0, 0.0, 32.0, 16.0),
             child: _buildDetailRow(
               context,
               icon: Icons.speed,

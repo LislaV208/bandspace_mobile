@@ -52,6 +52,7 @@ class NewFullPlayerWidget extends StatelessWidget {
                         80.0,
                       ),
                     ),
+
                     TrackInfoWidget(project: project),
                     const ProgressBarWidget(),
                     if (hasFile)

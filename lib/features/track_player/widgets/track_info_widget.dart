@@ -22,7 +22,9 @@ class TrackInfoWidget extends StatelessWidget {
     return Padding(
       padding: isCompact
           ? EdgeInsets.zero
-          : const EdgeInsets.symmetric(horizontal: 32.0),
+          : const EdgeInsets.only(
+              top: 16,
+            ),
       child: Column(
         mainAxisSize: isCompact ? MainAxisSize.min : MainAxisSize.max,
         crossAxisAlignment: isCompact

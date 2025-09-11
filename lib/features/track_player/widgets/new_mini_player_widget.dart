@@ -28,7 +28,7 @@ class NewMiniPlayerWidget extends StatelessWidget {
       opacity: clampedOpacity,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: onTap,
+        onTap: clampedOpacity > 0.9 ? onTap : null,
         child: Row(
           children: [
             Padding(
