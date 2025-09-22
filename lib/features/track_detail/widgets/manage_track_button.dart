@@ -9,16 +9,19 @@ import 'package:bandspace_mobile/features/track_detail/cubit/track_detail_cubit.
 import 'package:bandspace_mobile/features/track_detail/cubit/track_detail_state.dart';
 import 'package:bandspace_mobile/features/track_detail/widgets/delete_track_dialog.dart';
 import 'package:bandspace_mobile/features/track_detail/widgets/edit_track_dialog.dart';
+import 'package:bandspace_mobile/features/track_versions/cubit/track_versions_cubit.dart';
+import 'package:bandspace_mobile/features/track_versions/screens/track_versions_screen.dart';
+import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
-class ManageTracksButton extends StatelessWidget {
-  const ManageTracksButton({super.key});
+class ManageTrackButton extends StatelessWidget {
+  const ManageTrackButton({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TrackDetailCubit, TrackDetailState>(
       builder: (context, state) {
         final cubit = context.read<TrackDetailCubit>();
-        
+
         // Jeśli wystąpił błąd ładowania, pokaż ikonę błędu zamiast przycisku zarządzania
         if (state is TrackDetailError) {
           return IconButton(
@@ -39,7 +42,7 @@ class ManageTracksButton extends StatelessWidget {
             tooltip: 'Błąd ładowania danych utworu',
           );
         }
-        
+
         // Pokaż przycisk tylko gdy mamy załadowaną ścieżkę
         if (state is! TrackDetailWithData) {
           return const SizedBox.shrink();
@@ -65,6 +68,15 @@ class ManageTracksButton extends StatelessWidget {
                         onTap: () {
                           Navigator.pop(context);
                           _showEditDialog(context, track, cubit);
+                        },
+                      ),
+                      BottomSheetOption(
+                        icon: LucideIcons.layers,
+                        title: 'Zarządzaj wersjami',
+                        subtitle: 'Wyświetl i dodaj wersje utworu',
+                        onTap: () {
+                          Navigator.pop(context);
+                          _navigateToVersions(context, track);
                         },
                       ),
                       BottomSheetOption(
@@ -115,6 +127,34 @@ class ManageTracksButton extends StatelessWidget {
       context: context,
       track: track,
       cubit: cubit,
+    );
+  }
+
+  void _navigateToVersions(BuildContext context, track) {
+    // Sprawdź czy mamy dostęp do projectId w kontekście
+    final cubit = context.read<TrackDetailCubit>();
+    if (cubit.projectId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Brak informacji o projekcie'),
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BlocProvider(
+          create: (context) => TrackVersionsCubit(
+            repository: context.read<ProjectsRepository>(),
+          ),
+          child: TrackVersionsScreen(
+            track: track,
+            projectId: cubit.projectId!,
+          ),
+        ),
+      ),
     );
   }
 }

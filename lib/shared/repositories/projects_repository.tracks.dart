@@ -68,12 +68,25 @@ extension TracksManagement on ProjectsRepository {
   }
 
   // Pobiera listę wersji dla danej ścieżki.
-  // GET /api/tracks/{trackId}/versions
-  Future<RepositoryResponse<List<Version>>> getVersions(int trackId) {
+  // GET /api/projects/{projectId}/tracks/{trackId}/versions
+  Future<RepositoryResponse<List<Version>>> getTrackVersions(
+    int projectId,
+    int trackId,
+  ) {
     return hybridListStream<Version>(
-      methodName: 'getVersions',
-      parameters: {'trackId': trackId},
-      remoteCall: () async => _fetchVersions(trackId),
+      methodName: 'getTrackVersions',
+      parameters: {'projectId': projectId, 'trackId': trackId},
+      remoteCall: () async => _fetchTrackVersions(projectId, trackId),
+      fromJson: (json) => _versionFromJson(json),
+    );
+  }
+
+  // Odświeża listę wersji dla danej ścieżki.
+  Future<void> refreshTrackVersions(int projectId, int trackId) async {
+    await refreshList<Version>(
+      listMethodName: 'getTrackVersions',
+      listParameters: {'projectId': projectId, 'trackId': trackId},
+      remoteCall: () async => _fetchTrackVersions(projectId, trackId),
       fromJson: (json) => _versionFromJson(json),
     );
   }
@@ -98,9 +111,9 @@ extension TracksManagement on ProjectsRepository {
     return tracksData.map((trackData) => _trackFromJson(trackData)).toList();
   }
 
-  Future<List<Version>> _fetchVersions(int trackId) async {
+  Future<List<Version>> _fetchTrackVersions(int projectId, int trackId) async {
     final response = await apiClient.get(
-      '/api/tracks/$trackId/versions',
+      '/api/projects/$projectId/tracks/$trackId/versions',
     );
 
     final List<dynamic> versionsData = response.data;

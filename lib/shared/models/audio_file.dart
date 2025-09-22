@@ -28,6 +28,17 @@ class AudioFile extends Equatable {
     );
   }
 
+  factory AudioFile.fromJsonWithUploadedBy(Map<String, dynamic> json) {
+    return AudioFile(
+      id: json['id'],
+      filename: json['filename'],
+      mimeType: json['mime_type'],
+      size: json['size'],
+      createdAt: DateTime.parse(json['createdAt']).toLocal(),
+      downloadUrl: json['downloadUrl'],
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

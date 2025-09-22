@@ -1,46 +1,80 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:bandspace_mobile/shared/models/audio_file.dart';
+import 'package:bandspace_mobile/shared/models/user.dart';
+
+enum VersionCategory {
+  idea('Pomysł'),
+  attempt('Próba'),
+  demo('Demo'),
+  mix('Miks'),
+  master('Master');
+
+  const VersionCategory(this.displayName);
+  final String displayName;
+
+  static VersionCategory? fromString(String? value) {
+    if (value == null) return null;
+    for (final category in VersionCategory.values) {
+      if (category.displayName == value) {
+        return category;
+      }
+    }
+    return null;
+  }
+}
 
 class Version extends Equatable {
   final int id;
-  final String? category;
+  final VersionCategory? category;
   final int? bpm;
-  final int durationMs;
+  final int? durationMs;
   final DateTime createdAt;
   final AudioFile? file;
+  final User? uploader;
 
   const Version({
     required this.id,
-    required this.category,
+    this.category,
     this.bpm,
-    required this.durationMs,
+    this.durationMs,
     required this.createdAt,
-    required this.file,
+    this.file,
+    this.uploader,
   });
 
   factory Version.fromJson(Map<String, dynamic> json) {
     return Version(
       id: json['id'],
-      category: json['category'],
+      category: VersionCategory.fromString(json['category']),
       bpm: json['bpm'],
       durationMs: json['durationMs'],
       createdAt: DateTime.parse(json['createdAt']).toLocal(),
       file: json['file'] != null ? AudioFile.fromJson(json['file']) : null,
+      uploader: json['uploader'] != null ? User.fromJson(json['uploader']) : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'category': category,
+      'category': category?.displayName,
       'bpm': bpm,
       'durationMs': durationMs,
       'createdAt': createdAt.toIso8601String(),
       'file': file?.toJson(),
+      'uploader': uploader?.toJson(),
     };
   }
 
   @override
-  List<Object?> get props => [id, category, bpm, durationMs, createdAt, file];
+  List<Object?> get props => [
+        id,
+        category,
+        bpm,
+        durationMs,
+        createdAt,
+        file,
+        uploader,
+      ];
 }

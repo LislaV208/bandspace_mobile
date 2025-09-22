@@ -133,6 +133,9 @@ class TrackDetailCubit extends Cubit<TrackDetailState> {
     return null;
   }
 
+  /// Pobiera ID projektu
+  int? get projectId => _projectId;
+
   @override
   Future<void> close() {
     _trackSubscription?.cancel();

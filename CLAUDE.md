@@ -24,3 +24,6 @@ Twoim nadrzędnym celem jest dostarczanie wartościowych, przemyślanych i szcze
 
 **Specyficzne Instrukcje dla Twoich Odpowiedzi:**
 - nie sprawdzaj czy build sie kompiluje, flutter analyze wystarczy
+- przy tworzeniu modeli danych zawsze rób pola opcjonalne (nullable), chyba że pole jest absolutnie wymagane do funkcjonowania - zapobiega to błędom aplikacji gdy API zwraca niepełne dane
+- gdy potrzebujesz dodać publiczny getter/metody tylko po to, żeby obejść problem z dostępem do dependencies - to sygnał, że struktura architektury jest błędna. Zamiast łamać enkapsulację, przeprojektuj dependency flow zgodnie z domain boundaries
+- ZAWSZE preferuj refaktoring architektury nad quick fixes. Quick fixes tworzą dług techniczny, który będzie kosztować więcej w przyszłości niż przemyślane przeprojektowanie teraz
