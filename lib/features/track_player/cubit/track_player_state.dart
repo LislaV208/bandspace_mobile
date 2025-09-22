@@ -13,6 +13,7 @@ class TrackPlayerState extends Equatable {
   // Dane
   final List<Track> tracks;
   final int currentTrackIndex;
+  final int? currentProjectId;
 
   // Stan odtwarzacza (bezpośrednio z just_audio)
   final PlayerUiStatus playerUiStatus;
@@ -32,6 +33,7 @@ class TrackPlayerState extends Equatable {
     this.errorMessage,
     this.tracks = const [],
     this.currentTrackIndex = 0,
+    this.currentProjectId,
     this.playerUiStatus = PlayerUiStatus.idle,
     this.currentPosition = Duration.zero,
     this.bufferedPosition = Duration.zero,
@@ -70,6 +72,7 @@ class TrackPlayerState extends Equatable {
     String? errorMessage,
     List<Track>? tracks,
     int? currentTrackIndex,
+    int? currentProjectId,
     PlayerUiStatus? playerUiStatus,
     Duration? currentPosition,
     Duration? bufferedPosition,
@@ -85,6 +88,7 @@ class TrackPlayerState extends Equatable {
       errorMessage: errorMessage ?? this.errorMessage,
       tracks: tracks ?? this.tracks,
       currentTrackIndex: currentTrackIndex ?? this.currentTrackIndex,
+      currentProjectId: currentProjectId ?? this.currentProjectId,
       playerUiStatus: playerUiStatus ?? this.playerUiStatus,
       currentPosition: currentPosition ?? this.currentPosition,
       bufferedPosition: bufferedPosition ?? this.bufferedPosition,
@@ -103,6 +107,7 @@ class TrackPlayerState extends Equatable {
     errorMessage,
     tracks,
     currentTrackIndex,
+    currentProjectId,
     playerUiStatus,
     currentPosition,
     bufferedPosition,

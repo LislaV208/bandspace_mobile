@@ -64,6 +64,7 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       state.copyWith(
         tracks: tracks,
         currentTrackIndex: initialIndex != -1 ? initialIndex : 0,
+        currentProjectId: projectId,
       ),
     );
 

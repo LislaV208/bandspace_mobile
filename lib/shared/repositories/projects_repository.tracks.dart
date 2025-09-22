@@ -202,4 +202,40 @@ extension TracksManagement on ProjectsRepository {
       fromJson: (json) => _trackFromJson(json),
     );
   }
+
+  // Dodaje plik do istniejącego utworu.
+  // POST /api/projects/{projectId}/tracks/{trackId}/file
+  Future<Track> addTrackFile(
+    int projectId,
+    int trackId,
+    File file, {
+    required void Function(int sent, int total)? onProgress,
+  }) async {
+    final updatedTrack = await updateSingle<Track>(
+      methodName: 'getTrack',
+      parameters: {'projectId': projectId, 'trackId': trackId},
+      updateCall: () async {
+        final formData = FormData.fromMap({
+          'file': await MultipartFile.fromFile(
+            file.path,
+            filename: file.path.split('/').last,
+          ),
+        });
+
+        final response = await apiClient.post(
+          '/api/projects/$projectId/tracks/$trackId/file',
+          data: formData,
+          onSendProgress: onProgress,
+        );
+
+        return Track.fromJson(response.data);
+      },
+      fromJson: (json) => _trackFromJson(json),
+    );
+
+    // Odśwież listę ścieżek aby zaktualizować cache i reaktywny stream
+    await refreshTracks(projectId);
+
+    return updatedTrack;
+  }
 }

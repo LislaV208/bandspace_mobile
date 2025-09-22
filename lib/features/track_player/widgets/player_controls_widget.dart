@@ -14,13 +14,6 @@ class PlayerControlsWidget extends StatelessWidget {
     return BlocBuilder<TrackPlayerCubit, TrackPlayerState>(
       builder: (context, state) {
         final isPlaying = state.playerUiStatus == PlayerUiStatus.playing;
-        // Sprawdź czy aktualny utwór ma plik na podstawie Song.file
-        final hasFile = state.currentTrack?.mainVersion?.file != null;
-
-        // Loading indicator tylko gdy użytkownik zainicjował ładowanie
-        // final isUserInitiatedLoading =
-        //     state.playerUiStatus == PlayerUiStatus.loading &&
-        //     state.isUserInitiatedLoading;
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32.0),
@@ -51,25 +44,12 @@ class PlayerControlsWidget extends StatelessWidget {
                   ),
                 ),
                 child: IconButton(
-                  onPressed: hasFile
-                      ? () {
-                          context.read<TrackPlayerCubit>().togglePlayPause();
-                        }
-                      : null,
-                  icon:
-                      // isUserInitiatedLoading
-                      //     ? SizedBox(
-                      //         width: 24,
-                      //         height: 24,
-                      //         child: CircularProgressIndicator(
-                      //           strokeWidth: 2,
-                      //           color: Colors.white,
-                      //         ),
-                      //       )
-                      //     :
-                      Icon(
-                        isPlaying ? LucideIcons.pause : LucideIcons.play,
-                      ),
+                  onPressed: () {
+                    context.read<TrackPlayerCubit>().togglePlayPause();
+                  },
+                  icon: Icon(
+                    isPlaying ? LucideIcons.pause : LucideIcons.play,
+                  ),
                   iconSize: 32,
                   color: Colors.white,
                 ),
