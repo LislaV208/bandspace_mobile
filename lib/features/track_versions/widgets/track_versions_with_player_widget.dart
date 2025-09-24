@@ -45,6 +45,7 @@ class TrackVersionsWithPlayerWidget extends StatelessWidget {
         ),
 
         TrackVersionsPlayerWidget(
+          versions: state.versions,
           currentVersion: state.currentVersion,
           isPlaying: state.playerUiStatus == PlayerUiStatus.playing,
           isSeeking: state.isSeeking,

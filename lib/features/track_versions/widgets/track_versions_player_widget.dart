@@ -6,6 +6,7 @@ import 'package:bandspace_mobile/core/utils/formatters.dart';
 import 'package:bandspace_mobile/shared/models/version.dart';
 
 class TrackVersionsPlayerWidget extends StatelessWidget {
+  final List<Version> versions;
   final Version? currentVersion;
   final bool isPlaying;
   final bool isSeeking;
@@ -21,6 +22,7 @@ class TrackVersionsPlayerWidget extends StatelessWidget {
 
   const TrackVersionsPlayerWidget({
     super.key,
+    required this.versions,
     this.currentVersion,
     this.isPlaying = false,
     this.isSeeking = false,
@@ -34,6 +36,20 @@ class TrackVersionsPlayerWidget extends StatelessWidget {
     this.onSeekUpdate,
     this.onSeekEnd,
   });
+
+  String _getVersionNumberText() {
+    if (currentVersion == null) {
+      return 'Wersja utworu';
+    }
+
+    final currentIndex = versions.indexWhere((v) => v.id == currentVersion!.id);
+    if (currentIndex == -1) {
+      return 'Wersja utworu';
+    }
+
+    final versionNumber = versions.length - currentIndex;
+    return 'Wersja $versionNumber';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +92,7 @@ class TrackVersionsPlayerWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Wersja utworu',
+                        _getVersionNumberText(),
                         style: TextStyle(
                           fontSize: 14,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
