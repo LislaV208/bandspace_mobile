@@ -9,6 +9,7 @@ import 'package:bandspace_mobile/features/track_versions/cubit/track_versions_st
 import 'package:bandspace_mobile/features/track_versions/screens/add_track_version_screen.dart';
 import 'package:bandspace_mobile/features/track_versions/widgets/track_versions_with_player_widget.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
+import 'package:bandspace_mobile/shared/models/version.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 class TrackVersionsScreen extends StatefulWidget {
@@ -37,38 +38,46 @@ class _TrackVersionsScreenState extends State<TrackVersionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Wersje utworu',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            Text(
-              widget.track.title,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _handleBackPress(context);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Wersje utworu',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Text(
+                widget.track.title,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
         ),
-      ),
-      body: BlocBuilder<TrackVersionsCubit, TrackVersionsState>(
-        builder: (context, state) {
-          return switch (state) {
-            TrackVersionsInitial() => const SizedBox.shrink(),
-            TrackVersionsLoading() => const Center(
-              child: CircularProgressIndicator(),
-            ),
-            TrackVersionsError() => _buildErrorState(state.message),
-            TrackVersionsWithData() => TrackVersionsWithPlayerWidget(
-              state: state,
-              onRefresh: () =>
-                  context.read<TrackVersionsCubit>().refreshVersions(),
-              onAddVersion: () => _navigateToAddVersion(),
-            ),
-          };
-        },
+        body: BlocBuilder<TrackVersionsCubit, TrackVersionsState>(
+          builder: (context, state) {
+            return switch (state) {
+              TrackVersionsInitial() => const SizedBox.shrink(),
+              TrackVersionsLoading() => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              TrackVersionsError() => _buildErrorState(state.message),
+              TrackVersionsWithData() => TrackVersionsWithPlayerWidget(
+                state: state,
+                onRefresh: () =>
+                    context.read<TrackVersionsCubit>().refreshVersions(),
+                onAddVersion: () => _navigateToAddVersion(),
+              ),
+            };
+          },
+        ),
       ),
     );
   }
@@ -138,5 +147,17 @@ class _TrackVersionsScreenState extends State<TrackVersionsScreen> {
     if (result != null && mounted) {
       context.read<TrackVersionsCubit>().refreshVersions();
     }
+  }
+
+  void _handleBackPress(BuildContext context) {
+    final cubit = context.read<TrackVersionsCubit>();
+    final state = cubit.state;
+    Version? latestVersion;
+
+    if (state is TrackVersionsWithData && state.versions.isNotEmpty) {
+      latestVersion = state.versions.first;
+    }
+
+    Navigator.of(context).pop(latestVersion);
   }
 }

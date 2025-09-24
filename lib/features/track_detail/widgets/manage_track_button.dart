@@ -12,6 +12,7 @@ import 'package:bandspace_mobile/features/track_detail/widgets/edit_track_dialog
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_cubit.dart';
 import 'package:bandspace_mobile/features/track_versions/cubit/track_versions_cubit.dart';
 import 'package:bandspace_mobile/features/track_versions/screens/track_versions_screen.dart';
+import 'package:bandspace_mobile/shared/models/version.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 class ManageTrackButton extends StatelessWidget {
@@ -152,7 +153,7 @@ class ManageTrackButton extends StatelessWidget {
 
     if (!context.mounted) return;
 
-    Navigator.push(
+    final newVersion = await Navigator.push<Version?>(
       context,
       MaterialPageRoute(
         builder: (context) => BlocProvider(
@@ -166,5 +167,13 @@ class ManageTrackButton extends StatelessWidget {
         ),
       ),
     );
+
+    // Jeśli została zwrócona wersja, zaktualizuj TrackPlayerCubit
+    if (newVersion != null && context.mounted) {
+      context.read<TrackPlayerCubit>().updateTrackMainVersion(
+        track.id,
+        newVersion,
+      );
+    }
   }
 }

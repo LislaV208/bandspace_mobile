@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -8,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_state.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
+import 'package:bandspace_mobile/shared/models/version.dart';
 
 class TrackPlayerCubit extends Cubit<TrackPlayerState> {
   final AudioPlayer _audioPlayer = AudioPlayer();
@@ -370,6 +372,81 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     if (trackIndex != -1) {
       currentTracks[trackIndex] = updatedTrack;
       emit(state.copyWith(tracks: currentTracks));
+    }
+  }
+
+  /// Aktualizuje główną wersję dla danego track-u
+  void updateTrackMainVersion(int trackId, Version newMainVersion) {
+    final currentTracks = List<Track>.from(state.tracks);
+    final trackIndex = currentTracks.indexWhere(
+      (track) => track.id == trackId,
+    );
+
+    if (trackIndex != -1) {
+      final currentTrack = currentTracks[trackIndex];
+
+      // Sprawdź czy wersja rzeczywiście się zmieniła
+      if (currentTrack.mainVersion?.id == newMainVersion.id) {
+        log('Version unchanged for track $trackId, skipping update',
+            name: 'TrackPlayerCubit');
+        return;
+      }
+
+      final updatedTrack = Track(
+        id: currentTrack.id,
+        title: currentTrack.title,
+        createdAt: currentTrack.createdAt,
+        updatedAt: currentTrack.updatedAt,
+        mainVersion: newMainVersion,
+        createdBy: currentTrack.createdBy,
+      );
+
+      currentTracks[trackIndex] = updatedTrack;
+      emit(state.copyWith(tracks: currentTracks));
+
+      log('Updated main version for track $trackId to version ${newMainVersion.id}',
+          name: 'TrackPlayerCubit');
+
+      // Jeśli to obecnie odtwarzany track, przebuduj audio sources
+      if (state.currentTrack?.id == trackId) {
+        _rebuildAudioSourcesForCurrentTrack(updatedTrack);
+      }
+    }
+  }
+
+  Future<void> _rebuildAudioSourcesForCurrentTrack(Track updatedTrack) async {
+    final url = updatedTrack.mainVersion?.file?.downloadUrl;
+    if (url == null) {
+      log(
+        'Cannot rebuild audio sources - no download URL for track ${updatedTrack.id}',
+        name: 'TrackPlayerCubit',
+      );
+      return;
+    }
+
+    try {
+      // Utwórz nowy audio source dla zaktualizowanego track-u
+      final audioSource = await _createCachingAudioSource(url, updatedTrack.id);
+      final playerIndex = _trackIdToPlayerIndex[updatedTrack.id];
+
+      if (playerIndex != null) {
+        // Zastąp audio source w player-ze
+        final currentSequence = _audioPlayer.sequence;
+        final sources = List<AudioSource>.from(currentSequence);
+        sources[playerIndex] = audioSource;
+
+        await _audioPlayer.setAudioSources(sources);
+
+        log(
+          'Rebuilt audio source for track ${updatedTrack.id} with new version',
+          name: 'TrackPlayerCubit',
+        );
+      }
+    } catch (e) {
+      log(
+        'Failed to rebuild audio sources for track ${updatedTrack.id}: $e',
+        name: 'TrackPlayerCubit',
+      );
     }
   }
 
