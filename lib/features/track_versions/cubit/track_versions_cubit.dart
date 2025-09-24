@@ -365,6 +365,16 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
     }
   }
 
+  /// Zatrzymuje odtwarzanie (używane przy nawigacji do innych ekranów)
+  Future<void> pausePlayback() async {
+    final currentState = state;
+    if (currentState is TrackVersionsWithData &&
+        currentState.playerUiStatus == PlayerUiStatus.playing) {
+      log('[TrackVersionsCubit] Pausing playback due to navigation');
+      await _audioPlayer.pause();
+    }
+  }
+
   Future<void> playNext() async {
     final currentState = state;
     if (currentState is! TrackVersionsWithData || !currentState.hasNext) return;

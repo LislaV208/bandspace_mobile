@@ -111,6 +111,11 @@ class _TrackVersionsScreenState extends State<TrackVersionsScreen> {
   }
 
   void _navigateToAddVersion() async {
+    // Zatrzymaj odtwarzanie przed przejściem do nowego ekranu
+    await context.read<TrackVersionsCubit>().pausePlayback();
+
+    if (!mounted) return;
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(

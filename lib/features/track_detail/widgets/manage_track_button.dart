@@ -9,6 +9,7 @@ import 'package:bandspace_mobile/features/track_detail/cubit/track_detail_cubit.
 import 'package:bandspace_mobile/features/track_detail/cubit/track_detail_state.dart';
 import 'package:bandspace_mobile/features/track_detail/widgets/delete_track_dialog.dart';
 import 'package:bandspace_mobile/features/track_detail/widgets/edit_track_dialog.dart';
+import 'package:bandspace_mobile/features/track_player/cubit/track_player_cubit.dart';
 import 'package:bandspace_mobile/features/track_versions/cubit/track_versions_cubit.dart';
 import 'package:bandspace_mobile/features/track_versions/screens/track_versions_screen.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
@@ -130,7 +131,7 @@ class ManageTrackButton extends StatelessWidget {
     );
   }
 
-  void _navigateToVersions(BuildContext context, track) {
+  void _navigateToVersions(BuildContext context, track) async {
     // Sprawdź czy mamy dostęp do projectId w kontekście
     final cubit = context.read<TrackDetailCubit>();
     if (cubit.projectId == null) {
@@ -141,6 +142,15 @@ class ManageTrackButton extends StatelessWidget {
       );
       return;
     }
+
+    // Zatrzymaj odtwarzanie w TrackPlayerCubit przed przejściem do wersji
+    try {
+      await context.read<TrackPlayerCubit>().pausePlayback();
+    } catch (e) {
+      // TrackPlayerCubit może nie być dostępny w niektórych kontekstach - ignoruj błąd
+    }
+
+    if (!context.mounted) return;
 
     Navigator.push(
       context,

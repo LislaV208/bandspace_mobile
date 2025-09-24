@@ -161,6 +161,13 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     }
   }
 
+  /// Zatrzymuje odtwarzanie (używane przy nawigacji do innych ekranów)
+  Future<void> pausePlayback() async {
+    if (state.playerUiStatus == PlayerUiStatus.playing) {
+      await _audioPlayer.pause();
+    }
+  }
+
   void seek(Duration position) {
     _audioPlayer.seek(position);
   }
