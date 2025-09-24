@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:bandspace_mobile/core/utils/date_format_utils.dart';
+import 'package:bandspace_mobile/core/utils/formatters.dart';
 import 'package:bandspace_mobile/features/project_detail/screens/project_detail_screen.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/widgets/user_avatar.dart';
@@ -78,7 +78,7 @@ class ProjectListItem extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Utworzono ${DateFormatUtils.formatRelativeTime(project.createdAt)}',
+                    'Utworzono ${Formatters.formatRelativeTime(project.createdAt)}',
                   ),
                 ],
               ),

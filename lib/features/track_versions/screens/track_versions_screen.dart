@@ -7,7 +7,7 @@ import 'package:bandspace_mobile/features/track_versions/cubit/add_track_version
 import 'package:bandspace_mobile/features/track_versions/cubit/track_versions_cubit.dart';
 import 'package:bandspace_mobile/features/track_versions/cubit/track_versions_state.dart';
 import 'package:bandspace_mobile/features/track_versions/screens/add_track_version_screen.dart';
-import 'package:bandspace_mobile/features/track_versions/widgets/track_version_list_item.dart';
+import 'package:bandspace_mobile/features/track_versions/widgets/track_versions_with_player_widget.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
@@ -66,7 +66,10 @@ class _TrackVersionsScreenState extends State<TrackVersionsScreen> {
                 child: CircularProgressIndicator(),
               ),
             TrackVersionsError() => _buildErrorState(state.message),
-            TrackVersionsWithData() => _buildVersionsList(state),
+            TrackVersionsWithData() => TrackVersionsWithPlayerWidget(
+                state: state,
+                onRefresh: () => context.read<TrackVersionsCubit>().refreshVersions(),
+              ),
           };
         },
       ),
@@ -118,66 +121,6 @@ class _TrackVersionsScreenState extends State<TrackVersionsScreen> {
     );
   }
 
-  Widget _buildVersionsList(TrackVersionsWithData state) {
-    if (state.versions.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              LucideIcons.layers,
-              size: 64,
-              color: AppColors.textSecondary,
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Brak wersji',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Dodaj pierwszą wersję tego utworu',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: () => context.read<TrackVersionsCubit>().refreshVersions(),
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: state.versions.length,
-        itemBuilder: (context, index) {
-          final version = state.versions[index];
-          final versionNumber = state.versions.length - index; // Od najnowszej
-          final isLatest = index == 0; // Pierwsza w liście jest najnowsza
-
-          return TrackVersionListItem(
-            version: version,
-            versionNumber: versionNumber,
-            isLatest: isLatest,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Odtwarzanie wersji będzie wkrótce dostępne'),
-                ),
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
 
   void _navigateToAddVersion() async {
     final result = await Navigator.push(

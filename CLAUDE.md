@@ -27,3 +27,5 @@ Twoim nadrzędnym celem jest dostarczanie wartościowych, przemyślanych i szcze
 - przy tworzeniu modeli danych zawsze rób pola opcjonalne (nullable), chyba że pole jest absolutnie wymagane do funkcjonowania - zapobiega to błędom aplikacji gdy API zwraca niepełne dane
 - gdy potrzebujesz dodać publiczny getter/metody tylko po to, żeby obejść problem z dostępem do dependencies - to sygnał, że struktura architektury jest błędna. Zamiast łamać enkapsulację, przeprojektuj dependency flow zgodnie z domain boundaries
 - ZAWSZE preferuj refaktoring architektury nad quick fixes. Quick fixes tworzą dług techniczny, który będzie kosztować więcej w przyszłości niż przemyślane przeprojektowanie teraz
+- ZAWSZE twórz osobne widget-y zamiast prywatnych metod _buildXxx() - osobne widgety są bardziej testowalne, reużywalne, mają własny lifecycle i redukują rebuild scope. Metodę _build używaj tylko dla prostych, jednorazowych fragmentów UI
+- NIE używaj AppColors bezpośrednio w UI - AppColors jest deprecated i służy tylko do konfiguracji AppTheme. W widgetach używaj Theme.of(context).colorScheme i Theme.of(context).textTheme zamiast bezpośredniego odwoływania się do AppColors

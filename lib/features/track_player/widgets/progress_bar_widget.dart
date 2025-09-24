@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/core/utils/duration_format_utils.dart';
+import 'package:bandspace_mobile/core/utils/formatters.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_cubit.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_state.dart';
 
@@ -81,7 +81,7 @@ class ProgressBarWidget extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    DurationFormatUtils.formatDuration(
+                    Formatters.formatDuration(
                       state.isSeeking && state.seekPosition != null
                           ? state.seekPosition!
                           : state.currentPosition,
@@ -89,7 +89,7 @@ class ProgressBarWidget extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   Text(
-                    DurationFormatUtils.formatDuration(
+                    Formatters.formatDuration(
                       state.totalDuration,
                     ),
                     style: Theme.of(context).textTheme.bodySmall,
