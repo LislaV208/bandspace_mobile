@@ -3,10 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/theme/app_colors.dart';
+import 'package:bandspace_mobile/features/track_versions/cubit/add_track_version/add_track_version_cubit.dart';
 import 'package:bandspace_mobile/features/track_versions/cubit/track_versions_cubit.dart';
 import 'package:bandspace_mobile/features/track_versions/cubit/track_versions_state.dart';
+import 'package:bandspace_mobile/features/track_versions/screens/add_track_version_screen.dart';
 import 'package:bandspace_mobile/features/track_versions/widgets/track_version_list_item.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
+import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 class TrackVersionsScreen extends StatefulWidget {
   final Track track;
@@ -68,13 +71,7 @@ class _TrackVersionsScreenState extends State<TrackVersionsScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Dodawanie nowych wersji będzie wkrótce dostępne'),
-            ),
-          );
-        },
+        onPressed: () => _navigateToAddVersion(),
         backgroundColor: AppColors.primary,
         child: const Icon(
           LucideIcons.plus,
@@ -180,5 +177,30 @@ class _TrackVersionsScreenState extends State<TrackVersionsScreen> {
         },
       ),
     );
+  }
+
+  void _navigateToAddVersion() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BlocProvider(
+          create: (context) => AddTrackVersionCubit(
+            repository: context.read<ProjectsRepository>(),
+            projectId: widget.projectId,
+            trackId: widget.track.id,
+            track: widget.track,
+          ),
+          child: AddTrackVersionScreen(
+            track: widget.track,
+            projectId: widget.projectId,
+          ),
+        ),
+      ),
+    );
+
+    // Jeśli wersja została dodana, odśwież listę
+    if (result != null && mounted) {
+      context.read<TrackVersionsCubit>().refreshVersions();
+    }
   }
 }

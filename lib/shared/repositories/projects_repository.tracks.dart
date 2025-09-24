@@ -216,6 +216,47 @@ extension TracksManagement on ProjectsRepository {
     );
   }
 
+  // Dodaje nową wersję do utworu.
+  // POST /api/projects/{projectId}/tracks/{trackId}/versions
+  Future<Version> addTrackVersion(
+    int projectId,
+    int trackId,
+    File file, {
+    int? bpm,
+    required void Function(int sent, int total)? onProgress,
+  }) async {
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(
+        file.path,
+        filename: file.path.split('/').last,
+      ),
+      if (bpm != null) 'bpm': bpm,
+    });
+
+    final response = await apiClient.post(
+      '/api/projects/$projectId/tracks/$trackId/versions',
+      data: formData,
+      onSendProgress: onProgress,
+    );
+
+    final newVersion = Version.fromJson(response.data);
+
+    // Odśwież wszystkie cache związane z tym utworem
+    try {
+      // Lista wersji
+      await refreshTrackVersions(projectId, trackId);
+      // Pojedynczy track (dla track player) - może zmienić się mainVersion
+      await refreshTrack(projectId, trackId);
+      // Lista utworów w projekcie - może zmienić się mainVersion
+      await refreshTracks(projectId);
+    } catch (e) {
+      log('Warning: Failed to refresh caches after adding version: $e');
+      // Kontynuuj mimo błędu refresh - główna operacja się powiodła
+    }
+
+    return newVersion;
+  }
+
   // Dodaje plik do istniejącego utworu.
   // POST /api/projects/{projectId}/tracks/{trackId}/file
   Future<Track> addTrackFile(
