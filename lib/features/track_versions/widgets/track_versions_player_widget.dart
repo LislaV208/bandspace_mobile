@@ -8,23 +8,31 @@ import 'package:bandspace_mobile/shared/models/version.dart';
 class TrackVersionsPlayerWidget extends StatelessWidget {
   final Version? currentVersion;
   final bool isPlaying;
+  final bool isSeeking;
   final Duration currentPosition;
+  final Duration? seekPosition;
   final Duration totalDuration;
   final VoidCallback? onPlayPause;
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
-  final ValueChanged<double>? onSeek;
+  final ValueChanged<double>? onSeekStart;
+  final ValueChanged<double>? onSeekUpdate;
+  final ValueChanged<double>? onSeekEnd;
 
   const TrackVersionsPlayerWidget({
     super.key,
     this.currentVersion,
     this.isPlaying = false,
+    this.isSeeking = false,
     this.currentPosition = Duration.zero,
+    this.seekPosition,
     this.totalDuration = Duration.zero,
     this.onPlayPause,
     this.onPrevious,
     this.onNext,
-    this.onSeek,
+    this.onSeekStart,
+    this.onSeekUpdate,
+    this.onSeekEnd,
   });
 
   @override
@@ -83,37 +91,60 @@ class TrackVersionsPlayerWidget extends StatelessWidget {
 
             Column(
               children: [
-                Row(
-                  children: [
-                    Text(
-                      Formatters.formatDuration(currentPosition),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                // Progress bar z takim samym stylem jak w TrackPlayer
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 4.0,
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 6.0,
                     ),
-                    Expanded(
-                      child: Slider(
-                        value: totalDuration.inMilliseconds > 0
-                            ? currentPosition.inMilliseconds /
-                                  totalDuration.inMilliseconds
-                            : 0.0,
-                        onChanged: (value) {
-                          if (totalDuration.inMilliseconds > 0 &&
-                              onSeek != null) {
-                            onSeek!(value);
-                          }
-                        },
+                    activeTrackColor: Theme.of(context).colorScheme.secondary,
+                    inactiveTrackColor: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHigh,
+                    thumbColor: Theme.of(context).colorScheme.secondary,
+                  ),
+                  child: Slider(
+                    value: totalDuration.inMilliseconds > 0
+                        ? ((isSeeking && seekPosition != null
+                                ? seekPosition!.inMilliseconds
+                                : currentPosition.inMilliseconds) /
+                            totalDuration.inMilliseconds).clamp(0.0, 1.0)
+                        : 0.0,
+                    onChangeStart: (value) {
+                      onSeekStart?.call(value);
+                    },
+                    onChanged: (value) {
+                      onSeekUpdate?.call(value);
+                    },
+                    onChangeEnd: (value) {
+                      onSeekEnd?.call(value);
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
+                // Time labels
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        Formatters.formatDuration(
+                          isSeeking && seekPosition != null
+                              ? seekPosition!
+                              : currentPosition,
+                        ),
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
-                    ),
-                    Text(
-                      Formatters.formatDuration(totalDuration),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      Text(
+                        Formatters.formatDuration(totalDuration),
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 8),
 

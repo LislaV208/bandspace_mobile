@@ -246,7 +246,19 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
 
   // Audio player controls
   Future<void> selectVersion(Version version) async {
-    await _selectVersionWithAutoplay(version);
+    final currentState = state;
+    if (currentState is! TrackVersionsWithData) return;
+
+    // Jeśli wybieramy aktualnie odtwarzaną wersję, przełącz play/pause
+    if (currentState.currentVersion?.id == version.id) {
+      log(
+        '[TrackVersionsCubit] Toggling play/pause for current version: ${version.id}',
+      );
+      await togglePlayPause();
+    } else {
+      // Wybieramy nową wersję - odtwórz automatycznie
+      await _selectVersionWithAutoplay(version);
+    }
   }
 
   /// Wybiera wersję bez automatycznego odtwarzania (używane przy pierwszym ładowaniu)

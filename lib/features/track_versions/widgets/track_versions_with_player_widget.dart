@@ -47,7 +47,9 @@ class TrackVersionsWithPlayerWidget extends StatelessWidget {
         TrackVersionsPlayerWidget(
           currentVersion: state.currentVersion,
           isPlaying: state.playerUiStatus == PlayerUiStatus.playing,
+          isSeeking: state.isSeeking,
           currentPosition: state.currentPosition,
+          seekPosition: state.seekPosition,
           totalDuration: state.totalDuration,
           onPlayPause: () {
             context.read<TrackVersionsCubit>().togglePlayPause();
@@ -62,8 +64,14 @@ class TrackVersionsWithPlayerWidget extends StatelessWidget {
                   context.read<TrackVersionsCubit>().playNext();
                 }
               : null,
-          onSeek: (value) {
-            context.read<TrackVersionsCubit>().seek(value);
+          onSeekStart: (value) {
+            context.read<TrackVersionsCubit>().startSeeking();
+          },
+          onSeekUpdate: (value) {
+            context.read<TrackVersionsCubit>().updateSeekPosition(value);
+          },
+          onSeekEnd: (value) {
+            context.read<TrackVersionsCubit>().endSeeking();
           },
         ),
       ],
