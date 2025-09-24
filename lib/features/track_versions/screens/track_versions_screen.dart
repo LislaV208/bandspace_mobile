@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/theme/app_colors.dart';
 import 'package:bandspace_mobile/features/track_versions/cubit/add_track_version/add_track_version_cubit.dart';
@@ -30,9 +30,9 @@ class _TrackVersionsScreenState extends State<TrackVersionsScreen> {
   void initState() {
     super.initState();
     context.read<TrackVersionsCubit>().initialize(
-          projectId: widget.projectId,
-          trackId: widget.track.id,
-        );
+      projectId: widget.projectId,
+      trackId: widget.track.id,
+    );
   }
 
   @override
@@ -63,23 +63,17 @@ class _TrackVersionsScreenState extends State<TrackVersionsScreen> {
           return switch (state) {
             TrackVersionsInitial() => const SizedBox.shrink(),
             TrackVersionsLoading() => const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: CircularProgressIndicator(),
+            ),
             TrackVersionsError() => _buildErrorState(state.message),
             TrackVersionsWithData() => TrackVersionsWithPlayerWidget(
-                state: state,
-                onRefresh: () => context.read<TrackVersionsCubit>().refreshVersions(),
-              ),
+              state: state,
+              onRefresh: () =>
+                  context.read<TrackVersionsCubit>().refreshVersions(),
+              onAddVersion: () => _navigateToAddVersion(),
+            ),
           };
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _navigateToAddVersion(),
-        backgroundColor: AppColors.primary,
-        child: const Icon(
-          LucideIcons.plus,
-          color: Colors.white,
-        ),
       ),
     );
   }
@@ -98,15 +92,15 @@ class _TrackVersionsScreenState extends State<TrackVersionsScreen> {
           Text(
             'Błąd ładowania wersji',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.textPrimary,
-                ),
+              color: AppColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             message,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+              color: AppColors.textSecondary,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -120,7 +114,6 @@ class _TrackVersionsScreenState extends State<TrackVersionsScreen> {
       ),
     );
   }
-
 
   void _navigateToAddVersion() async {
     final result = await Navigator.push(
