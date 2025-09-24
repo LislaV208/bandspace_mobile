@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/utils/formatters.dart';
+import 'package:bandspace_mobile/features/track_versions/cubit/track_versions_state.dart';
 import 'package:bandspace_mobile/shared/models/version.dart';
 
 class TrackVersionsListWidget extends StatelessWidget {
   final List<Version> versions;
   final Version? currentVersion;
+  final PlayerUiStatus playerUiStatus;
   final ValueChanged<Version> onVersionSelected;
   final VoidCallback onAddVersion;
 
@@ -15,6 +17,7 @@ class TrackVersionsListWidget extends StatelessWidget {
     super.key,
     required this.versions,
     this.currentVersion,
+    required this.playerUiStatus,
     required this.onVersionSelected,
     required this.onAddVersion,
   });
@@ -67,7 +70,8 @@ class TrackVersionsListWidget extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final version = versions[index];
                     final versionNumber = versions.length - index;
-                    final isPlaying = currentVersion?.id == version.id;
+                    final isSelected = currentVersion?.id == version.id;
+                    final isPlaying = isSelected && playerUiStatus == PlayerUiStatus.playing;
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 8),

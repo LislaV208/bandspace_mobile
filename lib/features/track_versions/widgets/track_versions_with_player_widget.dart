@@ -30,6 +30,7 @@ class TrackVersionsWithPlayerWidget extends StatelessWidget {
             child: TrackVersionsListWidget(
               versions: state.versions,
               currentVersion: state.currentVersion,
+              playerUiStatus: state.playerUiStatus,
               onVersionSelected: (Version version) {
                 context.read<TrackVersionsCubit>().selectVersion(version);
               },

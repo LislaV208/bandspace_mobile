@@ -55,30 +55,84 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
         _trackId!,
       );
 
+      final cached = response.cached;
+      final stream = response.stream;
+
+      // Jeśli mamy cache, pokaż dane z cache i oznacz jako refreshing
+      if (cached != null) {
+        final currentState = state;
+        if (currentState is TrackVersionsWithData) {
+          // Zachowaj pełny stan playera
+          emit(
+            TrackVersionsRefreshing(
+              cached,
+              currentVersion: currentState.currentVersion,
+              playerUiStatus: currentState.playerUiStatus,
+              currentPosition: currentState.currentPosition,
+              bufferedPosition: currentState.bufferedPosition,
+              totalDuration: currentState.totalDuration,
+              isSeeking: currentState.isSeeking,
+              seekPosition: currentState.seekPosition,
+            ),
+          );
+        } else {
+          // Pierwszne ładowanie z cache - wybierz najnowszą wersję bez odtwarzania
+          emit(TrackVersionsRefreshing(cached));
+          if (cached.isNotEmpty) {
+            // Delay to allow state to settle, then select version
+            Future.microtask(() => _selectVersionWithoutAutoplay(cached.first));
+          }
+        }
+      } else {
+        emit(const TrackVersionsLoading());
+      }
+
       _versionsSubscription?.cancel();
-      _versionsSubscription = response.stream.listen(
+      _versionsSubscription = stream.listen(
         (versions) {
           if (state is! TrackVersionsRefreshing) {
             emit(TrackVersionsLoaded(versions));
-
-            // Sprawdź czy to pierwsze ładowanie (brak currentVersion)
-            final shouldAutoSelectVersion =
-                versions.isNotEmpty &&
-                (state is! TrackVersionsWithData ||
-                    (state as TrackVersionsWithData).currentVersion == null);
-
-            log(
-              '[TrackVersionsCubit] Loaded ${versions.length} versions, shouldAutoSelect: $shouldAutoSelectVersion',
+          } else {
+            // Preserve player state when updating from cache
+            final currentState = state as TrackVersionsRefreshing;
+            emit(
+              TrackVersionsLoaded(
+                versions,
+                currentVersion: currentState.currentVersion,
+                playerUiStatus: currentState.playerUiStatus,
+                currentPosition: currentState.currentPosition,
+                bufferedPosition: currentState.bufferedPosition,
+                totalDuration: currentState.totalDuration,
+                isSeeking: currentState.isSeeking,
+                seekPosition: currentState.seekPosition,
+              ),
             );
+          }
 
-            // Automatycznie wybierz najnowszą wersję (pierwszą w liście) przy pierwszym ładowaniu
-            if (shouldAutoSelectVersion) {
-              _selectVersionWithoutAutoplay(versions.first);
-            }
+          // Sprawdź czy to pierwsze ładowanie (brak currentVersion)
+          final currentState = state;
+          final shouldAutoSelectVersion =
+              versions.isNotEmpty &&
+              (currentState is! TrackVersionsWithData ||
+                  currentState.currentVersion == null);
+
+          log(
+            '[TrackVersionsCubit] Loaded ${versions.length} versions, shouldAutoSelect: $shouldAutoSelectVersion',
+          );
+
+          // Automatycznie wybierz najnowszą wersję (pierwszą w liście) przy pierwszym ładowaniu
+          if (shouldAutoSelectVersion) {
+            _selectVersionWithoutAutoplay(versions.first);
           }
         },
         onError: (error) {
-          emit(TrackVersionsError(error.toString()));
+          final currentState = state;
+          if (currentState is TrackVersionsWithData) {
+            // Jeśli mamy dane, zostaw je i pokaż tylko błąd
+            log('[TrackVersionsCubit] Error refreshing versions: $error');
+          } else {
+            emit(TrackVersionsError(error.toString()));
+          }
         },
       );
     } catch (error) {
@@ -171,6 +225,20 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
           totalDuration: totalDuration,
           isSeeking: isSeeking,
           seekPosition: seekPosition != null ? Value(seekPosition) : null,
+        ),
+      );
+    } else if (currentState is TrackVersionsRefreshing) {
+      // Również aktualizuj stan podczas refreshing
+      emit(
+        TrackVersionsRefreshing(
+          currentState.versions,
+          currentVersion: currentVersion ?? currentState.currentVersion,
+          playerUiStatus: playerUiStatus ?? currentState.playerUiStatus,
+          currentPosition: currentPosition ?? currentState.currentPosition,
+          bufferedPosition: bufferedPosition ?? currentState.bufferedPosition,
+          totalDuration: totalDuration ?? currentState.totalDuration,
+          isSeeking: isSeeking ?? currentState.isSeeking,
+          seekPosition: seekPosition ?? currentState.seekPosition,
         ),
       );
     }
