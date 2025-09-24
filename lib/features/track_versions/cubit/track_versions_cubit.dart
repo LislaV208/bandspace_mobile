@@ -77,10 +77,13 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
           );
         } else {
           // Pierwszne ładowanie z cache - wybierz najnowszą wersję bez odtwarzania
-          emit(TrackVersionsRefreshing(cached));
-          if (cached.isNotEmpty) {
-            // Delay to allow state to settle, then select version
-            Future.microtask(() => _selectVersionWithoutAutoplay(cached.first));
+          // Automatycznie wybierz pierwszą wersję z cache
+          final currentVersion = cached.isNotEmpty ? cached.first : null;
+          emit(TrackVersionsRefreshing(cached, currentVersion: currentVersion));
+
+          // Preloaduj audio source dla wybranej wersji
+          if (currentVersion != null) {
+            _preloadAudioSource(currentVersion);
           }
         }
       } else {
@@ -91,7 +94,14 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
       _versionsSubscription = stream.listen(
         (versions) {
           if (state is! TrackVersionsRefreshing) {
-            emit(TrackVersionsLoaded(versions));
+            // Przy pierwszym ładowaniu automatycznie wybierz najnowszą wersję
+            final currentVersion = versions.isNotEmpty ? versions.first : null;
+            emit(TrackVersionsLoaded(versions, currentVersion: currentVersion));
+
+            // Preloaduj audio source dla wybranej wersji
+            if (currentVersion != null) {
+              _preloadAudioSource(currentVersion);
+            }
           } else {
             // Preserve player state when updating from cache
             final currentState = state as TrackVersionsRefreshing;
@@ -109,21 +119,9 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
             );
           }
 
-          // Sprawdź czy to pierwsze ładowanie (brak currentVersion)
-          final currentState = state;
-          final shouldAutoSelectVersion =
-              versions.isNotEmpty &&
-              (currentState is! TrackVersionsWithData ||
-                  currentState.currentVersion == null);
-
           log(
-            '[TrackVersionsCubit] Loaded ${versions.length} versions, shouldAutoSelect: $shouldAutoSelectVersion',
+            '[TrackVersionsCubit] Loaded ${versions.length} versions',
           );
-
-          // Automatycznie wybierz najnowszą wersję (pierwszą w liście) przy pierwszym ładowaniu
-          if (shouldAutoSelectVersion) {
-            _selectVersionWithoutAutoplay(versions.first);
-          }
         },
         onError: (error) {
           final currentState = state;
@@ -148,7 +146,18 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
 
     final currentState = state;
     if (currentState is TrackVersionsWithData) {
-      emit(TrackVersionsRefreshing(currentState.versions));
+      emit(
+        TrackVersionsRefreshing(
+          currentState.versions,
+          currentVersion: currentState.currentVersion,
+          playerUiStatus: currentState.playerUiStatus,
+          currentPosition: currentState.currentPosition,
+          bufferedPosition: currentState.bufferedPosition,
+          totalDuration: currentState.totalDuration,
+          isSeeking: currentState.isSeeking,
+          seekPosition: currentState.seekPosition,
+        ),
+      );
     }
 
     try {
@@ -259,31 +268,6 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
       // Wybieramy nową wersję - odtwórz automatycznie
       await _selectVersionWithAutoplay(version);
     }
-  }
-
-  /// Wybiera wersję bez automatycznego odtwarzania (używane przy pierwszym ładowaniu)
-  void _selectVersionWithoutAutoplay(Version version) {
-    final url = version.file?.downloadUrl;
-    if (url == null) {
-      log(
-        '[TrackVersionsCubit] Cannot select version ${version.id} - no downloadUrl in file: ${version.file?.filename}',
-      );
-      return;
-    }
-
-    log(
-      '[TrackVersionsCubit] Selecting version without autoplay: ${version.id} (${version.file?.filename})',
-    );
-
-    _updatePlayerState(
-      currentVersion: version,
-      playerUiStatus: PlayerUiStatus.idle,
-      currentPosition: Duration.zero,
-      totalDuration: Duration.zero,
-    );
-
-    // Preload audio source ale nie odtwarzaj
-    _preloadAudioSource(version);
   }
 
   /// Wybiera wersję z automatycznym odtwarzaniem (używane przy wyborze z listy)
