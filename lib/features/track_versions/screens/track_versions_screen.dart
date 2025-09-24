@@ -48,16 +48,11 @@ class _TrackVersionsScreenState extends State<TrackVersionsScreen> {
             ),
             Text(
               widget.track.title,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
         ),
-        backgroundColor: AppColors.background,
-        elevation: 0,
       ),
-      backgroundColor: AppColors.background,
       body: BlocBuilder<TrackVersionsCubit, TrackVersionsState>(
         builder: (context, state) {
           return switch (state) {

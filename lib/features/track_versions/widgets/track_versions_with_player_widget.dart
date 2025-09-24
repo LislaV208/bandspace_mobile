@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:bandspace_mobile/features/track_versions/cubit/track_versions_cubit.dart';
 import 'package:bandspace_mobile/features/track_versions/cubit/track_versions_state.dart';
 import 'package:bandspace_mobile/features/track_versions/widgets/track_versions_list_widget.dart';
 import 'package:bandspace_mobile/features/track_versions/widgets/track_versions_player_widget.dart';
@@ -26,18 +29,9 @@ class TrackVersionsWithPlayerWidget extends StatelessWidget {
             onRefresh: () async => onRefresh(),
             child: TrackVersionsListWidget(
               versions: state.versions,
-              currentVersion: state.versions.isNotEmpty
-                  ? state.versions.first
-                  : null,
-
+              currentVersion: state.currentVersion,
               onVersionSelected: (Version version) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Wybrano wersję: ${version.file?.filename ?? "Nieznany plik"}',
-                    ),
-                  ),
-                );
+                context.read<TrackVersionsCubit>().selectVersion(version);
               },
               onAddVersion: onAddVersion,
             ),
@@ -50,41 +44,25 @@ class TrackVersionsWithPlayerWidget extends StatelessWidget {
         ),
 
         TrackVersionsPlayerWidget(
-          currentVersion: state.versions.isNotEmpty
-              ? state.versions.first
-              : null,
-          isPlaying: false, // TODO: Connect to actual player state
-          currentPosition:
-              Duration.zero, // TODO: Connect to actual player state
-          totalDuration: const Duration(
-            minutes: 3,
-            seconds: 24,
-          ), // TODO: Connect to actual file duration
+          currentVersion: state.currentVersion,
+          isPlaying: state.playerUiStatus == PlayerUiStatus.playing,
+          currentPosition: state.currentPosition,
+          totalDuration: state.totalDuration,
           onPlayPause: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Funkcjonalność odtwarzania będzie wkrótce dostępna',
-                ),
-              ),
-            );
+            context.read<TrackVersionsCubit>().togglePlayPause();
           },
-          onPrevious: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Poprzednia wersja będzie wkrótce dostępna'),
-              ),
-            );
-          },
-          onNext: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Następna wersja będzie wkrótce dostępna'),
-              ),
-            );
-          },
+          onPrevious: state.hasPrevious
+              ? () {
+                  context.read<TrackVersionsCubit>().playPrevious();
+                }
+              : null,
+          onNext: state.hasNext
+              ? () {
+                  context.read<TrackVersionsCubit>().playNext();
+                }
+              : null,
           onSeek: (value) {
-            // TODO: Implement seek functionality
+            context.read<TrackVersionsCubit>().seek(value);
           },
         ),
       ],
