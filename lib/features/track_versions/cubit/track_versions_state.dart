@@ -49,11 +49,17 @@ abstract class TrackVersionsWithData extends TrackVersionsState {
   }
 
   // Navigation controls dla wersji
-  bool get hasNext => versions.isNotEmpty && currentVersion != null &&
-      versions.indexOf(currentVersion!) < versions.length - 1;
+  bool get hasNext {
+    if (versions.isEmpty || currentVersion == null) return false;
+    final currentIndex = versions.indexWhere((v) => v.id == currentVersion!.id);
+    return currentIndex != -1 && currentIndex < versions.length - 1;
+  }
 
-  bool get hasPrevious => versions.isNotEmpty && currentVersion != null &&
-      versions.indexOf(currentVersion!) > 0;
+  bool get hasPrevious {
+    if (versions.isEmpty || currentVersion == null) return false;
+    final currentIndex = versions.indexWhere((v) => v.id == currentVersion!.id);
+    return currentIndex != -1 && currentIndex > 0;
+  }
 
   @override
   List<Object?> get props => [

@@ -36,6 +36,9 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
     required int projectId,
     required int trackId,
   }) {
+    log(
+      '[TrackVersionsCubit] Initializing with projectId=$projectId, trackId=$trackId',
+    );
     _projectId = projectId;
     _trackId = trackId;
     loadVersions();
@@ -43,9 +46,17 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
 
   Future<void> loadVersions() async {
     if (_projectId == null || _trackId == null) {
+      log(
+        '[TrackVersionsCubit] loadVersions: cannot load - '
+        'projectId=$_projectId, trackId=$_trackId (not initialized)',
+      );
       emit(const TrackVersionsError('Project ID or Track ID not initialized'));
       return;
     }
+
+    log(
+      '[TrackVersionsCubit] loadVersions: loading for projectId=$_projectId, trackId=$_trackId',
+    );
 
     emit(const TrackVersionsLoading());
 
@@ -96,6 +107,10 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
           if (state is! TrackVersionsRefreshing) {
             // Przy pierwszym ładowaniu automatycznie wybierz najnowszą wersję
             final currentVersion = versions.isNotEmpty ? versions.first : null;
+            log(
+              '[TrackVersionsCubit] Stream update (not refreshing): '
+              'selected first version id=${currentVersion?.id}',
+            );
             emit(TrackVersionsLoaded(versions, currentVersion: currentVersion));
 
             // Preloaduj audio source dla wybranej wersji
@@ -105,10 +120,30 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
           } else {
             // Preserve player state when updating from cache
             final currentState = state as TrackVersionsRefreshing;
+            final oldCurrentVersion = currentState.currentVersion;
+
+            // Synchronizuj referencję currentVersion z nową listą versions
+            Version? syncedCurrentVersion = oldCurrentVersion;
+            if (oldCurrentVersion != null) {
+              final indexOfResult = versions.indexOf(oldCurrentVersion);
+              final indexWhereResult = versions.indexWhere(
+                (v) => v.id == oldCurrentVersion.id,
+              );
+
+              // Jeśli referencja jest niezsynchronizowana, znajdź nową referencję po id
+              if (indexOfResult == -1 && indexWhereResult != -1) {
+                syncedCurrentVersion = versions[indexWhereResult];
+                log(
+                  '[TrackVersionsCubit] Stream update: synchronized currentVersion reference '
+                  'from old object to new object with same id=${oldCurrentVersion.id}',
+                );
+              }
+            }
+
             emit(
               TrackVersionsLoaded(
                 versions,
-                currentVersion: currentState.currentVersion,
+                currentVersion: syncedCurrentVersion,
                 playerUiStatus: currentState.playerUiStatus,
                 currentPosition: currentState.currentPosition,
                 bufferedPosition: currentState.bufferedPosition,
@@ -140,9 +175,17 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
 
   Future<void> refreshVersions() async {
     if (_projectId == null || _trackId == null) {
+      log(
+        '[TrackVersionsCubit] refreshVersions: cannot refresh - '
+        'projectId=$_projectId, trackId=$_trackId (not initialized)',
+      );
       emit(const TrackVersionsError('Project ID or Track ID not initialized'));
       return;
     }
+
+    log(
+      '[TrackVersionsCubit] refreshVersions: refreshing for projectId=$_projectId, trackId=$_trackId',
+    );
 
     final currentState = state;
     if (currentState is TrackVersionsWithData) {
@@ -256,7 +299,13 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
   // Audio player controls
   Future<void> selectVersion(Version version) async {
     final currentState = state;
-    if (currentState is! TrackVersionsWithData) return;
+    if (currentState is! TrackVersionsWithData) {
+      log(
+        '[TrackVersionsCubit] selectVersion: cannot select version ${version.id} - '
+        'state is not TrackVersionsWithData (current state: ${state.runtimeType})',
+      );
+      return;
+    }
 
     // Jeśli wybieramy aktualnie odtwarzaną wersję, przełącz play/pause
     if (currentState.currentVersion?.id == version.id) {
@@ -266,6 +315,10 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
       await togglePlayPause();
     } else {
       // Wybieramy nową wersję - odtwórz automatycznie
+      log(
+        '[TrackVersionsCubit] Selecting new version: ${version.id} '
+        '(previous: ${currentState.currentVersion?.id})',
+      );
       await _selectVersionWithAutoplay(version);
     }
   }
@@ -327,7 +380,18 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
 
   Future<void> togglePlayPause() async {
     final currentState = state;
-    if (currentState is! TrackVersionsWithData) return;
+    if (currentState is! TrackVersionsWithData) {
+      log(
+        '[TrackVersionsCubit] togglePlayPause: cannot toggle - '
+        'state is not TrackVersionsWithData (current state: ${state.runtimeType})',
+      );
+      return;
+    }
+
+    log(
+      '[TrackVersionsCubit] togglePlayPause: current status=${currentState.playerUiStatus}, '
+      'currentVersion=${currentState.currentVersion?.id}',
+    );
 
     switch (currentState.playerUiStatus) {
       case PlayerUiStatus.playing:
@@ -341,10 +405,21 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
         if (currentState.currentVersion != null) {
           await selectVersion(currentState.currentVersion!);
           await _audioPlayer.play();
+        } else {
+          log(
+            '[TrackVersionsCubit] togglePlayPause: no version selected to play',
+          );
         }
         break;
       case PlayerUiStatus.loading:
+        log(
+          '[TrackVersionsCubit] togglePlayPause: ignoring - player is loading',
+        );
+        break;
       case PlayerUiStatus.error:
+        log(
+          '[TrackVersionsCubit] togglePlayPause: ignoring - player is in error state',
+        );
         break;
     }
   }
@@ -361,47 +436,135 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
 
   Future<void> playNext() async {
     final currentState = state;
-    if (currentState is! TrackVersionsWithData || !currentState.hasNext) return;
+    if (currentState is! TrackVersionsWithData) {
+      log('[TrackVersionsCubit] playNext: state is not TrackVersionsWithData');
+      return;
+    }
+
+    if (!currentState.hasNext) {
+      log(
+        '[TrackVersionsCubit] playNext: no next version available '
+        '(hasNext=false, currentVersion=${currentState.currentVersion?.id})',
+      );
+      return;
+    }
 
     final currentVersion = currentState.currentVersion;
-    if (currentVersion == null) return;
+    if (currentVersion == null) {
+      log('[TrackVersionsCubit] playNext: currentVersion is null');
+      return;
+    }
 
-    final currentIndex = currentState.versions.indexOf(currentVersion);
+    // Znajdź indeks aktualnej wersji porównując po id (nie po referencji)
+    final currentIndex = currentState.versions.indexWhere(
+      (v) => v.id == currentVersion.id,
+    );
+
+    if (currentIndex == -1) {
+      log(
+        '[TrackVersionsCubit] playNext: currentVersion not found in versions list. '
+        'currentVersion.id=${currentVersion.id}',
+      );
+      return;
+    }
+
     if (currentIndex < currentState.versions.length - 1) {
       final nextVersion = currentState.versions[currentIndex + 1];
+      log(
+        '[TrackVersionsCubit] playNext: moving from version ${currentVersion.id} '
+        'to version ${nextVersion.id}',
+      );
       await _selectVersionWithAutoplay(nextVersion);
+    } else {
+      log('[TrackVersionsCubit] playNext: already at last version');
     }
   }
 
   Future<void> playPrevious() async {
     final currentState = state;
-    if (currentState is! TrackVersionsWithData || !currentState.hasPrevious) {
+    if (currentState is! TrackVersionsWithData) {
+      log(
+        '[TrackVersionsCubit] playPrevious: state is not TrackVersionsWithData',
+      );
+      return;
+    }
+
+    if (!currentState.hasPrevious) {
+      log(
+        '[TrackVersionsCubit] playPrevious: no previous version available '
+        '(hasPrevious=false, currentVersion=${currentState.currentVersion?.id})',
+      );
       return;
     }
 
     final currentVersion = currentState.currentVersion;
-    if (currentVersion == null) return;
+    if (currentVersion == null) {
+      log('[TrackVersionsCubit] playPrevious: currentVersion is null');
+      return;
+    }
 
-    final currentIndex = currentState.versions.indexOf(currentVersion);
+    // Znajdź indeks aktualnej wersji porównując po id (nie po referencji)
+    final currentIndex = currentState.versions.indexWhere(
+      (v) => v.id == currentVersion.id,
+    );
+
+    if (currentIndex == -1) {
+      log(
+        '[TrackVersionsCubit] playPrevious: currentVersion not found in versions list. '
+        'currentVersion.id=${currentVersion.id}',
+      );
+      return;
+    }
+
     if (currentIndex > 0) {
       final prevVersion = currentState.versions[currentIndex - 1];
+      log(
+        '[TrackVersionsCubit] playPrevious: moving from version ${currentVersion.id} '
+        'to version ${prevVersion.id}',
+      );
       await _selectVersionWithAutoplay(prevVersion);
+    } else {
+      log('[TrackVersionsCubit] playPrevious: already at first version');
     }
   }
 
   void startSeeking() {
     final currentState = state;
-    if (currentState is TrackVersionsWithData) {
-      _updatePlayerState(
-        isSeeking: true,
-        seekPosition: currentState.currentPosition,
+    if (currentState is! TrackVersionsWithData) {
+      log(
+        '[TrackVersionsCubit] startSeeking: state is not TrackVersionsWithData',
       );
+      return;
     }
+
+    log(
+      '[TrackVersionsCubit] startSeeking: starting at position ${currentState.currentPosition.inSeconds}s',
+    );
+
+    _updatePlayerState(
+      isSeeking: true,
+      seekPosition: currentState.currentPosition,
+    );
   }
 
   void updateSeekPosition(double value) {
     final currentState = state;
-    if (currentState is! TrackVersionsWithData || !currentState.isSeeking) {
+    if (currentState is! TrackVersionsWithData) {
+      log(
+        '[TrackVersionsCubit] updateSeekPosition: state is not TrackVersionsWithData',
+      );
+      return;
+    }
+
+    if (!currentState.isSeeking) {
+      log('[TrackVersionsCubit] updateSeekPosition: not in seeking mode');
+      return;
+    }
+
+    if (currentState.totalDuration.inMilliseconds == 0) {
+      log(
+        '[TrackVersionsCubit] updateSeekPosition: cannot seek - totalDuration is zero',
+      );
       return;
     }
 
@@ -414,13 +577,31 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
 
   Future<void> endSeeking() async {
     final currentState = state;
-    if (currentState is! TrackVersionsWithData ||
-        !currentState.isSeeking ||
-        currentState.seekPosition == null) {
+    if (currentState is! TrackVersionsWithData) {
+      log(
+        '[TrackVersionsCubit] endSeeking: state is not TrackVersionsWithData',
+      );
+      return;
+    }
+
+    if (!currentState.isSeeking) {
+      log('[TrackVersionsCubit] endSeeking: not in seeking mode');
+      return;
+    }
+
+    if (currentState.seekPosition == null) {
+      log(
+        '[TrackVersionsCubit] endSeeking: seekPosition is null - '
+        'cannot complete seek operation',
+      );
       return;
     }
 
     final targetPosition = currentState.seekPosition!;
+
+    log(
+      '[TrackVersionsCubit] endSeeking: seeking to ${targetPosition.inSeconds}s',
+    );
 
     _updatePlayerState(
       isSeeking: false,
@@ -433,14 +614,25 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
 
   Future<void> seek(double value) async {
     final currentState = state;
-    if (currentState is! TrackVersionsWithData) return;
+    if (currentState is! TrackVersionsWithData) {
+      log('[TrackVersionsCubit] seek: state is not TrackVersionsWithData');
+      return;
+    }
 
-    await _audioPlayer.seek(
-      Duration(
-        milliseconds: (value * currentState.totalDuration.inMilliseconds)
-            .round(),
-      ),
+    if (currentState.totalDuration.inMilliseconds == 0) {
+      log(
+        '[TrackVersionsCubit] seek: cannot seek - totalDuration is zero',
+      );
+      return;
+    }
+
+    final targetPosition = Duration(
+      milliseconds: (value * currentState.totalDuration.inMilliseconds).round(),
     );
+
+    log('[TrackVersionsCubit] seek: seeking to ${targetPosition.inSeconds}s');
+
+    await _audioPlayer.seek(targetPosition);
   }
 
   // Cache management
