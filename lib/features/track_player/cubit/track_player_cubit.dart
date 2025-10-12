@@ -387,8 +387,10 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
 
       // Sprawdź czy wersja rzeczywiście się zmieniła
       if (currentTrack.mainVersion?.id == newMainVersion.id) {
-        log('Version unchanged for track $trackId, skipping update',
-            name: 'TrackPlayerCubit');
+        log(
+          'Version unchanged for track $trackId, skipping update',
+          name: 'TrackPlayerCubit',
+        );
         return;
       }
 
@@ -404,8 +406,10 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       currentTracks[trackIndex] = updatedTrack;
       emit(state.copyWith(tracks: currentTracks));
 
-      log('Updated main version for track $trackId to version ${newMainVersion.id}',
-          name: 'TrackPlayerCubit');
+      log(
+        'Updated main version for track $trackId to version ${newMainVersion.id}',
+        name: 'TrackPlayerCubit',
+      );
 
       // Jeśli to obecnie odtwarzany track, przebuduj audio sources
       if (state.currentTrack?.id == trackId) {
