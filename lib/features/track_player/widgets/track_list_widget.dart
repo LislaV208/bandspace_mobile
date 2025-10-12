@@ -44,9 +44,11 @@ class TrackListWidget extends StatelessWidget {
                         isCurrentTrack: isCurrentTrack,
                         isPlaying: isPlaying,
                         onTap: () {
-                          context.read<TrackPlayerCubit>().selectTrack(
-                            index,
-                          );
+                          context
+                              .read<TrackPlayerCubit>()
+                              .onTracklistItemSelected(
+                                index,
+                              );
                         },
                       ),
                     );

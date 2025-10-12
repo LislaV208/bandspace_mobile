@@ -37,10 +37,19 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
   }
 
   void _listenToPlayerEvents() {
+    log(
+      '_listenToPlayerEvents: Setting up player event listeners',
+      name: 'TrackPlayerCubit',
+    );
+
     _playerStateSubscription = _playerService.playerStateStream.listen((
       playerState,
     ) {
       final newStatus = _getPlayerUiStatusFromPlayerState(playerState);
+      log(
+        '_listenToPlayerEvents: Player state changed - processingState=${playerState.processingState}, playing=${playerState.playing}, newStatus=$newStatus',
+        name: 'TrackPlayerCubit',
+      );
       emit(state.copyWith(playerUiStatus: newStatus));
     });
 
@@ -50,21 +59,37 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       }
     });
 
-    _bufferedPositionSubscription = _playerService.bufferedPositionStream
-        .listen((
-          bufferedPosition,
-        ) {
-          emit(state.copyWith(bufferedPosition: bufferedPosition));
-        });
+    _bufferedPositionSubscription = _playerService.bufferedPositionStream.listen((
+      bufferedPosition,
+    ) {
+      log(
+        '_listenToPlayerEvents: Buffered position updated - bufferedPosition=$bufferedPosition',
+        name: 'TrackPlayerCubit',
+      );
+      emit(state.copyWith(bufferedPosition: bufferedPosition));
+    });
 
     _durationSubscription = _playerService.durationStream.listen((duration) {
+      log(
+        '_listenToPlayerEvents: Duration updated - duration=$duration',
+        name: 'TrackPlayerCubit',
+      );
       emit(state.copyWith(totalDuration: duration ?? Duration.zero));
     });
   }
 
   void _listenToCacheProgress() {
+    log(
+      '_listenToCacheProgress: Setting up cache progress listener',
+      name: 'TrackPlayerCubit',
+    );
+
     _cacheProgressSubscription = _preCachingOrchestrator.progressStream.listen(
       (progress) {
+        log(
+          '_listenToCacheProgress: Cache progress updated - cachedCount=${progress.cachedCount}, isComplete=${progress.isComplete}',
+          name: 'TrackPlayerCubit',
+        );
         emit(
           state.copyWith(
             tracksCacheStatus: progress.tracksCacheStatus,
@@ -81,7 +106,16 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     int initialTrackId,
     int projectId,
   ) async {
+    log(
+      'initialize: Starting initialization - tracksCount=${tracks.length}, initialTrackId=$initialTrackId, projectId=$projectId',
+      name: 'TrackPlayerCubit',
+    );
+
     final initialIndex = tracks.indexWhere((t) => t.id == initialTrackId);
+    log(
+      'initialize: Found initial track index=$initialIndex for trackId=$initialTrackId',
+      name: 'TrackPlayerCubit',
+    );
 
     emit(
       state.copyWith(
@@ -93,13 +127,24 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
 
     await _processTracks(tracks, initialTrackId);
 
+    log(
+      'initialize: Starting pre-caching for ${state.tracks.length} tracks',
+      name: 'TrackPlayerCubit',
+    );
     _preCachingOrchestrator.preCacheTracks(state.tracks);
+
+    log('initialize: Initialization complete', name: 'TrackPlayerCubit');
   }
 
   Future<void> _processTracks(
     List<Track> tracks,
     int initialTrackId,
   ) async {
+    log(
+      '_processTracks: Processing ${tracks.length} tracks, initialTrackId=$initialTrackId',
+      name: 'TrackPlayerCubit',
+    );
+
     final List<AudioSource> playableSources = [];
     _trackIdToPlayerIndex.clear();
 
@@ -108,7 +153,7 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
 
       if (url == null) {
         log(
-          'Track ${track.id} has no download URL, skipping from playlist',
+          '_processTracks: Track ${track.id} (${track.title}) has no download URL, skipping from playlist',
           name: 'TrackPlayerCubit',
         );
         continue;
@@ -121,19 +166,32 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
         );
         _trackIdToPlayerIndex[track.id] = playableSources.length;
         playableSources.add(audioSource);
+        log(
+          '_processTracks: Successfully created audio source for track ${track.id} at index ${playableSources.length - 1}',
+          name: 'TrackPlayerCubit',
+        );
       } catch (e) {
         log(
-          'Failed to create audio source for track ${track.id}: $e. Skipping.',
+          '_processTracks: Failed to create audio source for track ${track.id}: $e. Skipping.',
           name: 'TrackPlayerCubit',
         );
       }
     }
 
+    log(
+      '_processTracks: Created ${playableSources.length} playable sources out of ${tracks.length} tracks',
+      name: 'TrackPlayerCubit',
+    );
+
     if (playableSources.isNotEmpty) {
       await _playerService.setAudioSources(playableSources);
+      log(
+        '_processTracks: Set audio sources in player service',
+        name: 'TrackPlayerCubit',
+      );
     } else {
       log(
-        'No playable tracks available in playlist',
+        '_processTracks: No playable tracks available in playlist',
         name: 'TrackPlayerCubit',
       );
     }
@@ -150,8 +208,14 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     );
 
     if (initialIndex != -1) {
-      selectTrack(initialIndex);
+      log(
+        '_processTracks: Setting current track index to $initialIndex',
+        name: 'TrackPlayerCubit',
+      );
+      emit(state.copyWith(currentTrackIndex: initialIndex));
     }
+
+    log('_processTracks: Processing complete', name: 'TrackPlayerCubit');
   }
 
   // bool _didPlaylistChange(List<AudioSource> newSources) {
@@ -170,64 +234,204 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
   //   return false;
   // }
 
-  void selectTrack(int index) {
+  void _selectTrack(int index) {
+    log(
+      '_selectTrack: Selecting track at index=$index, tracksLength=${state.tracks.length}, currentStatus=${state.playerUiStatus}',
+      name: 'TrackPlayerCubit',
+    );
+
     if (index < 0 || index >= state.tracks.length) {
+      log(
+        '_selectTrack: Invalid index=$index, must be between 0 and ${state.tracks.length - 1}',
+        name: 'TrackPlayerCubit',
+      );
       return;
     }
 
+    if (index == state.currentTrackIndex) {
+      log(
+        '_selectTrack: Already selected track at index=$index',
+        name: 'TrackPlayerCubit',
+      );
+      return;
+    }
+
+    final track = state.tracks[index];
+    log(
+      '_selectTrack: Selected track ${track.id} (${track.title}) at index $index',
+      name: 'TrackPlayerCubit',
+    );
+
     emit(state.copyWith(currentTrackIndex: index));
+
+    log('_selectTrack: Complete', name: 'TrackPlayerCubit');
+  }
+
+  Future<void> onTracklistItemSelected(int index) async {
+    log(
+      'onTracklistItemSelected: Selected track at index=$index',
+      name: 'TrackPlayerCubit',
+    );
+    if (index == state.currentTrackIndex) {
+      await togglePlayPause();
+    } else {
+      _playTrackOfIndex(index);
+      _selectTrack(index);
+    }
   }
 
   Future<void> playSelectedTrack() async {
-    final track = state.currentTrack;
-    if (track == null) return;
+    log(
+      'playSelectedTrack: Attempting to play current track at index ${state.currentTrackIndex}',
+      name: 'TrackPlayerCubit',
+    );
 
+    final track = state.currentTrack;
+    if (track == null) {
+      log(
+        'playSelectedTrack: No current track available, cannot play',
+        name: 'TrackPlayerCubit',
+      );
+      return;
+    }
+
+    log(
+      'playSelectedTrack: Playing track ${track.id} (${track.title})',
+      name: 'TrackPlayerCubit',
+    );
+
+    await _playerService.play();
+
+    log(
+      'playSelectedTrack: Play command sent to player service',
+      name: 'TrackPlayerCubit',
+    );
+  }
+
+  Future<void> _playTrackOfIndex(int index) async {
+    log(
+      '_playTrackOfIndex: Attempting to play track at index=$index, tracksLength=${state.tracks.length}',
+      name: 'TrackPlayerCubit',
+    );
+
+    if (index < 0 || index >= state.tracks.length) {
+      log(
+        '_playTrackOfIndex: Invalid index=$index, must be between 0 and ${state.tracks.length - 1}',
+        name: 'TrackPlayerCubit',
+      );
+      return;
+    }
+
+    final track = state.tracks[index];
     final playerIndex = _trackIdToPlayerIndex[track.id];
 
+    log(
+      '_playTrackOfIndex: Track ${track.id} (${track.title}), playerIndex=$playerIndex, currentTrackIndex=${state.currentTrackIndex}',
+      name: 'TrackPlayerCubit',
+    );
+
     if (playerIndex != null) {
-      // await _playerService.seek(Duration.zero, index: playerIndex);
+      if (playerIndex != state.currentTrackIndex) {
+        log(
+          '_playTrackOfIndex: Seeking to playerIndex=$playerIndex',
+          name: 'TrackPlayerCubit',
+        );
+        await _playerService.seek(Duration.zero, index: playerIndex);
+      }
+      log('_playTrackOfIndex: Starting playback', name: 'TrackPlayerCubit');
       await _playerService.play();
     } else {
-      await _playerService.stop();
+      log(
+        '_playTrackOfIndex: Track ${track.id} not found in player index map, cannot play',
+        name: 'TrackPlayerCubit',
+      );
     }
+
+    log('_playTrackOfIndex: Complete', name: 'TrackPlayerCubit');
   }
 
   Future<void> togglePlayPause() async {
+    log(
+      'togglePlayPause: Current status=${state.playerUiStatus}',
+      name: 'TrackPlayerCubit',
+    );
+
     if (state.playerUiStatus == PlayerUiStatus.playing) {
+      log('togglePlayPause: Pausing playback', name: 'TrackPlayerCubit');
       await _playerService.pause();
     } else if (state.playerUiStatus == PlayerUiStatus.paused) {
+      log('togglePlayPause: Resuming playback', name: 'TrackPlayerCubit');
       await playSelectedTrack();
-      // await _playerService.play();
     } else {
-      // Jeśli idle/completed - rozpocznij odtwarzanie wybranego utworu
+      log(
+        'togglePlayPause: Player in unexpected status ${state.playerUiStatus}, no action taken',
+        name: 'TrackPlayerCubit',
+      );
     }
+
+    log('togglePlayPause: Complete', name: 'TrackPlayerCubit');
   }
 
   /// Zatrzymuje odtwarzanie (używane przy nawigacji do innych ekranów)
   Future<void> pausePlayback() async {
+    log(
+      'pausePlayback: Current status=${state.playerUiStatus}',
+      name: 'TrackPlayerCubit',
+    );
+
     if (state.playerUiStatus == PlayerUiStatus.playing) {
+      log('pausePlayback: Pausing playback', name: 'TrackPlayerCubit');
       await _playerService.pause();
+    } else {
+      log(
+        'pausePlayback: Player not playing, no action needed',
+        name: 'TrackPlayerCubit',
+      );
     }
+
+    log('pausePlayback: Complete', name: 'TrackPlayerCubit');
   }
 
   void seek(Duration position) {
+    log(
+      'seek: Seeking to position=$position (${position.inSeconds}s)',
+      name: 'TrackPlayerCubit',
+    );
     _playerService.seek(position);
   }
 
   void startSeeking() {
+    log(
+      'startSeeking: Starting seek from position=${state.currentPosition}',
+      name: 'TrackPlayerCubit',
+    );
+
     emit(
       state.copyWith(
         isSeeking: true,
         seekPosition: state.currentPosition,
       ),
     );
+
+    log('startSeeking: Seek mode enabled', name: 'TrackPlayerCubit');
   }
 
   void updateSeekPosition(double value) {
-    if (!state.isSeeking) return;
+    if (!state.isSeeking) {
+      log(
+        'updateSeekPosition: Not in seeking mode, ignoring update',
+        name: 'TrackPlayerCubit',
+      );
+      return;
+    }
 
     final newPosition = Duration(
       milliseconds: (value * state.totalDuration.inMilliseconds).round(),
+    );
+
+    log(
+      'updateSeekPosition: value=$value, newPosition=$newPosition (${newPosition.inSeconds}s/${state.totalDuration.inSeconds}s)',
+      name: 'TrackPlayerCubit',
     );
 
     emit(
@@ -238,9 +442,24 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
   }
 
   Future<void> endSeeking() async {
-    if (!state.isSeeking || state.seekPosition == null) return;
+    log(
+      'endSeeking: isSeeking=${state.isSeeking}, seekPosition=${state.seekPosition}',
+      name: 'TrackPlayerCubit',
+    );
+
+    if (!state.isSeeking || state.seekPosition == null) {
+      log(
+        'endSeeking: Not in seeking mode or no seek position, ignoring',
+        name: 'TrackPlayerCubit',
+      );
+      return;
+    }
 
     final targetPosition = state.seekPosition!;
+    log(
+      'endSeeking: Finalizing seek to position=$targetPosition (${targetPosition.inSeconds}s)',
+      name: 'TrackPlayerCubit',
+    );
 
     emit(
       state.copyWith(
@@ -251,103 +470,192 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     );
 
     await _playerService.seek(targetPosition);
+
+    log('endSeeking: Seek complete', name: 'TrackPlayerCubit');
   }
 
   void seekToNext() {
+    log(
+      'seekToNext: currentIndex=${state.currentTrackIndex}, hasNext=${state.hasNext}',
+      name: 'TrackPlayerCubit',
+    );
+
     if (state.hasNext) {
-      selectTrack(state.currentTrackIndex + 1);
+      final nextIndex = state.currentTrackIndex + 1;
+      log(
+        'seekToNext: Moving to next track at index=$nextIndex',
+        name: 'TrackPlayerCubit',
+      );
+      _selectTrack(nextIndex);
       _playerService.seekToNext();
+    } else {
+      log(
+        'seekToNext: No next track available',
+        name: 'TrackPlayerCubit',
+      );
     }
+
+    log('seekToNext: Complete', name: 'TrackPlayerCubit');
   }
 
   void seekToPrevious() {
+    log(
+      'seekToPrevious: currentIndex=${state.currentTrackIndex}, hasPrevious=${state.hasPrevious}',
+      name: 'TrackPlayerCubit',
+    );
+
     if (state.hasPrevious) {
-      selectTrack(state.currentTrackIndex - 1);
+      final prevIndex = state.currentTrackIndex - 1;
+      log(
+        'seekToPrevious: Moving to previous track at index=$prevIndex',
+        name: 'TrackPlayerCubit',
+      );
+      _selectTrack(prevIndex);
       _playerService.seekToPrevious();
+    } else {
+      log(
+        'seekToPrevious: No previous track available',
+        name: 'TrackPlayerCubit',
+      );
     }
+
+    log('seekToPrevious: Complete', name: 'TrackPlayerCubit');
   }
 
   void setLoopMode(LoopMode mode) {
+    log(
+      'setLoopMode: Setting loop mode from ${state.loopMode} to $mode',
+      name: 'TrackPlayerCubit',
+    );
+
     _playerService.setLoopMode(mode);
     emit(state.copyWith(loopMode: mode));
+
+    log('setLoopMode: Loop mode updated', name: 'TrackPlayerCubit');
   }
 
   PlayerUiStatus _getPlayerUiStatusFromPlayerState(
     PlayerState playerState,
   ) {
     final processingState = playerState.processingState;
+    final playing = playerState.playing;
 
+    PlayerUiStatus result;
     if (processingState == ProcessingState.buffering ||
         processingState == ProcessingState.ready) {
-      return playerState.playing
-          ? PlayerUiStatus.playing
-          : PlayerUiStatus.paused;
+      result = playing ? PlayerUiStatus.playing : PlayerUiStatus.paused;
+    } else {
+      result = PlayerUiStatus.paused;
     }
 
-    return PlayerUiStatus.paused;
+    log(
+      '_getPlayerUiStatusFromPlayerState: processingState=$processingState, playing=$playing -> $result',
+      name: 'TrackPlayerCubit',
+    );
+
+    return result;
   }
 
   /// Aktualizuje konkretną ścieżkę w liście tracks
   void updateTrack(Track updatedTrack) {
+    log(
+      'updateTrack: Updating track ${updatedTrack.id} (${updatedTrack.title})',
+      name: 'TrackPlayerCubit',
+    );
+
     final currentTracks = List<Track>.from(state.tracks);
     final trackIndex = currentTracks.indexWhere(
       (track) => track.id == updatedTrack.id,
     );
 
     if (trackIndex != -1) {
+      log(
+        'updateTrack: Found track at index=$trackIndex, updating',
+        name: 'TrackPlayerCubit',
+      );
       currentTracks[trackIndex] = updatedTrack;
       emit(state.copyWith(tracks: currentTracks));
+      log('updateTrack: Track updated successfully', name: 'TrackPlayerCubit');
+    } else {
+      log(
+        'updateTrack: Track ${updatedTrack.id} not found in playlist',
+        name: 'TrackPlayerCubit',
+      );
     }
   }
 
   /// Aktualizuje główną wersję dla danego track-u
   void updateTrackMainVersion(int trackId, Version newMainVersion) {
+    log(
+      'updateTrackMainVersion: Updating main version for track $trackId to version ${newMainVersion.id}',
+      name: 'TrackPlayerCubit',
+    );
+
     final currentTracks = List<Track>.from(state.tracks);
     final trackIndex = currentTracks.indexWhere(
       (track) => track.id == trackId,
     );
 
-    if (trackIndex != -1) {
-      final currentTrack = currentTracks[trackIndex];
-
-      // Sprawdź czy wersja rzeczywiście się zmieniła
-      if (currentTrack.mainVersion?.id == newMainVersion.id) {
-        log(
-          'Version unchanged for track $trackId, skipping update',
-          name: 'TrackPlayerCubit',
-        );
-        return;
-      }
-
-      final updatedTrack = Track(
-        id: currentTrack.id,
-        title: currentTrack.title,
-        createdAt: currentTrack.createdAt,
-        updatedAt: currentTrack.updatedAt,
-        mainVersion: newMainVersion,
-        createdBy: currentTrack.createdBy,
-      );
-
-      currentTracks[trackIndex] = updatedTrack;
-      emit(state.copyWith(tracks: currentTracks));
-
+    if (trackIndex == -1) {
       log(
-        'Updated main version for track $trackId to version ${newMainVersion.id}',
+        'updateTrackMainVersion: Track $trackId not found in playlist',
         name: 'TrackPlayerCubit',
       );
+      return;
+    }
 
-      // Jeśli to obecnie odtwarzany track, przebuduj audio sources
-      if (state.currentTrack?.id == trackId) {
-        _rebuildAudioSourcesForCurrentTrack(updatedTrack);
-      }
+    final currentTrack = currentTracks[trackIndex];
+    log(
+      'updateTrackMainVersion: Found track at index=$trackIndex, currentVersion=${currentTrack.mainVersion?.id}',
+      name: 'TrackPlayerCubit',
+    );
+
+    // Sprawdź czy wersja rzeczywiście się zmieniła
+    if (currentTrack.mainVersion?.id == newMainVersion.id) {
+      log(
+        'updateTrackMainVersion: Version unchanged for track $trackId, skipping update',
+        name: 'TrackPlayerCubit',
+      );
+      return;
+    }
+
+    final updatedTrack = Track(
+      id: currentTrack.id,
+      title: currentTrack.title,
+      createdAt: currentTrack.createdAt,
+      updatedAt: currentTrack.updatedAt,
+      mainVersion: newMainVersion,
+      createdBy: currentTrack.createdBy,
+    );
+
+    currentTracks[trackIndex] = updatedTrack;
+    emit(state.copyWith(tracks: currentTracks));
+
+    log(
+      'updateTrackMainVersion: Updated main version for track $trackId to version ${newMainVersion.id}',
+      name: 'TrackPlayerCubit',
+    );
+
+    // Jeśli to obecnie odtwarzany track, przebuduj audio sources
+    if (state.currentTrack?.id == trackId) {
+      log(
+        'updateTrackMainVersion: This is the current track, rebuilding audio sources',
+        name: 'TrackPlayerCubit',
+      );
+      _rebuildAudioSourcesForCurrentTrack(updatedTrack);
     }
   }
 
   Future<void> _rebuildAudioSourcesForCurrentTrack(Track updatedTrack) async {
+    log(
+      '_rebuildAudioSourcesForCurrentTrack: Starting rebuild for track ${updatedTrack.id}',
+      name: 'TrackPlayerCubit',
+    );
+
     final url = updatedTrack.mainVersion?.file?.downloadUrl;
     if (url == null) {
       log(
-        'Cannot rebuild audio sources - no download URL for track ${updatedTrack.id}',
+        '_rebuildAudioSourcesForCurrentTrack: Cannot rebuild - no download URL for track ${updatedTrack.id}',
         name: 'TrackPlayerCubit',
       );
       return;
@@ -356,17 +664,27 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     final playerIndex = _trackIdToPlayerIndex[updatedTrack.id];
     if (playerIndex == null) {
       log(
-        'Track ${updatedTrack.id} not in player index, cannot rebuild',
+        '_rebuildAudioSourcesForCurrentTrack: Track ${updatedTrack.id} not in player index map, cannot rebuild',
         name: 'TrackPlayerCubit',
       );
       return;
     }
+
+    log(
+      '_rebuildAudioSourcesForCurrentTrack: Track ${updatedTrack.id} at playerIndex=$playerIndex, creating new audio source from url=$url',
+      name: 'TrackPlayerCubit',
+    );
 
     try {
       // Utwórz nowy audio source dla zaktualizowanego track-u
       final audioSource = await _sourceFactory.createAudioSource(
         url,
         updatedTrack.id,
+      );
+
+      log(
+        '_rebuildAudioSourcesForCurrentTrack: Audio source created, updating player sequence',
+        name: 'TrackPlayerCubit',
       );
 
       // Zastąp audio source w player-ze
@@ -377,12 +695,12 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       await _playerService.setAudioSources(sources);
 
       log(
-        'Rebuilt audio source for track ${updatedTrack.id} with new version',
+        '_rebuildAudioSourcesForCurrentTrack: Successfully rebuilt audio source for track ${updatedTrack.id}',
         name: 'TrackPlayerCubit',
       );
     } catch (e) {
       log(
-        'Failed to rebuild audio sources for track ${updatedTrack.id}: $e',
+        '_rebuildAudioSourcesForCurrentTrack: Failed to rebuild audio sources for track ${updatedTrack.id}: $e',
         name: 'TrackPlayerCubit',
       );
       // Graceful degradation: stary source pozostaje aktywny
@@ -391,14 +709,27 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
 
   @override
   Future<void> close() {
+    log(
+      'close: Closing TrackPlayerCubit and cleaning up resources',
+      name: 'TrackPlayerCubit',
+    );
+
+    log('close: Cancelling subscriptions', name: 'TrackPlayerCubit');
     _playerStateSubscription?.cancel();
     _positionSubscription?.cancel();
     _bufferedPositionSubscription?.cancel();
     _durationSubscription?.cancel();
     _cacheProgressSubscription?.cancel();
     _tracksSubscription?.cancel();
+
+    log(
+      'close: Disposing orchestrator and player service',
+      name: 'TrackPlayerCubit',
+    );
     _preCachingOrchestrator.dispose();
     _playerService.dispose();
+
+    log('close: TrackPlayerCubit closed', name: 'TrackPlayerCubit');
     return super.close();
   }
 }
