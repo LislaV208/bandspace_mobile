@@ -40,7 +40,7 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     _playerStateSubscription = _playerService.playerStateStream.listen((
       playerState,
     ) {
-      final newStatus = _mapProcessingStateToPlayerUiStatus(playerState);
+      final newStatus = _getPlayerUiStatusFromPlayerState(playerState);
       emit(state.copyWith(playerUiStatus: newStatus));
     });
 
@@ -126,7 +126,6 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
           'Failed to create audio source for track ${track.id}: $e. Skipping.',
           name: 'TrackPlayerCubit',
         );
-        // Graceful degradation: skip this track, continue with others
       }
     }
 
@@ -186,7 +185,7 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     final playerIndex = _trackIdToPlayerIndex[track.id];
 
     if (playerIndex != null) {
-      await _playerService.seek(Duration.zero, index: playerIndex);
+      // await _playerService.seek(Duration.zero, index: playerIndex);
       await _playerService.play();
     } else {
       await _playerService.stop();
@@ -197,10 +196,10 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     if (state.playerUiStatus == PlayerUiStatus.playing) {
       await _playerService.pause();
     } else if (state.playerUiStatus == PlayerUiStatus.paused) {
-      await _playerService.play();
+      await playSelectedTrack();
+      // await _playerService.play();
     } else {
       // Jeśli idle/completed - rozpocznij odtwarzanie wybranego utworu
-      await playSelectedTrack();
     }
   }
 
@@ -273,21 +272,19 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     emit(state.copyWith(loopMode: mode));
   }
 
-  PlayerUiStatus _mapProcessingStateToPlayerUiStatus(PlayerState playerState) {
-    switch (playerState.processingState) {
-      case ProcessingState.idle:
-        return PlayerUiStatus.idle;
-      case ProcessingState.loading:
-        return PlayerUiStatus.loading;
-      case ProcessingState.buffering:
-        return PlayerUiStatus.loading;
-      case ProcessingState.ready:
-        return playerState.playing
-            ? PlayerUiStatus.playing
-            : PlayerUiStatus.paused;
-      case ProcessingState.completed:
-        return PlayerUiStatus.paused;
+  PlayerUiStatus _getPlayerUiStatusFromPlayerState(
+    PlayerState playerState,
+  ) {
+    final processingState = playerState.processingState;
+
+    if (processingState == ProcessingState.buffering ||
+        processingState == ProcessingState.ready) {
+      return playerState.playing
+          ? PlayerUiStatus.playing
+          : PlayerUiStatus.paused;
     }
+
+    return PlayerUiStatus.paused;
   }
 
   /// Aktualizuje konkretną ścieżkę w liście tracks

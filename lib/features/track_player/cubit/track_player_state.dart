@@ -3,7 +3,7 @@ import 'package:just_audio/just_audio.dart';
 
 import 'package:bandspace_mobile/shared/models/track.dart';
 
-enum PlayerUiStatus { idle, loading, playing, paused, completed, error }
+enum PlayerUiStatus { playing, paused }
 
 enum CacheStatus { notStarted, caching, cached, noFile, error }
 
@@ -34,7 +34,7 @@ class TrackPlayerState extends Equatable {
     this.tracks = const [],
     this.currentTrackIndex = 0,
     this.currentProjectId,
-    this.playerUiStatus = PlayerUiStatus.idle,
+    this.playerUiStatus = PlayerUiStatus.paused,
     this.currentPosition = Duration.zero,
     this.bufferedPosition = Duration.zero,
     this.totalDuration = Duration.zero,
@@ -65,7 +65,8 @@ class TrackPlayerState extends Equatable {
   }
 
   // Computed properties dla navigation controls
-  bool get hasNext => tracks.isNotEmpty && currentTrackIndex < tracks.length - 1;
+  bool get hasNext =>
+      tracks.isNotEmpty && currentTrackIndex < tracks.length - 1;
   bool get hasPrevious => tracks.isNotEmpty && currentTrackIndex > 0;
 
   TrackPlayerState copyWith({
