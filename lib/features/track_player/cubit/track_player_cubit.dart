@@ -42,9 +42,35 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       name: 'TrackPlayerCubit',
     );
 
+    _playerService.audioPlayer.currentIndexStream.listen((index) {
+      final trackId = _trackIdToPlayerIndex.entries
+          .firstWhere(
+            (entry) => entry.value == index,
+          )
+          .key;
+
+      final trackIndex = state.tracks.indexWhere((t) => t.id == trackId);
+      emit(state.copyWith(currentTrackIndex: trackIndex));
+    });
+
+    _playerService.audioPlayer.playerEventStream.listen((event) {
+      log(
+        '_listenToPlayerEvents: Player event - event=$event',
+        name: 'TrackPlayerCubit',
+      );
+    });
+
+    _playerService.audioPlayer.playbackEventStream.listen((event) {
+      log(
+        '_listenToPlayerEvents: Playback event - event=$event',
+        name: 'TrackPlayerCubit',
+      );
+    });
+
     _playerStateSubscription = _playerService.playerStateStream.listen((
       playerState,
     ) {
+      log('playerState: $playerState', name: 'TrackPlayerCubit');
       final newStatus = _getPlayerUiStatusFromPlayerState(playerState);
       log(
         '_listenToPlayerEvents: Player state changed - processingState=${playerState.processingState}, playing=${playerState.playing}, newStatus=$newStatus',
@@ -276,36 +302,7 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       await togglePlayPause();
     } else {
       _playTrackOfIndex(index);
-      _selectTrack(index);
     }
-  }
-
-  Future<void> playSelectedTrack() async {
-    log(
-      'playSelectedTrack: Attempting to play current track at index ${state.currentTrackIndex}',
-      name: 'TrackPlayerCubit',
-    );
-
-    final track = state.currentTrack;
-    if (track == null) {
-      log(
-        'playSelectedTrack: No current track available, cannot play',
-        name: 'TrackPlayerCubit',
-      );
-      return;
-    }
-
-    log(
-      'playSelectedTrack: Playing track ${track.id} (${track.title})',
-      name: 'TrackPlayerCubit',
-    );
-
-    await _playerService.play();
-
-    log(
-      'playSelectedTrack: Play command sent to player service',
-      name: 'TrackPlayerCubit',
-    );
   }
 
   Future<void> _playTrackOfIndex(int index) async {
@@ -361,7 +358,7 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       await _playerService.pause();
     } else if (state.playerUiStatus == PlayerUiStatus.paused) {
       log('togglePlayPause: Resuming playback', name: 'TrackPlayerCubit');
-      await playSelectedTrack();
+      await _playerService.play();
     } else {
       log(
         'togglePlayPause: Player in unexpected status ${state.playerUiStatus}, no action taken',

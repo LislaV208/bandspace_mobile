@@ -7,6 +7,8 @@ class AudioPlayerService {
 
   AudioPlayerService(this._audioPlayer);
 
+  AudioPlayer get audioPlayer => _audioPlayer;
+
   // Streams
   Stream<Duration> get positionStream => _audioPlayer.positionStream;
 
