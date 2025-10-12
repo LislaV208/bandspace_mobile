@@ -3,11 +3,12 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'package:bandspace_mobile/features/track_versions/cubit/add_track_version/add_track_version_state.dart';
 import 'package:bandspace_mobile/features/track_versions/models/add_version_data.dart';
-import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
+import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 class AddTrackVersionCubit extends Cubit<AddTrackVersionState> {
   final ProjectsRepository _repository;
@@ -20,8 +21,8 @@ class AddTrackVersionCubit extends Cubit<AddTrackVersionState> {
     required this.projectId,
     required this.trackId,
     required this.track,
-  })  : _repository = repository,
-        super(const AddTrackVersionInitial());
+  }) : _repository = repository,
+       super(const AddTrackVersionInitial());
 
   /// Krok 1: Wybór pliku audio
   Future<void> selectFile() async {
@@ -41,17 +42,23 @@ class AddTrackVersionCubit extends Cubit<AddTrackVersionState> {
         // Inicjalizuj metadata z BPM z głównej wersji jeśli dostępne
         final initialMetadata = AddVersionData(bpm: track.mainVersion?.bpm);
 
-        emit(AddTrackVersionFileSelected(
-          file: file,
-          fileName: fileName,
-          metadata: initialMetadata,
-        ));
+        emit(
+          AddTrackVersionFileSelected(
+            file: file,
+            fileName: fileName,
+            metadata: initialMetadata,
+          ),
+        );
       } else {
         // Użytkownik anulował wybór pliku
         emit(const AddTrackVersionInitial());
       }
     } catch (e) {
-      emit(AddTrackVersionFailure('Błąd podczas wybierania pliku: ${e.toString()}'));
+      emit(
+        AddTrackVersionFailure(
+          'Błąd podczas wybierania pliku: ${e.toString()}',
+        ),
+      );
     }
   }
 
@@ -59,17 +66,21 @@ class AddTrackVersionCubit extends Cubit<AddTrackVersionState> {
   void updateMetadata(AddVersionData newMetadata) {
     final currentState = state;
     if (currentState is AddTrackVersionFileSelected) {
-      emit(AddTrackVersionFileSelected(
-        file: currentState.file,
-        fileName: currentState.fileName,
-        metadata: newMetadata,
-      ));
+      emit(
+        AddTrackVersionFileSelected(
+          file: currentState.file,
+          fileName: currentState.fileName,
+          metadata: newMetadata,
+        ),
+      );
     } else if (currentState is AddTrackVersionReadyToUpload) {
-      emit(AddTrackVersionReadyToUpload(
-        file: currentState.file,
-        fileName: currentState.fileName,
-        metadata: newMetadata,
-      ));
+      emit(
+        AddTrackVersionReadyToUpload(
+          file: currentState.file,
+          fileName: currentState.fileName,
+          metadata: newMetadata,
+        ),
+      );
     }
   }
 
@@ -78,11 +89,13 @@ class AddTrackVersionCubit extends Cubit<AddTrackVersionState> {
     final currentState = state;
     if (currentState is AddTrackVersionFileSelected) {
       if (currentState.metadata.isValid) {
-        emit(AddTrackVersionReadyToUpload(
-          file: currentState.file,
-          fileName: currentState.fileName,
-          metadata: currentState.metadata,
-        ));
+        emit(
+          AddTrackVersionReadyToUpload(
+            file: currentState.file,
+            fileName: currentState.fileName,
+            metadata: currentState.metadata,
+          ),
+        );
       } else {
         emit(const AddTrackVersionFailure('Metadane są nieprawidłowe'));
       }
@@ -97,14 +110,23 @@ class AddTrackVersionCubit extends Cubit<AddTrackVersionState> {
       return;
     }
 
-    emit(AddTrackVersionUploading(
-      progress: 0.0,
-      file: currentState.file,
-      fileName: currentState.fileName,
-      metadata: currentState.metadata,
-    ));
+    emit(
+      AddTrackVersionUploading(
+        progress: 0.0,
+        file: currentState.file,
+        fileName: currentState.fileName,
+        metadata: currentState.metadata,
+      ),
+    );
 
     try {
+      // Włącz Wake Lock aby zapobiec uśpieniu urządzenia podczas uploadu
+      await WakelockPlus.enable();
+      log(
+        'Wake Lock enabled for version upload: ${currentState.fileName}',
+        name: 'AddTrackVersionCubit',
+      );
+
       final newVersion = await _repository.addTrackVersion(
         projectId,
         trackId,
@@ -113,26 +135,41 @@ class AddTrackVersionCubit extends Cubit<AddTrackVersionState> {
         onProgress: (sent, total) {
           if (total > 0) {
             final progress = sent / total;
-            emit(AddTrackVersionUploading(
-              progress: progress,
-              file: currentState.file,
-              fileName: currentState.fileName,
-              metadata: currentState.metadata,
-            ));
+            emit(
+              AddTrackVersionUploading(
+                progress: progress,
+                file: currentState.file,
+                fileName: currentState.fileName,
+                metadata: currentState.metadata,
+              ),
+            );
           }
         },
       );
 
       emit(AddTrackVersionSuccess(newVersion));
+      log(
+        'Version upload completed successfully: ${currentState.fileName}',
+        name: 'AddTrackVersionCubit',
+      );
     } catch (e, stackTrace) {
-      log('AddTrackVersion error: $e');
-      log('Stack trace: $stackTrace');
-      emit(AddTrackVersionFailure(
-        'Błąd podczas uploadu: ${e.toString()}',
-        file: currentState.file,
-        fileName: currentState.fileName,
-        metadata: currentState.metadata,
-      ));
+      log('AddTrackVersion error: $e', name: 'AddTrackVersionCubit');
+      log('Stack trace: $stackTrace', name: 'AddTrackVersionCubit');
+      emit(
+        AddTrackVersionFailure(
+          'Błąd podczas uploadu: ${e.toString()}',
+          file: currentState.file,
+          fileName: currentState.fileName,
+          metadata: currentState.metadata,
+        ),
+      );
+    } finally {
+      // Zawsze wyłącz Wake Lock po zakończeniu uploadu (sukces lub błąd)
+      await WakelockPlus.disable();
+      log(
+        'Wake Lock disabled after version upload',
+        name: 'AddTrackVersionCubit',
+      );
     }
   }
 
@@ -149,22 +186,26 @@ class AddTrackVersionCubit extends Cubit<AddTrackVersionState> {
         emit(const AddTrackVersionInitial());
         break;
       case AddTrackVersionReadyToUpload():
-        emit(AddTrackVersionFileSelected(
-          file: currentState.file,
-          fileName: currentState.fileName,
-          metadata: currentState.metadata,
-        ));
+        emit(
+          AddTrackVersionFileSelected(
+            file: currentState.file,
+            fileName: currentState.fileName,
+            metadata: currentState.metadata,
+          ),
+        );
         break;
       case AddTrackVersionFailure():
         // Powrót do kroku metadanych jeśli są dostępne dane
         if (currentState.file != null &&
             currentState.fileName != null &&
             currentState.metadata != null) {
-          emit(AddTrackVersionFileSelected(
-            file: currentState.file!,
-            fileName: currentState.fileName!,
-            metadata: currentState.metadata!,
-          ));
+          emit(
+            AddTrackVersionFileSelected(
+              file: currentState.file!,
+              fileName: currentState.fileName!,
+              metadata: currentState.metadata!,
+            ),
+          );
         } else {
           emit(const AddTrackVersionInitial());
         }
@@ -182,11 +223,13 @@ class AddTrackVersionCubit extends Cubit<AddTrackVersionState> {
         currentState.file != null &&
         currentState.fileName != null &&
         currentState.metadata != null) {
-      emit(AddTrackVersionReadyToUpload(
-        file: currentState.file!,
-        fileName: currentState.fileName!,
-        metadata: currentState.metadata!,
-      ));
+      emit(
+        AddTrackVersionReadyToUpload(
+          file: currentState.file!,
+          fileName: currentState.fileName!,
+          metadata: currentState.metadata!,
+        ),
+      );
       uploadVersion();
     }
   }

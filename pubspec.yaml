@@ -32,9 +32,10 @@ dependencies:
   sembast: ^3.8.5
   shared_preferences: ^2.5.3
   sqflite: ^2.3.3
-  package_info_plus: ^8.3.1
+  package_info_plus: ^9.0.0
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.6
+  wakelock_plus: ^1.4.0
 
 dev_dependencies:
   flutter_test:

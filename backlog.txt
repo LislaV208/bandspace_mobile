@@ -1,4 +1,4 @@
-- upload przerywa się kiedy zgaśnie ekran
+- TO TEST: upload przerywa się kiedy zgaśnie ekran
 - w jednym przypadku (mucha nie siada) wyskakuej błąd przy uploadzie
 - na iphone nie działają utwory nie zuploadowane z iphone
 - przy edycji utworu kiedy jest tempo i je usuniemy to sie nie zapisuje, ale psuje sie widok utworu
