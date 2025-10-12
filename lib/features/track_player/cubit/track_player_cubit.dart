@@ -5,33 +5,35 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio/just_audio.dart';
 
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_state.dart';
-import 'package:bandspace_mobile/features/track_player/services/audio_cache_repository.dart';
 import 'package:bandspace_mobile/features/track_player/services/audio_player_service.dart';
+import 'package:bandspace_mobile/features/track_player/services/audio_pre_caching_orchestrator.dart';
 import 'package:bandspace_mobile/features/track_player/services/audio_source_factory.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
 import 'package:bandspace_mobile/shared/models/version.dart';
 
 class TrackPlayerCubit extends Cubit<TrackPlayerState> {
   final AudioPlayerService _playerService;
-  final AudioCacheRepository _cacheRepo;
   final AudioSourceFactory _sourceFactory;
+  final AudioPreCachingOrchestrator _preCachingOrchestrator;
   final Map<int, int> _trackIdToPlayerIndex = {};
 
   StreamSubscription? _playerStateSubscription;
   StreamSubscription? _positionSubscription;
   StreamSubscription? _bufferedPositionSubscription;
   StreamSubscription? _durationSubscription;
+  StreamSubscription? _cacheProgressSubscription;
   StreamSubscription<List<Track>>? _tracksSubscription;
 
   TrackPlayerCubit({
     required AudioPlayerService playerService,
-    required AudioCacheRepository cacheRepo,
     required AudioSourceFactory sourceFactory,
+    required AudioPreCachingOrchestrator preCachingOrchestrator,
   }) : _playerService = playerService,
-       _cacheRepo = cacheRepo,
        _sourceFactory = sourceFactory,
+       _preCachingOrchestrator = preCachingOrchestrator,
        super(const TrackPlayerState()) {
     _listenToPlayerEvents();
+    _listenToCacheProgress();
   }
 
   void _listenToPlayerEvents() {
@@ -60,7 +62,21 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     });
   }
 
-  Future<void> loadTracksDirectly(
+  void _listenToCacheProgress() {
+    _cacheProgressSubscription = _preCachingOrchestrator.progressStream.listen(
+      (progress) {
+        emit(
+          state.copyWith(
+            tracksCacheStatus: progress.tracksCacheStatus,
+            cachedTracksCount: progress.cachedCount,
+            isPreCaching: !progress.isComplete,
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> initialize(
     List<Track> tracks,
     int initialTrackId,
     int projectId,
@@ -75,16 +91,15 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       ),
     );
 
-    await _processTracks(tracks, initialTrackId, isInitialLoad: true);
+    await _processTracks(tracks, initialTrackId);
 
-    _startPreCaching();
+    _preCachingOrchestrator.preCacheTracks(state.tracks);
   }
 
   Future<void> _processTracks(
     List<Track> tracks,
-    int initialTrackId, {
-    bool isInitialLoad = false,
-  }) async {
+    int initialTrackId,
+  ) async {
     final List<AudioSource> playableSources = [];
     _trackIdToPlayerIndex.clear();
 
@@ -115,15 +130,13 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       }
     }
 
-    if (isInitialLoad || _didPlaylistChange(playableSources)) {
-      if (playableSources.isNotEmpty) {
-        await _playerService.setAudioSources(playableSources);
-      } else {
-        log(
-          'No playable tracks available in playlist',
-          name: 'TrackPlayerCubit',
-        );
-      }
+    if (playableSources.isNotEmpty) {
+      await _playerService.setAudioSources(playableSources);
+    } else {
+      log(
+        'No playable tracks available in playlist',
+        name: 'TrackPlayerCubit',
+      );
     }
 
     final initialIndex = tracks.indexWhere((t) => t.id == initialTrackId);
@@ -137,26 +150,26 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       ),
     );
 
-    if (isInitialLoad && initialIndex != -1) {
+    if (initialIndex != -1) {
       selectTrack(initialIndex);
     }
   }
 
-  bool _didPlaylistChange(List<AudioSource> newSources) {
-    final currentSources = _playerService.sequence;
-    if (currentSources.length != newSources.length) {
-      return true;
-    }
+  // bool _didPlaylistChange(List<AudioSource> newSources) {
+  //   final currentSources = _playerService.sequence;
+  //   if (currentSources.length != newSources.length) {
+  //     return true;
+  //   }
 
-    for (int i = 0; i < currentSources.length; i++) {
-      final s1 = (currentSources[i] as LockCachingAudioSource).uri.toString();
-      final s2 = (newSources[i] as LockCachingAudioSource).uri.toString();
-      if (s1 != s2) {
-        return true;
-      }
-    }
-    return false;
-  }
+  //   for (int i = 0; i < currentSources.length; i++) {
+  //     final s1 = (currentSources[i] as LockCachingAudioSource).uri.toString();
+  //     final s2 = (newSources[i] as LockCachingAudioSource).uri.toString();
+  //     if (s1 != s2) {
+  //       return true;
+  //     }
+  //   }
+  //   return false;
+  // }
 
   void selectTrack(int index) {
     if (index < 0 || index >= state.tracks.length) {
@@ -277,91 +290,6 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     }
   }
 
-  Future<void> _startPreCaching() async {
-    emit(state.copyWith(isPreCaching: true));
-
-    // Inicjalizuj cache status dla wszystkich tracks
-    final initialCacheStatus = <int, CacheStatus>{};
-    for (final track in state.tracks) {
-      initialCacheStatus[track.id] = CacheStatus.notStarted;
-    }
-
-    emit(state.copyWith(tracksCacheStatus: initialCacheStatus));
-
-    // Przetworz wszystkie tracks
-    for (final track in state.tracks) {
-      await _processTrackForCaching(track);
-    }
-  }
-
-  Future<void> _processTrackForCaching(Track track) async {
-    final trackId = track.id;
-    final url = track.mainVersion?.file?.downloadUrl;
-
-    if (url == null) {
-      // Track nie ma pliku - ustaw status noFile
-      final updatedStatus = Map<int, CacheStatus>.from(state.tracksCacheStatus);
-      updatedStatus[trackId] = CacheStatus.noFile;
-      log(
-        'Track $trackId has no download URL, skipping cache',
-        name: 'TrackPlayerCubit',
-      );
-      _updateCacheProgress(updatedStatus);
-      return;
-    }
-
-    try {
-      // Update status na caching
-      final updatedStatus = Map<int, CacheStatus>.from(state.tracksCacheStatus);
-      updatedStatus[trackId] = CacheStatus.caching;
-      emit(state.copyWith(tracksCacheStatus: updatedStatus));
-
-      // Downloaduj plik do cache używając repository
-      await _cacheRepo.downloadToCache(url, trackId);
-
-      // Update status na cached
-      final finalStatus = Map<int, CacheStatus>.from(state.tracksCacheStatus);
-      finalStatus[trackId] = CacheStatus.cached;
-      log(
-        'Successfully cached track $trackId',
-        name: 'TrackPlayerCubit',
-      );
-      _updateCacheProgress(finalStatus);
-    } catch (e) {
-      // Update status na error
-      final errorStatus = Map<int, CacheStatus>.from(state.tracksCacheStatus);
-      errorStatus[trackId] = CacheStatus.error;
-      log(
-        'Failed to cache track $trackId: $e. Track will stream instead.',
-        name: 'TrackPlayerCubit',
-      );
-      _updateCacheProgress(errorStatus);
-    }
-  }
-
-  void _updateCacheProgress(Map<int, CacheStatus> statusMap) {
-    final processedCount = statusMap.values
-        .where(
-          (s) =>
-              s == CacheStatus.cached ||
-              s == CacheStatus.noFile ||
-              s == CacheStatus.error,
-        )
-        .length;
-
-    final cachedCount = statusMap.values
-        .where((s) => s == CacheStatus.cached)
-        .length;
-
-    emit(
-      state.copyWith(
-        tracksCacheStatus: statusMap,
-        cachedTracksCount: cachedCount,
-        isPreCaching: processedCount < state.tracks.length,
-      ),
-    );
-  }
-
   /// Aktualizuje konkretną ścieżkę w liście tracks
   void updateTrack(Track updatedTrack) {
     final currentTracks = List<Track>.from(state.tracks);
@@ -470,7 +398,9 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     _positionSubscription?.cancel();
     _bufferedPositionSubscription?.cancel();
     _durationSubscription?.cancel();
+    _cacheProgressSubscription?.cancel();
     _tracksSubscription?.cancel();
+    _preCachingOrchestrator.dispose();
     _playerService.dispose();
     return super.close();
   }
