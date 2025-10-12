@@ -1,23 +1,21 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:path_provider/path_provider.dart';
 
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_state.dart';
+import 'package:bandspace_mobile/features/track_player/services/audio_cache_repository.dart';
 import 'package:bandspace_mobile/features/track_player/services/audio_player_service.dart';
+import 'package:bandspace_mobile/features/track_player/services/audio_source_factory.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
 import 'package:bandspace_mobile/shared/models/version.dart';
 
 class TrackPlayerCubit extends Cubit<TrackPlayerState> {
   final AudioPlayerService _playerService;
+  final AudioCacheRepository _cacheRepo;
+  final AudioSourceFactory _sourceFactory;
   final Map<int, int> _trackIdToPlayerIndex = {};
-  final Map<int, AudioSource> _audioSources = {};
-  final Dio _dio = Dio();
-  int? _currentProjectId;
 
   StreamSubscription? _playerStateSubscription;
   StreamSubscription? _positionSubscription;
@@ -27,8 +25,12 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
 
   TrackPlayerCubit({
     required AudioPlayerService playerService,
-  })  : _playerService = playerService,
-        super(const TrackPlayerState()) {
+    required AudioCacheRepository cacheRepo,
+    required AudioSourceFactory sourceFactory,
+  }) : _playerService = playerService,
+       _cacheRepo = cacheRepo,
+       _sourceFactory = sourceFactory,
+       super(const TrackPlayerState()) {
     _listenToPlayerEvents();
   }
 
@@ -46,11 +48,12 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       }
     });
 
-    _bufferedPositionSubscription = _playerService.bufferedPositionStream.listen((
-      bufferedPosition,
-    ) {
-      emit(state.copyWith(bufferedPosition: bufferedPosition));
-    });
+    _bufferedPositionSubscription = _playerService.bufferedPositionStream
+        .listen((
+          bufferedPosition,
+        ) {
+          emit(state.copyWith(bufferedPosition: bufferedPosition));
+        });
 
     _durationSubscription = _playerService.durationStream.listen((duration) {
       emit(state.copyWith(totalDuration: duration ?? Duration.zero));
@@ -62,8 +65,6 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     int initialTrackId,
     int projectId,
   ) async {
-    _currentProjectId = projectId;
-
     final initialIndex = tracks.indexWhere((t) => t.id == initialTrackId);
 
     emit(
@@ -89,16 +90,39 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
 
     for (final track in tracks) {
       final url = track.mainVersion?.file?.downloadUrl;
-      if (url != null) {
-        final audioSource = await _createCachingAudioSource(url, track.id);
+
+      if (url == null) {
+        log(
+          'Track ${track.id} has no download URL, skipping from playlist',
+          name: 'TrackPlayerCubit',
+        );
+        continue;
+      }
+
+      try {
+        final audioSource = await _sourceFactory.createAudioSource(
+          url,
+          track.id,
+        );
         _trackIdToPlayerIndex[track.id] = playableSources.length;
         playableSources.add(audioSource);
+      } catch (e) {
+        log(
+          'Failed to create audio source for track ${track.id}: $e. Skipping.',
+          name: 'TrackPlayerCubit',
+        );
+        // Graceful degradation: skip this track, continue with others
       }
     }
 
     if (isInitialLoad || _didPlaylistChange(playableSources)) {
       if (playableSources.isNotEmpty) {
         await _playerService.setAudioSources(playableSources);
+      } else {
+        log(
+          'No playable tracks available in playlist',
+          name: 'TrackPlayerCubit',
+        );
       }
     }
 
@@ -253,40 +277,6 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     }
   }
 
-  Future<File> _getCacheFileForTrack(int trackId) async {
-    final cacheDir = await getTemporaryDirectory();
-    final projectCacheDir = Directory(
-      '${cacheDir.path}/audio_cache/project_$_currentProjectId',
-    );
-
-    if (!await projectCacheDir.exists()) {
-      await projectCacheDir.create(recursive: true);
-    }
-
-    return File('${projectCacheDir.path}/track_$trackId.cache');
-  }
-
-  Future<AudioSource> _createCachingAudioSource(String url, int trackId) async {
-    final cacheFile = await _getCacheFileForTrack(trackId);
-
-    return LockCachingAudioSource(
-      Uri.parse(url),
-      cacheFile: cacheFile,
-    );
-  }
-
-  Future<void> _downloadTrackToCache(String url, int trackId) async {
-    final cacheFile = await _getCacheFileForTrack(trackId);
-
-    // Sprawdź czy plik już istnieje
-    if (await cacheFile.exists()) {
-      return; // Już cache'owany
-    }
-
-    // Downloaduj plik używając Dio
-    await _dio.download(url, cacheFile.path);
-  }
-
   Future<void> _startPreCaching() async {
     emit(state.copyWith(isPreCaching: true));
 
@@ -312,6 +302,10 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       // Track nie ma pliku - ustaw status noFile
       final updatedStatus = Map<int, CacheStatus>.from(state.tracksCacheStatus);
       updatedStatus[trackId] = CacheStatus.noFile;
+      log(
+        'Track $trackId has no download URL, skipping cache',
+        name: 'TrackPlayerCubit',
+      );
       _updateCacheProgress(updatedStatus);
       return;
     }
@@ -322,23 +316,25 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       updatedStatus[trackId] = CacheStatus.caching;
       emit(state.copyWith(tracksCacheStatus: updatedStatus));
 
-      // Utwórz cache file path i downloaduj plik
-      await _downloadTrackToCache(url, trackId);
-
-      // Utwórz audio source (będzie używać już cache'owanego pliku)
-      final audioSource = await _createCachingAudioSource(url, trackId);
-
-      // Zapisz audio source
-      _audioSources[trackId] = audioSource;
+      // Downloaduj plik do cache używając repository
+      await _cacheRepo.downloadToCache(url, trackId);
 
       // Update status na cached
       final finalStatus = Map<int, CacheStatus>.from(state.tracksCacheStatus);
       finalStatus[trackId] = CacheStatus.cached;
+      log(
+        'Successfully cached track $trackId',
+        name: 'TrackPlayerCubit',
+      );
       _updateCacheProgress(finalStatus);
     } catch (e) {
       // Update status na error
       final errorStatus = Map<int, CacheStatus>.from(state.tracksCacheStatus);
       errorStatus[trackId] = CacheStatus.error;
+      log(
+        'Failed to cache track $trackId: $e. Track will stream instead.',
+        name: 'TrackPlayerCubit',
+      );
       _updateCacheProgress(errorStatus);
     }
   }
@@ -432,29 +428,39 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       return;
     }
 
+    final playerIndex = _trackIdToPlayerIndex[updatedTrack.id];
+    if (playerIndex == null) {
+      log(
+        'Track ${updatedTrack.id} not in player index, cannot rebuild',
+        name: 'TrackPlayerCubit',
+      );
+      return;
+    }
+
     try {
       // Utwórz nowy audio source dla zaktualizowanego track-u
-      final audioSource = await _createCachingAudioSource(url, updatedTrack.id);
-      final playerIndex = _trackIdToPlayerIndex[updatedTrack.id];
+      final audioSource = await _sourceFactory.createAudioSource(
+        url,
+        updatedTrack.id,
+      );
 
-      if (playerIndex != null) {
-        // Zastąp audio source w player-ze
-        final currentSequence = _playerService.sequence;
-        final sources = List<AudioSource>.from(currentSequence);
-        sources[playerIndex] = audioSource;
+      // Zastąp audio source w player-ze
+      final currentSequence = _playerService.sequence;
+      final sources = List<AudioSource>.from(currentSequence);
+      sources[playerIndex] = audioSource;
 
-        await _playerService.setAudioSources(sources);
+      await _playerService.setAudioSources(sources);
 
-        log(
-          'Rebuilt audio source for track ${updatedTrack.id} with new version',
-          name: 'TrackPlayerCubit',
-        );
-      }
+      log(
+        'Rebuilt audio source for track ${updatedTrack.id} with new version',
+        name: 'TrackPlayerCubit',
+      );
     } catch (e) {
       log(
         'Failed to rebuild audio sources for track ${updatedTrack.id}: $e',
         name: 'TrackPlayerCubit',
       );
+      // Graceful degradation: stary source pozostaje aktywny
     }
   }
 

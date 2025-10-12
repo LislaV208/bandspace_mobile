@@ -1,5 +1,5 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -8,7 +8,9 @@ import 'package:bandspace_mobile/features/track_detail/cubit/track_detail_state.
 import 'package:bandspace_mobile/features/track_detail/widgets/manage_track_button.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_cubit.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_state.dart';
+import 'package:bandspace_mobile/features/track_player/services/audio_cache_repository.dart';
 import 'package:bandspace_mobile/features/track_player/services/audio_player_service.dart';
+import 'package:bandspace_mobile/features/track_player/services/audio_source_factory.dart';
 import 'package:bandspace_mobile/features/track_player/views/track_player_view.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
@@ -32,11 +34,19 @@ class TrackPlayerScreen extends StatelessWidget {
     required List<Track> tracks,
     required int initialTrackId,
   }) {
+    // Utwórz dependencies
+    final dio = Dio();
+    final cacheRepo = AudioCacheRepository(dio: dio, projectId: project.id);
+    final sourceFactory = AudioSourceFactory(cacheRepo: cacheRepo);
+    final playerService = AudioPlayerService(AudioPlayer());
+
     return MultiBlocProvider(
       providers: [
         BlocProvider(
           create: (context) => TrackPlayerCubit(
-            playerService: AudioPlayerService(AudioPlayer()),
+            playerService: playerService,
+            cacheRepo: cacheRepo,
+            sourceFactory: sourceFactory,
           )..loadTracksDirectly(tracks, initialTrackId, project.id),
         ),
         BlocProvider(
