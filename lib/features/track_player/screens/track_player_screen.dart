@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:just_audio/just_audio.dart';
 
 import 'package:bandspace_mobile/features/track_detail/cubit/track_detail_cubit.dart';
 import 'package:bandspace_mobile/features/track_detail/cubit/track_detail_state.dart';
 import 'package:bandspace_mobile/features/track_detail/widgets/manage_track_button.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_cubit.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_state.dart';
+import 'package:bandspace_mobile/features/track_player/services/audio_player_service.dart';
 import 'package:bandspace_mobile/features/track_player/views/track_player_view.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
@@ -33,9 +35,9 @@ class TrackPlayerScreen extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) =>
-              TrackPlayerCubit()
-                ..loadTracksDirectly(tracks, initialTrackId, project.id),
+          create: (context) => TrackPlayerCubit(
+            playerService: AudioPlayerService(AudioPlayer()),
+          )..loadTracksDirectly(tracks, initialTrackId, project.id),
         ),
         BlocProvider(
           create: (context) => TrackDetailCubit(

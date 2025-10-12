@@ -8,11 +8,12 @@ import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_state.dart';
+import 'package:bandspace_mobile/features/track_player/services/audio_player_service.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
 import 'package:bandspace_mobile/shared/models/version.dart';
 
 class TrackPlayerCubit extends Cubit<TrackPlayerState> {
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  final AudioPlayerService _playerService;
   final Map<int, int> _trackIdToPlayerIndex = {};
   final Map<int, AudioSource> _audioSources = {};
   final Dio _dio = Dio();
@@ -24,31 +25,34 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
   StreamSubscription? _durationSubscription;
   StreamSubscription<List<Track>>? _tracksSubscription;
 
-  TrackPlayerCubit() : super(const TrackPlayerState()) {
+  TrackPlayerCubit({
+    required AudioPlayerService playerService,
+  })  : _playerService = playerService,
+        super(const TrackPlayerState()) {
     _listenToPlayerEvents();
   }
 
   void _listenToPlayerEvents() {
-    _playerStateSubscription = _audioPlayer.playerStateStream.listen((
+    _playerStateSubscription = _playerService.playerStateStream.listen((
       playerState,
     ) {
       final newStatus = _mapProcessingStateToPlayerUiStatus(playerState);
       emit(state.copyWith(playerUiStatus: newStatus));
     });
 
-    _positionSubscription = _audioPlayer.positionStream.listen((position) {
+    _positionSubscription = _playerService.positionStream.listen((position) {
       if (!state.isSeeking) {
         emit(state.copyWith(currentPosition: position));
       }
     });
 
-    _bufferedPositionSubscription = _audioPlayer.bufferedPositionStream.listen((
+    _bufferedPositionSubscription = _playerService.bufferedPositionStream.listen((
       bufferedPosition,
     ) {
       emit(state.copyWith(bufferedPosition: bufferedPosition));
     });
 
-    _durationSubscription = _audioPlayer.durationStream.listen((duration) {
+    _durationSubscription = _playerService.durationStream.listen((duration) {
       emit(state.copyWith(totalDuration: duration ?? Duration.zero));
     });
   }
@@ -94,7 +98,7 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
 
     if (isInitialLoad || _didPlaylistChange(playableSources)) {
       if (playableSources.isNotEmpty) {
-        await _audioPlayer.setAudioSources(playableSources);
+        await _playerService.setAudioSources(playableSources);
       }
     }
 
@@ -115,7 +119,7 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
   }
 
   bool _didPlaylistChange(List<AudioSource> newSources) {
-    final currentSources = _audioPlayer.sequence;
+    final currentSources = _playerService.sequence;
     if (currentSources.length != newSources.length) {
       return true;
     }
@@ -145,18 +149,18 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     final playerIndex = _trackIdToPlayerIndex[track.id];
 
     if (playerIndex != null) {
-      await _audioPlayer.seek(Duration.zero, index: playerIndex);
-      await _audioPlayer.play();
+      await _playerService.seek(Duration.zero, index: playerIndex);
+      await _playerService.play();
     } else {
-      await _audioPlayer.stop();
+      await _playerService.stop();
     }
   }
 
   Future<void> togglePlayPause() async {
     if (state.playerUiStatus == PlayerUiStatus.playing) {
-      await _audioPlayer.pause();
+      await _playerService.pause();
     } else if (state.playerUiStatus == PlayerUiStatus.paused) {
-      await _audioPlayer.play();
+      await _playerService.play();
     } else {
       // Jeśli idle/completed - rozpocznij odtwarzanie wybranego utworu
       await playSelectedTrack();
@@ -166,12 +170,12 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
   /// Zatrzymuje odtwarzanie (używane przy nawigacji do innych ekranów)
   Future<void> pausePlayback() async {
     if (state.playerUiStatus == PlayerUiStatus.playing) {
-      await _audioPlayer.pause();
+      await _playerService.pause();
     }
   }
 
   void seek(Duration position) {
-    _audioPlayer.seek(position);
+    _playerService.seek(position);
   }
 
   void startSeeking() {
@@ -210,25 +214,25 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       ),
     );
 
-    await _audioPlayer.seek(targetPosition);
+    await _playerService.seek(targetPosition);
   }
 
   void seekToNext() {
     if (state.hasNext) {
       selectTrack(state.currentTrackIndex + 1);
-      _audioPlayer.seekToNext();
+      _playerService.seekToNext();
     }
   }
 
   void seekToPrevious() {
     if (state.hasPrevious) {
       selectTrack(state.currentTrackIndex - 1);
-      _audioPlayer.seekToPrevious();
+      _playerService.seekToPrevious();
     }
   }
 
   void setLoopMode(LoopMode mode) {
-    _audioPlayer.setLoopMode(mode);
+    _playerService.setLoopMode(mode);
     emit(state.copyWith(loopMode: mode));
   }
 
@@ -435,11 +439,11 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
 
       if (playerIndex != null) {
         // Zastąp audio source w player-ze
-        final currentSequence = _audioPlayer.sequence;
+        final currentSequence = _playerService.sequence;
         final sources = List<AudioSource>.from(currentSequence);
         sources[playerIndex] = audioSource;
 
-        await _audioPlayer.setAudioSources(sources);
+        await _playerService.setAudioSources(sources);
 
         log(
           'Rebuilt audio source for track ${updatedTrack.id} with new version',
@@ -461,7 +465,7 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     _bufferedPositionSubscription?.cancel();
     _durationSubscription?.cancel();
     _tracksSubscription?.cancel();
-    _audioPlayer.dispose();
+    _playerService.dispose();
     return super.close();
   }
 }
