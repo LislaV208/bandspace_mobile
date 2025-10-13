@@ -10,8 +10,10 @@ import 'package:bandspace_mobile/features/track_detail/cubit/track_detail_state.
 import 'package:bandspace_mobile/features/track_detail/screens/edit_track_screen.dart';
 import 'package:bandspace_mobile/features/track_detail/widgets/delete_track_dialog.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_cubit.dart';
+import 'package:bandspace_mobile/features/track_player/cubit/track_player_state.dart';
 import 'package:bandspace_mobile/features/track_versions/cubit/track_versions_cubit.dart';
 import 'package:bandspace_mobile/features/track_versions/screens/track_versions_screen.dart';
+import 'package:bandspace_mobile/shared/models/track.dart';
 import 'package:bandspace_mobile/shared/models/version.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
@@ -20,71 +22,92 @@ class ManageTrackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<TrackDetailCubit, TrackDetailState>(
-      builder: (context, state) {
-        final cubit = context.read<TrackDetailCubit>();
+    return BlocBuilder<TrackPlayerCubit, TrackPlayerState>(
+      builder: (context, playerState) {
+        // Czytaj obecnie odtwarzany track z TrackPlayerCubit
+        final currentTrack = playerState.currentTrack;
+        final projectId = playerState.currentProjectId;
 
-        final disableButton =
-            state is TrackDetailUpdating || state is TrackDetailDeleting;
+        // Czytaj status operacji z TrackDetailCubit
+        return BlocBuilder<TrackDetailCubit, TrackDetailState>(
+          builder: (context, detailState) {
+            final detailCubit = context.read<TrackDetailCubit>();
 
-        return TextButton.icon(
-          iconAlignment: IconAlignment.end,
-          onPressed: disableButton
-              ? null
-              : () {
-                  final track = state.track;
-                  OptionsBottomSheet.show(
-                    context: context,
-                    title: 'Zarządzaj utworem',
-                    options: [
-                      BottomSheetOption(
-                        icon: LucideIcons.pencil,
-                        title: 'Edytuj utwór',
-                        subtitle: 'Zmień tytuł i tempo',
-                        onTap: () {
-                          Navigator.pop(context);
-                          _showEditDialog(context, track, cubit);
-                        },
-                      ),
-                      BottomSheetOption(
-                        icon: LucideIcons.layers,
-                        title: 'Zarządzaj wersjami',
-                        subtitle: 'Wyświetl i dodaj wersje utworu',
-                        onTap: () {
-                          Navigator.pop(context);
-                          _navigateToVersions(context, track);
-                        },
-                      ),
-                      BottomSheetOption(
-                        icon: LucideIcons.trash2,
-                        title: 'Usuń utwór',
-                        subtitle: 'Usuwa utwór wraz z wersjami',
-                        onTap: () {
-                          Navigator.pop(context);
-                          _showDeleteDialog(context, track, cubit);
-                        },
-                        isDestructive: true,
-                      ),
-                    ],
-                  );
-                },
-          label: Text(
-            'Zarządzaj',
-            style: TextStyle(
-              color: disableButton
-                  ? AppColors.textSecondary.withValues(alpha: 0.5)
-                  : AppColors.textSecondary,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          icon: Icon(
-            LucideIcons.settings2,
-            size: 22,
-            color: disableButton
-                ? AppColors.textSecondary.withValues(alpha: 0.5)
-                : AppColors.textSecondary,
-          ),
+            final disableButton =
+                detailState is TrackDetailUpdating ||
+                detailState is TrackDetailDeleting;
+
+            return TextButton.icon(
+              iconAlignment: IconAlignment.end,
+              onPressed: disableButton || currentTrack == null
+                  ? null
+                  : () {
+                      OptionsBottomSheet.show(
+                        context: context,
+                        title: 'Zarządzaj utworem',
+                        options: [
+                          BottomSheetOption(
+                            icon: LucideIcons.pencil,
+                            title: 'Edytuj utwór',
+                            subtitle: 'Zmień tytuł i tempo',
+                            onTap: () {
+                              Navigator.pop(context);
+                              _showEditDialog(
+                                context,
+                                currentTrack,
+                                detailCubit,
+                              );
+                            },
+                          ),
+                          BottomSheetOption(
+                            icon: LucideIcons.layers,
+                            title: 'Zarządzaj wersjami',
+                            subtitle: 'Wyświetl i dodaj wersje utworu',
+                            onTap: () {
+                              Navigator.pop(context);
+                              _navigateToVersions(
+                                context,
+                                currentTrack,
+                                projectId,
+                              );
+                            },
+                          ),
+                          BottomSheetOption(
+                            icon: LucideIcons.trash2,
+                            title: 'Usuń utwór',
+                            subtitle: 'Usuwa utwór wraz z wersjami',
+                            onTap: () {
+                              Navigator.pop(context);
+                              _showDeleteDialog(
+                                context,
+                                currentTrack,
+                                detailCubit,
+                              );
+                            },
+                            isDestructive: true,
+                          ),
+                        ],
+                      );
+                    },
+              label: Text(
+                'Zarządzaj',
+                style: TextStyle(
+                  color: disableButton
+                      ? AppColors.textSecondary.withValues(alpha: 0.5)
+                      : AppColors.textSecondary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              icon: Icon(
+                LucideIcons.settings2,
+                size: 22,
+                color: disableButton
+                    ? AppColors.textSecondary.withValues(alpha: 0.5)
+                    : AppColors.textSecondary,
+              ),
+            );
+          },
         );
       },
     );
@@ -106,10 +129,13 @@ class ManageTrackButton extends StatelessWidget {
     );
   }
 
-  void _navigateToVersions(BuildContext context, track) async {
-    // Sprawdź czy mamy dostęp do projectId w kontekście
-    final cubit = context.read<TrackDetailCubit>();
-    if (cubit.projectId == null) {
+  void _navigateToVersions(
+    BuildContext context,
+    Track track,
+    int? projectId,
+  ) async {
+    // Sprawdź czy mamy dostęp do projectId
+    if (projectId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Brak informacji o projekcie'),
@@ -136,7 +162,7 @@ class ManageTrackButton extends StatelessWidget {
           ),
           child: TrackVersionsScreen(
             track: track,
-            projectId: cubit.projectId!,
+            projectId: projectId,
           ),
         ),
       ),

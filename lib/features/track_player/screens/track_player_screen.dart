@@ -8,6 +8,7 @@ import 'package:bandspace_mobile/features/track_detail/cubit/track_detail_cubit.
 import 'package:bandspace_mobile/features/track_detail/cubit/track_detail_state.dart';
 import 'package:bandspace_mobile/features/track_detail/widgets/manage_track_button.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_cubit.dart';
+import 'package:bandspace_mobile/features/track_player/cubit/track_player_state.dart';
 import 'package:bandspace_mobile/features/track_player/services/audio_cache_repository.dart';
 import 'package:bandspace_mobile/features/track_player/services/audio_player_service.dart';
 import 'package:bandspace_mobile/features/track_player/services/audio_pre_caching_orchestrator.dart';
@@ -71,29 +72,38 @@ class TrackPlayerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<TrackDetailCubit, TrackDetailState>(
-      listener: (context, detailState) {
-        // Po pomyślnym usunięciu ścieżki, wróć do poprzedniego ekranu
-        if (detailState is TrackDetailDeleteSuccess) {
-          Navigator.of(context).pop();
-        }
-        // Po pomyślnej aktualizacji ścieżki, zaktualizuj TrackPlayerCubit
-        else if (detailState is TrackDetailUpdateSuccess) {
-          context.read<TrackPlayerCubit>().updateTrack(detailState.track);
+    return BlocListener<TrackPlayerCubit, TrackPlayerState>(
+      listener: (context, playerState) {
+        // Synchronizuj obecnie odtwarzany track z TrackDetailCubit
+        final currentTrack = playerState.currentTrack;
+        if (currentTrack != null) {
+          context.read<TrackDetailCubit>().onTrackChanged(currentTrack);
         }
       },
-      child: Scaffold(
-        appBar: AppBar(
-          actions: const [
-            Padding(
-              padding: EdgeInsets.only(right: 8.0),
-              child: ManageTrackButton(),
-            ),
-          ],
-        ),
-        resizeToAvoidBottomInset: false,
-        body: TrackPlayerView(
-          project: project,
+      child: BlocListener<TrackDetailCubit, TrackDetailState>(
+        listener: (context, detailState) {
+          // Po pomyślnym usunięciu ścieżki, wróć do poprzedniego ekranu
+          if (detailState is TrackDetailDeleteSuccess) {
+            Navigator.of(context).pop();
+          }
+          // Po pomyślnej aktualizacji ścieżki, zaktualizuj TrackPlayerCubit
+          else if (detailState is TrackDetailUpdateSuccess) {
+            context.read<TrackPlayerCubit>().updateTrack(detailState.track);
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            actions: const [
+              Padding(
+                padding: EdgeInsets.only(right: 8.0),
+                child: ManageTrackButton(),
+              ),
+            ],
+          ),
+          resizeToAvoidBottomInset: false,
+          body: TrackPlayerView(
+            project: project,
+          ),
         ),
       ),
     );

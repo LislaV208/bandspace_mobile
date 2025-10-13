@@ -109,6 +109,44 @@ class AudioPreCachingOrchestrator {
     _progressController.add(CacheProgress(statusMap));
   }
 
+  /// Invaliduje cache dla danego tracka (usuwa plik z dysku).
+  /// Używane gdy zmienia się główna wersja tracka - stary cache musi zostać usunięty.
+  Future<void> invalidateTrackCache(int trackId) async {
+    log(
+      'Invalidating cache for track $trackId',
+      name: 'AudioPreCachingOrchestrator',
+    );
+    await _cacheRepo.clearTrackCache(trackId);
+  }
+
+  /// Aktualizuje cache dla tracka po zmianie wersji.
+  /// Invaliduje stary cache i opcjonalnie pre-cache'uje nową wersję w tle.
+  Future<void> updateTrackCache(Track track) async {
+    log(
+      'Updating cache for track ${track.id}',
+      name: 'AudioPreCachingOrchestrator',
+    );
+
+    // Invaliduj stary cache
+    await invalidateTrackCache(track.id);
+
+    // Pre-cache'uj nową wersję w background (best-effort)
+    final url = track.mainVersion?.file?.downloadUrl;
+    if (url != null) {
+      // Uruchom download w background - nie czekamy na zakończenie
+      unawaited(_cacheRepo.downloadToCache(url, track.id));
+      log(
+        'Started background caching for track ${track.id}',
+        name: 'AudioPreCachingOrchestrator',
+      );
+    } else {
+      log(
+        'Track ${track.id} has no download URL, skipping pre-caching',
+        name: 'AudioPreCachingOrchestrator',
+      );
+    }
+  }
+
   /// Dispose stream controller.
   void dispose() {
     _progressController.close();

@@ -123,9 +123,10 @@ class TrackVersionsPlayerWidget extends StatelessWidget {
                   child: Slider(
                     value: totalDuration.inMilliseconds > 0
                         ? ((isSeeking && seekPosition != null
-                                ? seekPosition!.inMilliseconds
-                                : currentPosition.inMilliseconds) /
-                            totalDuration.inMilliseconds).clamp(0.0, 1.0)
+                                      ? seekPosition!.inMilliseconds
+                                      : currentPosition.inMilliseconds) /
+                                  totalDuration.inMilliseconds)
+                              .clamp(0.0, 1.0)
                         : 0.0,
                     onChangeStart: (value) {
                       onSeekStart?.call(value);

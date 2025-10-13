@@ -558,7 +558,10 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
   }
 
   /// Aktualizuje główną wersję dla danego track-u
-  void updateTrackMainVersion(int trackId, Version newMainVersion) {
+  Future<void> updateTrackMainVersion(
+    int trackId,
+    Version newMainVersion,
+  ) async {
     log(
       'updateTrackMainVersion: Updating main version for track $trackId to version ${newMainVersion.id}',
       name: 'TrackPlayerCubit',
@@ -609,14 +612,13 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       name: 'TrackPlayerCubit',
     );
 
-    // Jeśli to obecnie odtwarzany track, przebuduj audio sources
-    if (state.currentTrack?.id == trackId) {
-      log(
-        'updateTrackMainVersion: This is the current track, rebuilding audio sources',
-        name: 'TrackPlayerCubit',
-      );
-      _rebuildAudioSourcesForCurrentTrack(updatedTrack);
-    }
+    // Przebuduj audio sources dla obecnie odtwarzanego tracka
+    // (metoda jest zawsze wywoływana dla obecnie odtwarzanego tracka)
+    log(
+      'updateTrackMainVersion: Rebuilding audio sources for current track',
+      name: 'TrackPlayerCubit',
+    );
+    await _rebuildAudioSourcesForCurrentTrack(updatedTrack);
   }
 
   Future<void> _rebuildAudioSourcesForCurrentTrack(Track updatedTrack) async {
@@ -649,6 +651,14 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     );
 
     try {
+      // Invaliduj stary cache przed utworzeniem nowego audio source
+      // (cache key = trackId, więc stary plik musi zostać usunięty)
+      log(
+        '_rebuildAudioSourcesForCurrentTrack: Invalidating cache for track ${updatedTrack.id}',
+        name: 'TrackPlayerCubit',
+      );
+      await _preCachingOrchestrator.invalidateTrackCache(updatedTrack.id);
+
       // Utwórz nowy audio source dla zaktualizowanego track-u
       final audioSource = await _sourceFactory.createAudioSource(
         url,
