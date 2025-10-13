@@ -20,8 +20,9 @@ class CacheProgress {
   int get totalCount => tracksCacheStatus.length;
 
   /// Czy cache'owanie zostało zakończone (wszystkie tracki przetworzone).
-  bool get isComplete => tracksCacheStatus.values
-      .every((s) => s != CacheStatus.notStarted && s != CacheStatus.caching);
+  bool get isComplete => tracksCacheStatus.values.every(
+    (s) => s != CacheStatus.notStarted && s != CacheStatus.caching,
+  );
 }
 
 /// Orchestrator odpowiedzialny za background pre-caching wszystkich tracków w projekcie.
@@ -40,22 +41,62 @@ class AudioPreCachingOrchestrator {
   }) : _cacheRepo = cacheRepo;
 
   /// Rozpoczyna pre-caching wszystkich tracków.
-  /// Cache'uje tracki sekwencyjnie, jeden po drugim.
+  /// Sprawdza najpierw które tracki są już w cache, a następnie
+  /// cache'uje tylko te które nie są cached.
   /// Progress jest emitowany przez progressStream.
   Future<void> preCacheTracks(List<Track> tracks) async {
-    // Inicjalizuj status dla wszystkich tracków
+    log(
+      'preCacheTracks: Starting for ${tracks.length} tracks',
+      name: 'AudioPreCachingOrchestrator',
+    );
+
+    // 1. Sprawdź które tracki są już w cache
     final tracksCacheStatus = <int, CacheStatus>{};
     for (final track in tracks) {
-      tracksCacheStatus[track.id] = CacheStatus.notStarted;
+      final url = track.mainVersion?.file?.downloadUrl;
+
+      if (url == null) {
+        tracksCacheStatus[track.id] = CacheStatus.noFile;
+        log(
+          'preCacheTracks: Track ${track.id} has no download URL',
+          name: 'AudioPreCachingOrchestrator',
+        );
+        continue;
+      }
+
+      // Sprawdź czy już w cache
+      final isCached = await _cacheRepo.isCached(track.id);
+      tracksCacheStatus[track.id] = isCached
+          ? CacheStatus.cached
+          : CacheStatus.notStarted;
+
+      log(
+        'preCacheTracks: Track ${track.id} cache status: ${isCached ? "cached" : "not cached"}',
+        name: 'AudioPreCachingOrchestrator',
+      );
     }
 
-    // Emit initial progress
+    // 2. Emit initial progress (user od razu widzi co jest cached)
+    final cachedCount = tracksCacheStatus.values
+        .where((s) => s == CacheStatus.cached)
+        .length;
+    log(
+      'preCacheTracks: Found $cachedCount/${tracks.length} already cached',
+      name: 'AudioPreCachingOrchestrator',
+    );
     _emitProgress(tracksCacheStatus);
 
-    // Cache każdy track sekwencyjnie
+    // 3. Cache tylko te które nie są cached
     for (final track in tracks) {
-      await _cacheTrack(track, tracksCacheStatus);
+      if (tracksCacheStatus[track.id] == CacheStatus.notStarted) {
+        await _cacheTrack(track, tracksCacheStatus);
+      }
     }
+
+    log(
+      'preCacheTracks: Completed',
+      name: 'AudioPreCachingOrchestrator',
+    );
   }
 
   /// Cache'uje pojedynczy track i aktualizuje status.
