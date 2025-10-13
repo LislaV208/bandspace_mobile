@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/features/track_detail/cubit/track_detail_cubit.dart';
@@ -97,25 +98,8 @@ class _EditTrackScreenState extends State<EditTrackScreen> {
           child: Scaffold(
             appBar: AppBar(
               title: const Text('Edytuj utwór'),
-              actions: [
-                if (isUpdating)
-                  const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                      ),
-                    ),
-                  )
-                else
-                  TextButton(
-                    onPressed: _saveChanges,
-                    child: const Text('Zapisz'),
-                  ),
-              ],
             ),
+
             body: SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Form(
@@ -152,7 +136,7 @@ class _EditTrackScreenState extends State<EditTrackScreen> {
                       enabled: !isUpdating,
                     ),
 
-                    const SizedBox(height: 16),
+                    const Divider(height: 16),
 
                     BpmControl(
                       initialBpm: int.tryParse(_bpmController.text),
@@ -160,46 +144,26 @@ class _EditTrackScreenState extends State<EditTrackScreen> {
                         _bpmController.text = value.toString();
                       },
                       showRemoveButton: true,
+                      disabled: isUpdating,
                     ),
 
-                    // Pole BPM
-                    // TextFormField(
-                    //   controller: _bpmController,
-                    //   decoration: InputDecoration(
-                    //     labelText: 'Tempo (BPM)',
-                    //     suffixIcon: IconButton(
-                    //       icon: const Icon(
-                    //         Icons.clear,
-                    //       ),
-                    //       onPressed: () => _bpmController.clear(),
-                    //     ),
-                    //   ),
-                    //   keyboardType: TextInputType.number,
-                    //   inputFormatters: [
-                    //     FilteringTextInputFormatter.digitsOnly,
-                    //   ],
-
-                    //   validator: (value) {
-                    //     if (value != null && value.isNotEmpty) {
-                    //       final bpm = int.tryParse(value);
-                    //       if (bpm == null) {
-                    //         return 'Wprowadź prawidłową liczbę';
-                    //       }
-                    //       if (bpm <= 0) {
-                    //         return 'Tempo musi być liczbą dodatnią';
-                    //       }
-                    //       if (bpm < 60) {
-                    //         return 'Tempo nie może być mniejsze niż 60 BPM';
-                    //       }
-                    //       if (bpm > 300) {
-                    //         return 'Tempo nie może przekraczać 300 BPM';
-                    //       }
-                    //     }
-                    //     return null;
-                    //   },
-                    //   textInputAction: TextInputAction.done,
-                    //   enabled: !isUpdating,
-                    // ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 32.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: isUpdating ? null : _saveChanges,
+                          child: isUpdating
+                              ? const SizedBox.square(
+                                  dimension: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                  ),
+                                )
+                              : const Text('Zapisz zmiany'),
+                        ),
+                      ),
+                    ),
 
                     // Error message
                     if (state is TrackDetailUpdateFailure) ...[
@@ -229,9 +193,7 @@ class _EditTrackScreenState extends State<EditTrackScreen> {
                             Expanded(
                               child: Text(
                                 state.message,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: Theme.of(
                                         context,

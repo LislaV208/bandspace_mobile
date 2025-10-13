@@ -9,20 +9,20 @@ import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
 class TrackDetailCubit extends Cubit<TrackDetailState> {
   final ProjectsRepository _projectsRepository;
-  
+
   int? _projectId;
   StreamSubscription<Track>? _trackSubscription;
 
   TrackDetailCubit({
     required ProjectsRepository projectsRepository,
-  })  : _projectsRepository = projectsRepository,
-        super(const TrackDetailInitial());
+  }) : _projectsRepository = projectsRepository,
+       super(const TrackDetailInitial());
 
   /// Inicjalizuje cubit z daną ścieżką i projektem
   void initialize(Track track, int projectId) {
     _projectId = projectId;
     emit(TrackDetailLoaded(track));
-    
+
     // Nasłuchuj na zmiany ścieżki
     _subscribeToTrack(projectId, track.id);
   }
@@ -30,13 +30,13 @@ class TrackDetailCubit extends Cubit<TrackDetailState> {
   /// Subskrybuje zmiany dla konkretnej ścieżki
   void _subscribeToTrack(int projectId, int trackId) {
     _trackSubscription?.cancel();
-    
+
     _trackSubscription = _projectsRepository
         .getTrack(projectId, trackId)
         .listen(
           (track) {
             // Emit TrackDetailLoaded jeśli nie jesteśmy w trakcie operacji
-            if (state is! TrackDetailUpdating && 
+            if (state is! TrackDetailUpdating &&
                 state is! TrackDetailDeleting) {
               emit(TrackDetailLoaded(track));
             }
@@ -55,18 +55,6 @@ class TrackDetailCubit extends Cubit<TrackDetailState> {
       return;
     }
 
-    // Walidacja danych
-    final validationError = updateData.validate();
-    if (validationError != null) {
-      emit(TrackDetailError(validationError));
-      return;
-    }
-
-    if (!updateData.hasChanges) {
-      emit(const TrackDetailError('No changes to save'));
-      return;
-    }
-
     emit(TrackDetailUpdating(currentTrack));
 
     try {
@@ -78,10 +66,12 @@ class TrackDetailCubit extends Cubit<TrackDetailState> {
 
       emit(TrackDetailUpdateSuccess(updatedTrack));
     } catch (error) {
-      emit(TrackDetailUpdateFailure(
-        message: error.toString(),
-        track: currentTrack,
-      ));
+      emit(
+        TrackDetailUpdateFailure(
+          message: error.toString(),
+          track: currentTrack,
+        ),
+      );
     }
   }
 
@@ -99,10 +89,12 @@ class TrackDetailCubit extends Cubit<TrackDetailState> {
       await _projectsRepository.deleteTrack(_projectId!, currentTrack.id);
       emit(const TrackDetailDeleteSuccess());
     } catch (error) {
-      emit(TrackDetailDeleteFailure(
-        message: error.toString(),
-        track: currentTrack,
-      ));
+      emit(
+        TrackDetailDeleteFailure(
+          message: error.toString(),
+          track: currentTrack,
+        ),
+      );
     }
   }
 
