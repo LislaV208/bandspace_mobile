@@ -22,6 +22,7 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
   StreamSubscription? _bufferedPositionSubscription;
   StreamSubscription? _durationSubscription;
   StreamSubscription? _cacheProgressSubscription;
+  StreamSubscription? _currentIndexSubscription;
   StreamSubscription<List<Track>>? _tracksSubscription;
 
   TrackPlayerCubit({
@@ -31,10 +32,7 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
   }) : _playerService = playerService,
        _sourceFactory = sourceFactory,
        _preCachingOrchestrator = preCachingOrchestrator,
-       super(const TrackPlayerState()) {
-    _listenToPlayerEvents();
-    _listenToCacheProgress();
-  }
+       super(const TrackPlayerState());
 
   void _listenToPlayerEvents() {
     log(
@@ -42,7 +40,13 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       name: 'TrackPlayerCubit',
     );
 
-    _playerService.audioPlayer.currentIndexStream.listen((index) {
+    _currentIndexSubscription = _playerService.currentIndexStream.listen((
+      index,
+    ) {
+      if (index == null) {
+        return;
+      }
+
       final trackId = _trackIdToPlayerIndex.entries
           .firstWhere(
             (entry) => entry.value == index,
@@ -51,20 +55,6 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
 
       final trackIndex = state.tracks.indexWhere((t) => t.id == trackId);
       emit(state.copyWith(currentTrackIndex: trackIndex));
-    });
-
-    _playerService.audioPlayer.playerEventStream.listen((event) {
-      log(
-        '_listenToPlayerEvents: Player event - event=$event',
-        name: 'TrackPlayerCubit',
-      );
-    });
-
-    _playerService.audioPlayer.playbackEventStream.listen((event) {
-      log(
-        '_listenToPlayerEvents: Playback event - event=$event',
-        name: 'TrackPlayerCubit',
-      );
     });
 
     _playerStateSubscription = _playerService.playerStateStream.listen((
@@ -138,6 +128,7 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     );
 
     final initialIndex = tracks.indexWhere((t) => t.id == initialTrack.id);
+
     log(
       'initialize: Found initial track index=$initialIndex for track=$initialTrack',
       name: 'TrackPlayerCubit',
@@ -150,8 +141,7 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
         currentProjectId: projectId,
       ),
     );
-
-    await _processTracks(tracks, initialTrack.id);
+    await _processTracks(tracks);
 
     log(
       'initialize: Starting pre-caching for ${state.tracks.length} tracks',
@@ -159,15 +149,20 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     );
     _preCachingOrchestrator.preCacheTracks(state.tracks);
 
+    await _playerService.seek(
+      Duration.zero,
+      index: _trackIdToPlayerIndex[initialTrack.id],
+    );
+
+    _listenToPlayerEvents();
+    _listenToCacheProgress();
+
     log('initialize: Initialization complete', name: 'TrackPlayerCubit');
   }
 
-  Future<void> _processTracks(
-    List<Track> tracks,
-    int initialTrackId,
-  ) async {
+  Future<void> _processTracks(List<Track> tracks) async {
     log(
-      '_processTracks: Processing ${tracks.length} tracks, initialTrackId=$initialTrackId',
+      '_processTracks: Processing ${tracks.length} tracks',
       name: 'TrackPlayerCubit',
     );
 
@@ -220,25 +215,6 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
         '_processTracks: No playable tracks available in playlist',
         name: 'TrackPlayerCubit',
       );
-    }
-
-    final initialIndex = tracks.indexWhere((t) => t.id == initialTrackId);
-
-    emit(
-      state.copyWith(
-        tracks: tracks,
-        currentTrackIndex: state.currentTrackIndex == 0 && initialIndex != -1
-            ? initialIndex
-            : state.currentTrackIndex,
-      ),
-    );
-
-    if (initialIndex != -1) {
-      log(
-        '_processTracks: Setting current track index to $initialIndex',
-        name: 'TrackPlayerCubit',
-      );
-      emit(state.copyWith(currentTrackIndex: initialIndex));
     }
 
     log('_processTracks: Processing complete', name: 'TrackPlayerCubit');
@@ -718,6 +694,7 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     _durationSubscription?.cancel();
     _cacheProgressSubscription?.cancel();
     _tracksSubscription?.cancel();
+    _currentIndexSubscription?.cancel();
 
     log(
       'close: Disposing orchestrator and player service',

@@ -7,8 +7,6 @@ class AudioPlayerService {
 
   AudioPlayerService(this._audioPlayer);
 
-  AudioPlayer get audioPlayer => _audioPlayer;
-
   // Streams
   Stream<Duration> get positionStream => _audioPlayer.positionStream;
 
@@ -18,6 +16,8 @@ class AudioPlayerService {
   Stream<Duration?> get durationStream => _audioPlayer.durationStream;
 
   Stream<PlayerState> get playerStateStream => _audioPlayer.playerStateStream;
+
+  Stream<int?> get currentIndexStream => _audioPlayer.currentIndexStream;
 
   // Properties
   List<IndexedAudioSource> get sequence => _audioPlayer.sequence;

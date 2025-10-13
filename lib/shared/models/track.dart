@@ -20,6 +20,11 @@ class Track extends Equatable {
     required this.createdBy,
   });
 
+  @override
+  String toString() {
+    return 'Track{id: $id, title: $title}';
+  }
+
   factory Track.fromJson(Map<String, dynamic> json) {
     return Track(
       id: json['id'],
