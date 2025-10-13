@@ -21,20 +21,20 @@ import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 class TrackPlayerScreen extends StatelessWidget {
   final Project project;
   final List<Track> tracks;
-  final int initialTrackId;
+  final Track initialTrack;
 
   const TrackPlayerScreen({
     super.key,
     required this.project,
     required this.tracks,
-    required this.initialTrackId,
+    required this.initialTrack,
   });
 
   // Helper method to create this screen
   static Widget create({
     required Project project,
     required List<Track> tracks,
-    required int initialTrackId,
+    required Track initialTrack,
   }) {
     // Utwórz dependencies
     final dio = Dio();
@@ -52,18 +52,20 @@ class TrackPlayerScreen extends StatelessWidget {
             playerService: playerService,
             sourceFactory: sourceFactory,
             preCachingOrchestrator: preCachingOrchestrator,
-          )..initialize(tracks, initialTrackId, project.id),
+          )..initialize(tracks, initialTrack, project.id),
         ),
         BlocProvider(
           create: (context) => TrackDetailCubit(
             projectsRepository: context.read<ProjectsRepository>(),
+            projectId: project.id,
+            track: initialTrack,
           ),
         ),
       ],
       child: TrackPlayerScreen(
         project: project,
         tracks: tracks,
-        initialTrackId: initialTrackId,
+        initialTrack: initialTrack,
       ),
     );
   }
@@ -76,11 +78,9 @@ class TrackPlayerScreen extends StatelessWidget {
         final currentTrack = playerState.currentTrack;
         if (currentTrack != null) {
           final trackDetailCubit = context.read<TrackDetailCubit>();
-          // Inicjalizuj TrackDetailCubit z nową ścieżką tylko jeśli się zmieniła
-          if (trackDetailCubit.state is! TrackDetailWithData ||
-              (trackDetailCubit.state as TrackDetailWithData).track.id !=
-                  currentTrack.id) {
-            trackDetailCubit.initialize(currentTrack, project.id);
+
+          if (trackDetailCubit.state.track.id != currentTrack.id) {
+            trackDetailCubit.onTrackChanged(currentTrack);
           }
         }
       },

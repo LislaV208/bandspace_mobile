@@ -15,16 +15,18 @@ class TrackDetailCubit extends Cubit<TrackDetailState> {
 
   TrackDetailCubit({
     required ProjectsRepository projectsRepository,
+    required int projectId,
+    required Track track,
   }) : _projectsRepository = projectsRepository,
-       super(const TrackDetailInitial());
-
-  /// Inicjalizuje cubit z daną ścieżką i projektem
-  void initialize(Track track, int projectId) {
+       super(TrackDetailLoaded(track)) {
     _projectId = projectId;
-    emit(TrackDetailLoaded(track));
 
     // Nasłuchuj na zmiany ścieżki
     _subscribeToTrack(projectId, track.id);
+  }
+
+  void onTrackChanged(Track track) {
+    emit(state.copyWith(track));
   }
 
   /// Subskrybuje zmiany dla konkretnej ścieżki
@@ -38,29 +40,23 @@ class TrackDetailCubit extends Cubit<TrackDetailState> {
             // Emit TrackDetailLoaded jeśli nie jesteśmy w trakcie operacji
             if (state is! TrackDetailUpdating &&
                 state is! TrackDetailDeleting) {
-              emit(TrackDetailLoaded(track));
+              emit(state.copyWith(track));
             }
           },
           onError: (error) {
-            emit(TrackDetailError(error.toString()));
+            emit(TrackDetailError(error.toString(), state.track));
           },
         );
   }
 
   /// Aktualizuje ścieżkę
   Future<void> updateTrack(UpdateTrackData updateData) async {
-    final currentTrack = _getCurrentTrack();
-    if (currentTrack == null || _projectId == null) {
-      emit(const TrackDetailError('Track or project not initialized'));
-      return;
-    }
-
-    emit(TrackDetailUpdating(currentTrack));
+    emit(TrackDetailUpdating(state.track));
 
     try {
       final updatedTrack = await _projectsRepository.updateTrack(
         _projectId!,
-        currentTrack.id,
+        state.track.id,
         updateData,
       );
 
@@ -69,7 +65,7 @@ class TrackDetailCubit extends Cubit<TrackDetailState> {
       emit(
         TrackDetailUpdateFailure(
           message: error.toString(),
-          track: currentTrack,
+          track: state.track,
         ),
       );
     }
@@ -77,52 +73,19 @@ class TrackDetailCubit extends Cubit<TrackDetailState> {
 
   /// Usuwa ścieżkę
   Future<void> deleteTrack() async {
-    final currentTrack = _getCurrentTrack();
-    if (currentTrack == null || _projectId == null) {
-      emit(const TrackDetailError('Track or project not initialized'));
-      return;
-    }
-
-    emit(TrackDetailDeleting(currentTrack));
+    emit(TrackDetailDeleting(state.track));
 
     try {
-      await _projectsRepository.deleteTrack(_projectId!, currentTrack.id);
-      emit(const TrackDetailDeleteSuccess());
+      await _projectsRepository.deleteTrack(_projectId!, state.track.id);
+      emit(TrackDetailDeleteSuccess(state.track));
     } catch (error) {
       emit(
         TrackDetailDeleteFailure(
-          message: error.toString(),
-          track: currentTrack,
+          error.toString(),
+          state.track,
         ),
       );
     }
-  }
-
-  /// Odświeża dane ścieżki z serwera
-  Future<void> refreshTrack() async {
-    final currentTrack = _getCurrentTrack();
-    if (currentTrack == null || _projectId == null) {
-      emit(const TrackDetailError('Track or project not initialized'));
-      return;
-    }
-
-    emit(const TrackDetailLoading());
-
-    try {
-      await _projectsRepository.refreshTrack(_projectId!, currentTrack.id);
-      // Nowy stan będzie emitowany przez stream subscription
-    } catch (error) {
-      emit(TrackDetailError(error.toString()));
-    }
-  }
-
-  /// Pobiera aktualną ścieżkę ze stanu
-  Track? _getCurrentTrack() {
-    final currentState = state;
-    if (currentState is TrackDetailWithData) {
-      return currentState.track;
-    }
-    return null;
   }
 
   /// Pobiera ID projektu

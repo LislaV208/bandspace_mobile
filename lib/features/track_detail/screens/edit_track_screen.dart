@@ -70,11 +70,11 @@ class _EditTrackScreenState extends State<EditTrackScreen> {
     if (_formKey.currentState!.validate()) {
       final title = _titleController.text.trim();
       final bpmText = _bpmController.text.trim();
-      final bpm = bpmText.isNotEmpty ? int.tryParse(bpmText) : null;
+      final bpm = int.tryParse(bpmText);
 
       final updateData = UpdateTrackData(
-        title: title != widget.track.title ? title : null,
-        bpm: bpm != widget.track.mainVersion?.bpm ? bpm : null,
+        title: title,
+        bpm: bpm,
       );
 
       await widget.cubit.updateTrack(updateData);

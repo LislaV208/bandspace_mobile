@@ -1,17 +1,17 @@
 /// Model danych do aktualizacji ścieżki
 class UpdateTrackData {
-  final String? title;
+  final String title;
   final int? bpm;
 
   const UpdateTrackData({
-    this.title,
+    required this.title,
     this.bpm,
   });
 
   Map<String, dynamic> toJson() {
     return {
-      if (title != null) 'title': title,
-      if (bpm != null) 'bpm': bpm,
+      'title': title,
+      'bpm': bpm,
     };
   }
 }

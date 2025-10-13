@@ -156,9 +156,10 @@ extension TracksManagement on ProjectsRepository {
       methodName: 'getTrack',
       parameters: {'projectId': projectId, 'trackId': trackId},
       updateCall: () async {
+        final data = updateData.toJson();
         final response = await apiClient.patch(
           '/api/projects/$projectId/tracks/$trackId',
-          data: updateData.toJson(),
+          data: data,
         );
         return Track.fromJson(response.data);
       },

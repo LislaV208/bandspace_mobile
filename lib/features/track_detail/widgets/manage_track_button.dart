@@ -7,8 +7,8 @@ import 'package:bandspace_mobile/core/theme/app_colors.dart';
 import 'package:bandspace_mobile/core/widgets/options_bottom_sheet.dart';
 import 'package:bandspace_mobile/features/track_detail/cubit/track_detail_cubit.dart';
 import 'package:bandspace_mobile/features/track_detail/cubit/track_detail_state.dart';
-import 'package:bandspace_mobile/features/track_detail/widgets/delete_track_dialog.dart';
 import 'package:bandspace_mobile/features/track_detail/screens/edit_track_screen.dart';
+import 'package:bandspace_mobile/features/track_detail/widgets/delete_track_dialog.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_cubit.dart';
 import 'package:bandspace_mobile/features/track_versions/cubit/track_versions_cubit.dart';
 import 'package:bandspace_mobile/features/track_versions/screens/track_versions_screen.dart';
@@ -24,41 +24,15 @@ class ManageTrackButton extends StatelessWidget {
       builder: (context, state) {
         final cubit = context.read<TrackDetailCubit>();
 
-        // Jeśli wystąpił błąd ładowania, pokaż ikonę błędu zamiast przycisku zarządzania
-        if (state is TrackDetailError) {
-          return IconButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  action: SnackBarAction(
-                    label: 'Spróbuj ponownie',
-                    onPressed: () {
-                      cubit.refreshTrack();
-                    },
-                  ),
-                ),
-              );
-            },
-            icon: const Icon(Icons.error_outline),
-            tooltip: 'Błąd ładowania danych utworu',
-          );
-        }
-
-        // Pokaż przycisk tylko gdy mamy załadowaną ścieżkę
-        if (state is! TrackDetailWithData) {
-          return const SizedBox.shrink();
-        }
-
-        final track = state.track;
-        final isOperationInProgress =
+        final disableButton =
             state is TrackDetailUpdating || state is TrackDetailDeleting;
 
         return TextButton.icon(
           iconAlignment: IconAlignment.end,
-          onPressed: isOperationInProgress
+          onPressed: disableButton
               ? null
               : () {
+                  final track = state.track;
                   OptionsBottomSheet.show(
                     context: context,
                     title: 'Zarządzaj utworem',
@@ -97,7 +71,7 @@ class ManageTrackButton extends StatelessWidget {
           label: Text(
             'Zarządzaj',
             style: TextStyle(
-              color: isOperationInProgress
+              color: disableButton
                   ? AppColors.textSecondary.withValues(alpha: 0.5)
                   : AppColors.textSecondary,
               fontSize: 16,
@@ -107,7 +81,7 @@ class ManageTrackButton extends StatelessWidget {
           icon: Icon(
             LucideIcons.settings2,
             size: 22,
-            color: isOperationInProgress
+            color: disableButton
                 ? AppColors.textSecondary.withValues(alpha: 0.5)
                 : AppColors.textSecondary,
           ),

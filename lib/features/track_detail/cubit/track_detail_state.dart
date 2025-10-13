@@ -3,43 +3,37 @@ import 'package:equatable/equatable.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
 
 sealed class TrackDetailState extends Equatable {
-  const TrackDetailState();
-
-  @override
-  List<Object?> get props => [];
-}
-
-/// Klasa bazowa dla stanów zawierających dane ścieżki
-abstract class TrackDetailWithData extends TrackDetailState {
   final Track track;
-
-  const TrackDetailWithData(this.track);
+  const TrackDetailState(this.track);
 
   @override
   List<Object?> get props => [track];
+
+  TrackDetailState copyWith(Track track);
 }
 
-class TrackDetailInitial extends TrackDetailState {
-  const TrackDetailInitial();
-}
-
-class TrackDetailLoading extends TrackDetailState {
-  const TrackDetailLoading();
-}
-
-class TrackDetailLoaded extends TrackDetailWithData {
+class TrackDetailLoaded extends TrackDetailState {
   const TrackDetailLoaded(super.track);
+
+  @override
+  TrackDetailState copyWith(Track track) => TrackDetailLoaded(track);
 }
 
-class TrackDetailUpdating extends TrackDetailWithData {
+class TrackDetailUpdating extends TrackDetailState {
   const TrackDetailUpdating(super.track);
+
+  @override
+  TrackDetailState copyWith(Track track) => TrackDetailUpdating(track);
 }
 
-class TrackDetailUpdateSuccess extends TrackDetailWithData {
+class TrackDetailUpdateSuccess extends TrackDetailState {
   const TrackDetailUpdateSuccess(super.track);
+
+  @override
+  TrackDetailState copyWith(Track track) => TrackDetailUpdateSuccess(track);
 }
 
-class TrackDetailUpdateFailure extends TrackDetailWithData {
+class TrackDetailUpdateFailure extends TrackDetailState {
   final String message;
 
   const TrackDetailUpdateFailure({
@@ -49,33 +43,54 @@ class TrackDetailUpdateFailure extends TrackDetailWithData {
 
   @override
   List<Object?> get props => [message, track];
+
+  @override
+  TrackDetailState copyWith(Track track) => TrackDetailUpdateFailure(
+    message: message,
+    track: track,
+  );
 }
 
-class TrackDetailDeleting extends TrackDetailWithData {
+class TrackDetailDeleting extends TrackDetailState {
   const TrackDetailDeleting(super.track);
+
+  @override
+  TrackDetailState copyWith(Track track) => TrackDetailDeleting(track);
 }
 
 class TrackDetailDeleteSuccess extends TrackDetailState {
-  const TrackDetailDeleteSuccess();
+  const TrackDetailDeleteSuccess(super.track);
+
+  @override
+  TrackDetailState copyWith(Track track) => TrackDetailDeleteSuccess(track);
 }
 
-class TrackDetailDeleteFailure extends TrackDetailWithData {
+class TrackDetailDeleteFailure extends TrackDetailState {
   final String message;
 
-  const TrackDetailDeleteFailure({
-    required this.message,
-    required Track track,
-  }) : super(track);
+  const TrackDetailDeleteFailure(
+    this.message,
+    super.track,
+  );
 
   @override
   List<Object?> get props => [message, track];
+
+  @override
+  TrackDetailState copyWith(Track track) => TrackDetailDeleteFailure(
+    message,
+    track,
+  );
 }
 
 class TrackDetailError extends TrackDetailState {
   final String message;
 
-  const TrackDetailError(this.message);
+  const TrackDetailError(this.message, super.track);
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, track];
+
+  @override
+  TrackDetailState copyWith(Track track) => TrackDetailError(message, track);
 }

@@ -129,17 +129,17 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
 
   Future<void> initialize(
     List<Track> tracks,
-    int initialTrackId,
+    Track initialTrack,
     int projectId,
   ) async {
     log(
-      'initialize: Starting initialization - tracksCount=${tracks.length}, initialTrackId=$initialTrackId, projectId=$projectId',
+      'initialize: Starting initialization - tracksCount=${tracks.length}, initialTrackId=$initialTrack, projectId=$projectId',
       name: 'TrackPlayerCubit',
     );
 
-    final initialIndex = tracks.indexWhere((t) => t.id == initialTrackId);
+    final initialIndex = tracks.indexWhere((t) => t.id == initialTrack.id);
     log(
-      'initialize: Found initial track index=$initialIndex for trackId=$initialTrackId',
+      'initialize: Found initial track index=$initialIndex for track=$initialTrack',
       name: 'TrackPlayerCubit',
     );
 
@@ -151,7 +151,7 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       ),
     );
 
-    await _processTracks(tracks, initialTrackId);
+    await _processTracks(tracks, initialTrack.id);
 
     log(
       'initialize: Starting pre-caching for ${state.tracks.length} tracks',
