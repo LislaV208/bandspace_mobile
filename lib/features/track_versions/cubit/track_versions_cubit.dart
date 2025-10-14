@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio/just_audio.dart';
@@ -348,7 +349,12 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
       final audioSource = await _createCachingAudioSource(url, version.id);
       await _audioPlayer.setAudioSource(audioSource);
       await _audioPlayer.play(); // Automatycznie odtwórz
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to play track version ${version.id}',
+      );
       log('[TrackVersionsCubit] Error playing version ${version.id}: $e');
       _updatePlayerState(playerUiStatus: PlayerUiStatus.error);
     }
@@ -372,7 +378,12 @@ class TrackVersionsCubit extends Cubit<TrackVersionsState> {
       final audioSource = await _createCachingAudioSource(url, version.id);
       await _audioPlayer.setAudioSource(audioSource);
       // Nie wywołujemy play() - tylko preload
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to preload track version ${version.id}',
+      );
       log('[TrackVersionsCubit] Error preloading version ${version.id}: $e');
       // Ignoruj błędy preload - użytkownik może i tak nie odtworzyć tej wersji
     }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -92,14 +93,24 @@ class ProjectTracksCubit extends Cubit<ProjectTracksState> {
         emit(ProjectTracksRefreshing(currentState.tracks));
         await Future.delayed(const Duration(milliseconds: 500));
         await projectsRepository.refreshTracks(projectId);
-      } catch (e) {
+      } catch (e, stackTrace) {
+        logError(
+          e,
+          stackTrace: stackTrace,
+          hint: 'Failed to refresh project tracks',
+        );
         emit(ProjectTracksRefreshFailure(currentState.tracks, e.toString()));
       }
     } else if (currentState is ProjectTracksLoadFailure) {
       try {
         emit(const ProjectTracksLoading());
         await projectsRepository.refreshTracks(projectId);
-      } catch (e) {
+      } catch (e, stackTrace) {
+        logError(
+          e,
+          stackTrace: stackTrace,
+          hint: 'Failed to refresh project tracks after load failure',
+        );
         emit(ProjectTracksLoadFailure(e.toString()));
       }
     }

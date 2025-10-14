@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio/just_audio.dart';
@@ -191,7 +192,12 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
           '_processTracks: Successfully created audio source for track ${track.id} at index ${playableSources.length - 1}',
           name: 'TrackPlayerCubit',
         );
-      } catch (e) {
+      } catch (e, stackTrace) {
+        logError(
+          e,
+          stackTrace: stackTrace,
+          hint: 'Failed to create audio source for track ${track.id} (${track.title})',
+        );
         log(
           '_processTracks: Failed to create audio source for track ${track.id}: $e. Skipping.',
           name: 'TrackPlayerCubit',
@@ -681,7 +687,12 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
         '_rebuildAudioSourcesForCurrentTrack: Successfully rebuilt audio source for track ${updatedTrack.id}',
         name: 'TrackPlayerCubit',
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to rebuild audio sources for track ${updatedTrack.id} (${updatedTrack.title})',
+      );
       log(
         '_rebuildAudioSourcesForCurrentTrack: Failed to rebuild audio sources for track ${updatedTrack.id}: $e',
         name: 'TrackPlayerCubit',

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 
 import 'package:bandspace_mobile/features/song_detail/cubit/delete_song/delete_song_state.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
@@ -38,7 +39,12 @@ class DeleteSongCubit extends Cubit<DeleteSongState> {
       emit(const DeleteSongSuccess());
 
       debugPrint('Song $songId deleted successfully from project $projectId');
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to delete song',
+      );
       emit(
         DeleteSongFailure(
           message: e.toString(),

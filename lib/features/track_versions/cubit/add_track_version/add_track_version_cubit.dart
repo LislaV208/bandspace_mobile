@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -53,7 +54,12 @@ class AddTrackVersionCubit extends Cubit<AddTrackVersionState> {
         // Użytkownik anulował wybór pliku
         emit(const AddTrackVersionInitial());
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to select audio file for track version',
+      );
       emit(
         AddTrackVersionFailure(
           'Błąd podczas wybierania pliku: ${e.toString()}',
@@ -153,6 +159,11 @@ class AddTrackVersionCubit extends Cubit<AddTrackVersionState> {
         name: 'AddTrackVersionCubit',
       );
     } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to upload track version: ${currentState.fileName}',
+      );
       log('AddTrackVersion error: $e', name: 'AddTrackVersionCubit');
       log('Stack trace: $stackTrace', name: 'AddTrackVersionCubit');
       emit(

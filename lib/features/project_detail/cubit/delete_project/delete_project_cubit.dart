@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/Delete_project/Delete_project_state.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 
@@ -19,7 +20,13 @@ class DeleteProjectCubit extends Cubit<DeleteProjectState> {
       await projectsRepository.deleteProject(projectId);
 
       emit(const DeleteProjectSuccess());
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to delete project',
+        extras: {'projectId': projectId},
+      );
       emit(DeleteProjectFailure(e.toString()));
     }
   }

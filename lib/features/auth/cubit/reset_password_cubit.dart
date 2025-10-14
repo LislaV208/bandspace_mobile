@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 import 'package:bandspace_mobile/features/auth/cubit/reset_password_state.dart';
 import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
 
@@ -37,11 +38,17 @@ class ResetPasswordCubit extends Cubit<ResetPasswordState> {
 
       // Sukces - pokaż komunikat
       emit(ResetPasswordSuccess(
-        message: response.message.isNotEmpty 
-          ? response.message 
+        message: response.message.isNotEmpty
+          ? response.message
           : "Link do resetowania hasła został wysłany na podany adres email. Sprawdź skrzynkę odbiorczą i kliknij w link, aby dokończyć proces resetowania hasła.",
       ));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Password reset request failed',
+        extras: {'email': email.trim()},
+      );
       emit(ResetPasswordFailure(message: e.toString()));
     }
   }

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 
 import 'package:bandspace_mobile/features/song_detail/cubit/edit_song/edit_song_state.dart';
 import 'package:bandspace_mobile/shared/models/update_song_data.dart';
@@ -27,7 +28,12 @@ class EditSongCubit extends Cubit<EditSongState> {
       await projectsRepository.refreshSongs(projectId);
 
       emit(EditSongSuccess(updatedSong));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to update song',
+      );
       emit(
         EditSongFailure(
           message: e.toString(),

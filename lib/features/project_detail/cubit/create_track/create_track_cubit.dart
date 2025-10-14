@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -41,7 +42,12 @@ class CreateTrackCubit extends Cubit<CreateTrackState> {
       } else {
         emit(const CreateTrackInitial());
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to select audio file for track',
+      );
       emit(CreateTrackSelectFileFailure(e.toString()));
     }
   }
@@ -83,13 +89,18 @@ class CreateTrackCubit extends Cubit<CreateTrackState> {
           'Track upload completed successfully: $trackName',
           name: 'CreateTrackCubit',
         );
-      } catch (e) {
+      } catch (e, stackTrace) {
         final progress = state is CreateTrackUploading
             ? (state as CreateTrackUploading).uploadProgress
             : 0.0;
         log(
           'Track upload failed: $trackName at ${(progress * 100).toStringAsFixed(1)}% progress. Error: $e',
           name: 'CreateTrackCubit',
+        );
+        logError(
+          e,
+          stackTrace: stackTrace,
+          hint: 'Failed to upload track: $trackName',
         );
         emit(CreateTrackUploadFailure(progress, trackName, e.toString()));
       } finally {

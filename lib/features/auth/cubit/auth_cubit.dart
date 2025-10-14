@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/auth/auth_event_service.dart';
 import 'package:bandspace_mobile/core/storage/database_storage.dart';
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
 import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
@@ -128,7 +129,13 @@ class AuthCubit extends Cubit<AuthState> {
         user: Value(session.user),
         loggedOutDueToTokenFailure: false, // Reset flagi przy udanym logowaniu
       ));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Login failed',
+        extras: {'email': emailController.text.trim()},
+      );
       emit(state.copyWith(isLoading: false, errorMessage: Value(e.toString())));
     }
   }
@@ -171,7 +178,13 @@ class AuthCubit extends Cubit<AuthState> {
         user: Value(session.user),
         loggedOutDueToTokenFailure: false, // Reset flagi przy udanym logowaniu
       ));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Registration failed',
+        extras: {'email': emailController.text.trim()},
+      );
       emit(state.copyWith(isLoading: false, errorMessage: Value(e.toString())));
     }
   }
@@ -193,7 +206,12 @@ class AuthCubit extends Cubit<AuthState> {
         user: Value(session.user),
         loggedOutDueToTokenFailure: false, // Reset flagi przy udanym logowaniu
       ));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Google login failed',
+      );
       emit(state.copyWith(isLoading: false, errorMessage: Value(e.toString())));
     }
   }
@@ -242,7 +260,12 @@ class AuthCubit extends Cubit<AuthState> {
 
     try {
       await authRepository.logout();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Logout failed',
+      );
       errorMessage = e.toString();
     }
 
@@ -290,8 +313,12 @@ class AuthCubit extends Cubit<AuthState> {
       confirmPasswordController.clear();
 
       debugPrint("Wyczyszczono sesję użytkownika po usunięciu konta");
-    } catch (e) {
-      debugPrint("Błąd podczas czyszczenia sesji: $e");
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to clear user session after account deletion',
+      );
       // Nawet jeśli wystąpi błąd, wyczyść lokalny stan UI
       emit(
         state.copyWith(
@@ -334,8 +361,12 @@ class AuthCubit extends Cubit<AuthState> {
       confirmPasswordController.clear();
 
       debugPrint("Wyczyszczono lokalne dane po niepowodzeniu refresh tokenu");
-    } catch (e) {
-      debugPrint("Błąd podczas czyszczenia lokalnych danych: $e");
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to clear local data after token refresh failure',
+      );
     }
   }
 
