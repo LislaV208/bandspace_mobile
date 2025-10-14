@@ -3,12 +3,12 @@
 - DONE: ekran odtwarzania utworów: zmiana utworu poprzez listę utworów (więcej utworów) zmienia dane utworu na ekranie playera, ale nie odtwarzany jest dalej poprzedni plik audio
 - DONE: ekran odtwarzania utworów: kiedy skonczy się utwór, to plik audio przełącza się na kolejny, ale nie zmieniają się dane utworu
 - DONE: sprawdzic czy aplikacja zachowuje sie poprawnie przy dodaniu nowej wersji i powrocie do poprzedniego track playera
+- DONE: do poprawy na backendzie - w ekranie wersji utworu nie wyświetlają się polskie znaki w nazwie pliku w playerze
+- DONE: poprawic usuwanie tempa z utworu na backendzie
 - TO TEST: upload przerywa się kiedy zgaśnie ekran
+- TO TEST:poprawic problem z refresh tokenem na backendzie
 - w jednym przypadku (mucha nie siada) wyskakuej błąd przy uploadzie
 - na iphone nie działają utwory nie zuploadowane z iphone
-- do poprawy na backendzie - w ekranie wersji utworu nie wyświetlają się polskie znaki w nazwie pliku w playerze
-- poprawic usuwanie tempa z utworu na backendzie
-- poprawic problem z refresh tokenem na backendzie
 
 # NICE TO HAVE
 - w ekranie wersji utworu kontrolki playera nachodzą na pasek nawigacji na iphone
