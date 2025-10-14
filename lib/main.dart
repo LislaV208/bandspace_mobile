@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:bandspace_mobile/core/config/env_config.dart';
 import 'package:bandspace_mobile/core/di/app_providers.dart';
@@ -20,7 +21,18 @@ Future<void> main({String envFileName = '.env'}) async {
   // Ustawienie przezroczystego statusbara
   AppTheme.setStatusBarColor();
 
-  runApp(const MainApp());
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = EnvConfig().sentryDsn;
+      options.attachScreenshot = true;
+    },
+    // Init your App.
+    appRunner: () => runApp(
+      SentryWidget(
+        child: const MainApp(),
+      ),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {

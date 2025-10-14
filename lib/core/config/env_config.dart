@@ -35,6 +35,9 @@ class EnvConfig {
   /// Zwraca Web Client ID dla Google Sign-In (używany jako serverClientId).
   String get googleWebClientId => dotenv.get('GOOGLE_WEB_CLIENT_ID');
 
+  /// Zwraca DSN Sentry.
+  String get sentryDsn => dotenv.get('SENTRY_DSN');
+
   /// Zwraca wartość zmiennej środowiskowej o podanej nazwie.
   ///
   /// Jeśli zmienna nie istnieje, zwraca wartość domyślną [defaultValue].
