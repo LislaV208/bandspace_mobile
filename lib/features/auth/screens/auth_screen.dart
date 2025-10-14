@@ -123,35 +123,7 @@ class _AuthScreenContentState extends State<_AuthScreenContent> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const SizedBox(height: 32),
-
-                          // Welcome section
-                          AnimatedSwitcher(
-                            duration:
-                                _AuthScreenContent._elementTransitionDuration,
-                            child: Column(
-                              key: ValueKey<bool>(isLoginView),
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  isLoginView
-                                      ? "Witaj z powrotem!"
-                                      : "Dołącz do BandSpace",
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.headlineMedium,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  isLoginView
-                                      ? "Zaloguj się, aby kontynuować pracę nad swoimi projektami."
-                                      : "Utwórz konto, aby rozpocząć współpracę muzyczną.",
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 48),
+                          const SizedBox(height: 80),
 
                           // Error message
                           if (state.errorMessage != null) ...[

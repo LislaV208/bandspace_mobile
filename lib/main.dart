@@ -46,15 +46,6 @@ class MainApp extends StatelessWidget {
         home: const SplashScreen(),
         debugShowCheckedModeBanner: false,
       ),
-      // child: ConnectivityBanner(
-      //   showWhenOnline: false, // Banner tylko offline - sync transparentny
-      //   child: MaterialApp(
-      //     title: 'BandSpace',
-      //     theme: AppTheme.darkTheme,
-      //     home: const SplashScreen(),
-      //     debugShowCheckedModeBanner: false,
-      //   ),
-      // ),
     );
   }
 }

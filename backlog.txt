@@ -6,11 +6,12 @@
 - TO TEST: upload przerywa się kiedy zgaśnie ekran
 - w jednym przypadku (mucha nie siada) wyskakuej błąd przy uploadzie
 - na iphone nie działają utwory nie zuploadowane z iphone
-- ekran logowania - dla nowego uzytkownika tekst do dołączenia, w przeciwnym razie "witaj ponownie"
 - do poprawy na backendzie - w ekranie wersji utworu nie wyświetlają się polskie znaki w nazwie pliku w playerze
 - poprawic usuwanie tempa z utworu na backendzie
+- poprawic problem z refresh tokenem na backendzie
 
 # NICE TO HAVE
 - w ekranie wersji utworu kontrolki playera nachodzą na pasek nawigacji na iphone
 - ekran odtwarzania utworów, lista utworów (więcej utworów): kiedy lista jest maksymalnie przesunięta w dół i jest przesuwana dalej w dół, to powinnismy wywoływać chowanie listy utworów (powrót do full player widget)
 - ekran odtwarzania utworów, lista utworów (więcej utworów): kliknięcie w mini player powinno powodowac schowanie listy utworów (powrót do full player widget)
+- ekran logowania - dla nowego uzytkownika tekst do dołączenia, w przeciwnym razie "witaj ponownie"
