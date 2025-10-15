@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 import 'package:bandspace_mobile/features/account/cubit/change_password_state.dart';
 import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
@@ -109,20 +110,13 @@ class ChangePasswordCubit extends Cubit<ChangePasswordState> {
 
       // Wyczyść pola formularza po udanej zmianie hasła
       _clearForm();
-    } catch (e) {
-      // Obsługa błędów
-      String errorMessage = "Błąd zmiany hasła: ${e.toString()}";
-
-      // Sprawdzamy typ wyjątku i dostosowujemy komunikat
-      if (e.toString().contains("ApiException")) {
-        errorMessage = e.toString().replaceAll("ApiException: ", "");
-      } else if (e.toString().contains("NetworkException")) {
-        errorMessage = "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
-      } else if (e.toString().contains("TimeoutException")) {
-        errorMessage = "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
-      }
-
-      emit(state.copyWith(isLoading: false, errorMessage: Value(errorMessage)));
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Change password failed',
+      );
+      emit(state.copyWith(isLoading: false, errorMessage: Value(e.toString())));
     }
   }
 

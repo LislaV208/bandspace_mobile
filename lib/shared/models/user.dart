@@ -3,28 +3,42 @@ import 'package:equatable/equatable.dart';
 class User extends Equatable {
   final int id;
   final String email;
-  final String? name;
+  final String name;
+  final DateTime lastLoginAt;
+  final List<String> authProviders;
 
-  const User({required this.id, required this.email, this.name});
+  const User({
+    required this.id,
+    required this.email,
+    required this.name,
+    required this.lastLoginAt,
+    required this.authProviders,
+  });
 
-  factory User.fromMap(Map<String, dynamic> map) {
+  factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: map['id'] ?? 0,
-      email: map['email'] ?? '',
-      name: map['name'],
+      id: json['id'],
+      email: json['email'],
+      name: json['name'],
+      lastLoginAt: DateTime.parse(json['lastLoginAt']).toLocal(),
+      authProviders: List<String>.from(json['authProviders']),
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
       'id': id,
       'email': email,
       'name': name,
+      'lastLoginAt': lastLoginAt.toIso8601String(),
+      'authProviders': authProviders,
     };
   }
 
-  Map<String, dynamic> toJson() => toMap();
+  factory User.fromMap(Map<String, dynamic> json) => User.fromJson(json);
+
+  Map<String, dynamic> toMap() => toJson();
 
   @override
-  List<Object?> get props => [id, email, name];
+  List<Object?> get props => [id, email, name, lastLoginAt, authProviders];
 }

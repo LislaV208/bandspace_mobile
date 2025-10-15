@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/theme/theme.dart';
-import 'package:bandspace_mobile/core/utils/date_format_utils.dart';
-import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_cubit.dart';
-import 'package:bandspace_mobile/features/song_detail/screens/song_detail_screen.dart';
+import 'package:bandspace_mobile/core/utils/formatters.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
 
 /// Komponent elementu listy utworów
@@ -26,16 +23,16 @@ class ProjectSongListItem extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => SongDetailScreen.create(
-                context.read<ProjectDetailCubit>().state.project,
-                songsList,
-                song,
-              ),
-            ),
-          );
+          print('Navigating to TrackPlayerScreen');
+          // Navigator.push(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (_) => TrackPlayerScreen.create(
+          //       projectId: context.read<ProjectDetailCubit>().state.project.id,
+          //       initialTrackId: song.id,
+          //     ),
+          //   ),
+          // );
         },
         borderRadius: BorderRadius.circular(12),
         child: Ink(
@@ -71,7 +68,7 @@ class ProjectSongListItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  DateFormatUtils.formatRelativeTime(song.createdAt),
+                  Formatters.formatRelativeTime(song.createdAt),
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.textSecondary,
                   ),

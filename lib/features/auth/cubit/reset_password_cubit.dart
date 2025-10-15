@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 import 'package:bandspace_mobile/features/auth/cubit/reset_password_state.dart';
 import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
 
@@ -37,24 +38,18 @@ class ResetPasswordCubit extends Cubit<ResetPasswordState> {
 
       // Sukces - pokaż komunikat
       emit(ResetPasswordSuccess(
-        message: response.message.isNotEmpty 
-          ? response.message 
+        message: response.message.isNotEmpty
+          ? response.message
           : "Link do resetowania hasła został wysłany na podany adres email. Sprawdź skrzynkę odbiorczą i kliknij w link, aby dokończyć proces resetowania hasła.",
       ));
-    } catch (e) {
-      // Obsługa błędów
-      String errorMessage = "Błąd wysyłania żądania: ${e.toString()}";
-
-      // Sprawdzamy typ wyjątku i dostosowujemy komunikat
-      if (e.toString().contains("ApiException")) {
-        errorMessage = e.toString().replaceAll("ApiException: ", "");
-      } else if (e.toString().contains("NetworkException")) {
-        errorMessage = "Problem z połączeniem internetowym. Sprawdź swoje połączenie i spróbuj ponownie.";
-      } else if (e.toString().contains("TimeoutException")) {
-        errorMessage = "Upłynął limit czasu połączenia. Spróbuj ponownie później.";
-      }
-
-      emit(ResetPasswordFailure(message: errorMessage));
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Password reset request failed',
+        extras: {'email': email.trim()},
+      );
+      emit(ResetPasswordFailure(message: e.toString()));
     }
   }
 

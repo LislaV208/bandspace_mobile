@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/create_song/new_song_state.dart';
 import 'package:bandspace_mobile/shared/models/song_create_data.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
@@ -22,7 +23,8 @@ class NewSongCubit extends Cubit<NewSongState> {
 
     try {
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.audio,
+        type: FileType.custom,
+        allowedExtensions: ['mp3', 'wav', 'm4a', 'flac', 'aac'],
         allowMultiple: false,
       );
 
@@ -33,7 +35,12 @@ class NewSongCubit extends Cubit<NewSongState> {
       } else {
         emit(const NewSongInitial());
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to select song file',
+      );
       emit(NewSongSelectFileFailure(e.toString()));
     }
   }
@@ -74,7 +81,13 @@ class NewSongCubit extends Cubit<NewSongState> {
         }
 
         emit(NewSongUploadSuccess(1.0, songName));
-      } catch (e) {
+      } catch (e, stackTrace) {
+        logError(
+          e,
+          stackTrace: stackTrace,
+          hint: 'Failed to upload song',
+          extras: {'songName': songName, 'projectId': projectId, 'hasFile': hasFile},
+        );
         final progress = state is NewSongUploading
             ? (state as NewSongUploading).uploadProgress
             : 0.0;

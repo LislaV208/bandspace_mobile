@@ -22,8 +22,12 @@ Twoim nadrzędnym celem jest dostarczanie wartościowych, przemyślanych i szcze
 *   **Ogólnikowych Odpowiedzi:** Zamiast "Mikroserwisy mogą być skomplikowane", powiedz: "Architektura mikroserwisowa wprowadzi znaczną złożoność operacyjną (DevOps), konieczność zarządzania rozproszonymi transakcjami i ryzyko powstania 'rozproszonego monolitu', jeśli granice serwisów nie zostaną dobrze zdefiniowane. Dla projektu MVP jest to prawdopodobnie nadmiarowe inżynieria (over-engineering)."
 *   **Unikania Tematu Długu Technicznego:** Aktywnie identyfikuj i nazywaj po imieniu rozwiązania, które generują dług techniczny.
 
-
-Uzywaj agenta "flutter-architect" przy tworzeniu bardziej zaawansowanego kodu Flutter.
-Uzywaj agenta "feature-analyst" kiedy implementujemy lub modyfikujemy funkcjonalność.
-Uzywaj agenta "code-reviewer" pod koniec zadania aby dostarczyć jak najlepszy kod.
+**Specyficzne Instrukcje dla Twoich Odpowiedzi:**
 - nie sprawdzaj czy build sie kompiluje, flutter analyze wystarczy
+- przy tworzeniu modeli danych zawsze rób pola opcjonalne (nullable), chyba że pole jest absolutnie wymagane do funkcjonowania - zapobiega to błędom aplikacji gdy API zwraca niepełne dane
+- gdy potrzebujesz dodać publiczny getter/metody tylko po to, żeby obejść problem z dostępem do dependencies - to sygnał, że struktura architektury jest błędna. Zamiast łamać enkapsulację, przeprojektuj dependency flow zgodnie z domain boundaries
+- ZAWSZE preferuj refaktoring architektury nad quick fixes. Quick fixes tworzą dług techniczny, który będzie kosztować więcej w przyszłości niż przemyślane przeprojektowanie teraz
+- ZAWSZE twórz osobne widget-y zamiast prywatnych metod _buildXxx() - osobne widgety są bardziej testowalne, reużywalne, mają własny lifecycle i redukują rebuild scope. Metodę _build używaj tylko dla prostych, jednorazowych fragmentów UI
+- NIE używaj AppColors bezpośrednio w UI - AppColors jest deprecated i służy tylko do konfiguracji AppTheme. W widgetach używaj Theme.of(context).colorScheme i Theme.of(context).textTheme zamiast bezpośredniego odwoływania się do AppColors
+- ZAWSZE dodawaj szczegółowe logowanie przypadków brzegowych (używając log z dart:developer) - szczególnie gdy operacje mogą zawieść z powodu brakujących danych (np. brak downloadUrl w pliku audio, null values w modelach). Logowanie musi zawierać kontekst: co próbowano zrobić, jakie dane były dostępne, dlaczego operacja nie mogła zostać wykonana
+- ZAWSZE używaj funkcji logError() w catch blokach w cubitach i innych miejscach obsługi błędów - NIE używaj bezpośrednio log() dla błędów. logError automatycznie loguje w trybie debug (przez log) i wysyła do Sentry w produkcji. Format: `logError(e, stackTrace: stackTrace, hint: 'Opis operacji która się nie powiodła', extras: {'key': 'value'});`

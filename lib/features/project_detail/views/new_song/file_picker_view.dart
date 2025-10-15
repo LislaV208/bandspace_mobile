@@ -16,7 +16,9 @@ class FilePickerView extends StatelessWidget {
     return FileSelectionWidget(
       isSelecting: isPickingFile,
       onSelectFile: context.read<NewSongCubit>().selectFile,
-      onSkipFile: context.read<NewSongCubit>().skipFileSelection, // ma przycisk pominięcia
+      onSkipFile: context
+          .read<NewSongCubit>()
+          .skipFileSelection, // ma przycisk pominięcia
     );
   }
 }

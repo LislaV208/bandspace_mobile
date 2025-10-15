@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 
 import 'package:bandspace_mobile/features/song_detail/cubit/song_detail/song_detail_state.dart';
 import 'package:bandspace_mobile/features/song_detail/song_list_urls_cache_storage.dart';
@@ -64,7 +65,7 @@ class SongDetailCubit extends Cubit<SongDetailState> {
   }
 
   // === METODY NAWIGACYJNE ===
-  
+
   /// Przechodzi do następnego utworu w liście (niezależnie od pliku audio)
   void goToNextSong() {
     final currentIndex = state.currentSongIndex;
@@ -73,7 +74,7 @@ class SongDetailCubit extends Cubit<SongDetailState> {
       selectSong(nextSong);
     }
   }
-  
+
   /// Przechodzi do poprzedniego utworu w liście (niezależnie od pliku audio)
   void goToPreviousSong() {
     final currentIndex = state.currentSongIndex;
@@ -82,13 +83,13 @@ class SongDetailCubit extends Cubit<SongDetailState> {
       selectSong(previousSong);
     }
   }
-  
+
   /// Sprawdza czy można przejść do następnego utworu
   bool get canGoNext => state.canGoNext;
-  
+
   /// Sprawdza czy można przejść do poprzedniego utworu
   bool get canGoPrevious => state.canGoPrevious;
-  
+
   /// Zwraca aktualny indeks utworu w liście wszystkich utworów
   int get currentSongIndex => state.currentSongIndex;
 
@@ -114,7 +115,12 @@ class SongDetailCubit extends Cubit<SongDetailState> {
 
       // Odśwież URL-e
       await _downloadUrls();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to refresh song details',
+      );
       log('Error refreshing song: $e');
     }
   }
@@ -153,7 +159,12 @@ class SongDetailCubit extends Cubit<SongDetailState> {
 
         songListUrlsCacheStorage.saveSongListUrls(projectId, newUrls);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to download song playlist URLs',
+      );
       emit(
         SongDetailLoadUrlsFailure(
           state.songs,

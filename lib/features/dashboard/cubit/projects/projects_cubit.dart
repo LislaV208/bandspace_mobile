@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_state.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
@@ -45,7 +46,12 @@ class ProjectsCubit extends Cubit<ProjectsState> {
 
           emit(ProjectsReady(projects));
         })..onError(
-          (error) {
+          (error, stackTrace) {
+            logError(
+              error,
+              stackTrace: stackTrace,
+              hint: 'Projects stream error',
+            );
             final currentState = state;
             if (currentState is ProjectsRefreshing) {
               emit(
@@ -66,14 +72,24 @@ class ProjectsCubit extends Cubit<ProjectsState> {
         emit(ProjectsRefreshing(currentState.projects));
         await Future.delayed(const Duration(milliseconds: 500));
         await projectsRepository.refreshProjects();
-      } catch (e) {
+      } catch (e, stackTrace) {
+        logError(
+          e,
+          stackTrace: stackTrace,
+          hint: 'Failed to refresh projects',
+        );
         emit(ProjectsRefreshFailure(currentState.projects, e.toString()));
       }
     } else if (currentState is ProjectsLoadFailure) {
       try {
         emit(ProjectsLoading());
         await projectsRepository.refreshProjects();
-      } catch (e) {
+      } catch (e, stackTrace) {
+        logError(
+          e,
+          stackTrace: stackTrace,
+          hint: 'Failed to reload projects after failure',
+        );
         emit(ProjectsLoadFailure(e.toString()));
       }
     }

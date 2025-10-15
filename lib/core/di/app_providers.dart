@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import 'package:bandspace_mobile/core/api/api_client.dart';
 import 'package:bandspace_mobile/core/auth/auth_event_service.dart';
+import 'package:bandspace_mobile/core/storage/database_storage.dart';
+import 'package:bandspace_mobile/core/storage/sembast_database_storage.dart';
 import 'package:bandspace_mobile/core/storage/shared_preferences_storage.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
@@ -19,10 +21,23 @@ import 'package:bandspace_mobile/shared/services/session_storage_service.dart';
 final appProviders = [
   // Core
   Provider(create: (context) => AuthEventService()),
-  Provider(create: (context) => ApiClient(
-    authEventService: context.read<AuthEventService>(),
-  )),
+  Provider(
+    create: (context) => ApiClient(
+      authEventService: context.read<AuthEventService>(),
+    ),
+  ),
   Provider(create: (context) => SharedPreferencesStorage()),
+
+  // Database Storage dla cache'owania
+  Provider<DatabaseStorage>(
+    create: (context) {
+      final storage = SembastDatabaseStorage(name: 'cache');
+      // Asynchroniczna inicjalizacja - może być wywołana lazy
+      storage.initialize();
+      return storage;
+    },
+    dispose: (context, storage) => storage.dispose(),
+  ),
 
   Provider(
     create: (context) => SongListUrlsCacheStorage(
@@ -34,11 +49,13 @@ final appProviders = [
   RepositoryProvider(
     create: (context) => UserRepository(
       apiClient: context.read<ApiClient>(),
+      databaseStorage: context.read<DatabaseStorage>(),
     ),
   ),
   RepositoryProvider(
     create: (context) => ProjectsRepository(
       apiClient: context.read<ApiClient>(),
+      databaseStorage: context.read<DatabaseStorage>(),
     ),
   ),
   RepositoryProvider(
@@ -58,6 +75,7 @@ final appProviders = [
   RepositoryProvider(
     create: (context) => ProjectMembersRepository(
       apiClient: context.read<ApiClient>(),
+      databaseStorage: context.read<DatabaseStorage>(),
     ),
   ),
 
@@ -66,6 +84,7 @@ final appProviders = [
     create: (context) => AuthCubit(
       authRepository: context.read<AuthRepository>(),
       authEventService: context.read<AuthEventService>(),
+      databaseStorage: context.read<DatabaseStorage>(),
     ),
   ),
   BlocProvider(

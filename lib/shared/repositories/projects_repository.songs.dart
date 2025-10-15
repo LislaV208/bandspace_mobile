@@ -101,7 +101,7 @@ extension SongsManagement on ProjectsRepository {
 
     // Odśwież listę utworów po dodaniu pliku
     await refreshSongs(projectId);
-    
+
     return Song.fromJson(response.data);
   }
 

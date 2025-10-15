@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:remote_caching/remote_caching.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:bandspace_mobile/core/config/env_config.dart';
 import 'package:bandspace_mobile/core/di/app_providers.dart';
@@ -18,16 +18,21 @@ Future<void> main({String envFileName = '.env'}) async {
   // Załadowanie odpowiedniego pliku .env
   await EnvConfig().init(fileName: envFileName);
 
-  // Inicjalizacja RemoteCaching
-  await RemoteCaching.instance.init(
-    defaultCacheDuration: const Duration(minutes: 5),
-    verboseMode: true,
-  );
-
   // Ustawienie przezroczystego statusbara
   AppTheme.setStatusBarColor();
 
-  runApp(const MainApp());
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = EnvConfig().sentryDsn;
+      options.attachScreenshot = true;
+    },
+    // Init your App.
+    appRunner: () => runApp(
+      SentryWidget(
+        child: const MainApp(),
+      ),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {
@@ -53,15 +58,6 @@ class MainApp extends StatelessWidget {
         home: const SplashScreen(),
         debugShowCheckedModeBanner: false,
       ),
-      // child: ConnectivityBanner(
-      //   showWhenOnline: false, // Banner tylko offline - sync transparentny
-      //   child: MaterialApp(
-      //     title: 'BandSpace',
-      //     theme: AppTheme.darkTheme,
-      //     home: const SplashScreen(),
-      //     debugShowCheckedModeBanner: false,
-      //   ),
-      // ),
     );
   }
 }

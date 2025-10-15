@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/features/song_detail/cubit/add_song_file/add_song_file_state.dart';
@@ -22,7 +23,8 @@ class AddSongFileCubit extends Cubit<AddSongFileState> {
 
     try {
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.audio,
+        type: FileType.custom,
+        allowedExtensions: ['mp3', 'wav', 'm4a', 'flac', 'aac'],
         allowMultiple: false,
       );
 
@@ -33,7 +35,12 @@ class AddSongFileCubit extends Cubit<AddSongFileState> {
       } else {
         emit(const AddSongFileInitial());
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to select audio file for song',
+      );
       emit(AddSongFileFailure(e.toString()));
     }
   }
@@ -56,7 +63,12 @@ class AddSongFileCubit extends Cubit<AddSongFileState> {
         );
 
         emit(AddSongFileSuccess(updatedSong));
-      } catch (e) {
+      } catch (e, stackTrace) {
+        logError(
+          e,
+          stackTrace: stackTrace,
+          hint: 'Failed to upload song file',
+        );
         emit(AddSongFileFailure(e.toString()));
       }
     }

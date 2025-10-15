@@ -234,9 +234,7 @@ class _EditSongDialogState extends State<EditSongDialog> {
             actions: [
               // Przycisk Anuluj
               TextButton(
-                onPressed: isLoading
-                    ? null
-                    : () => Navigator.of(context).pop(),
+                onPressed: isLoading ? null : () => Navigator.of(context).pop(),
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.textSecondary,
                   padding: const EdgeInsets.symmetric(

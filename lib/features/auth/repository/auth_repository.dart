@@ -2,8 +2,8 @@ import 'dart:developer';
 
 import 'package:google_sign_in/google_sign_in.dart';
 
-import 'package:bandspace_mobile/core/api/api_client.dart';
 import 'package:bandspace_mobile/core/api/api_repository.dart';
+import 'package:bandspace_mobile/core/exceptions/app_exceptions.dart';
 import 'package:bandspace_mobile/shared/models/change_password_request.dart';
 import 'package:bandspace_mobile/shared/models/forgot_password_request.dart';
 import 'package:bandspace_mobile/shared/models/session.dart';
@@ -66,10 +66,8 @@ class AuthRepository extends ApiRepository {
           .signIn();
 
       if (googleAccount == null) {
-        throw ApiException(
-          message: 'Anulowano logowanie przez Google',
-          statusCode: 401,
-          data: null,
+        throw const InvalidCredentialsException(
+          'Anulowano logowanie przez Google',
         );
       }
 
@@ -78,10 +76,8 @@ class AuthRepository extends ApiRepository {
           googleAccount.authentication;
 
       if (googleAuth.idToken == null) {
-        throw ApiException(
-          message: 'Nie udało się pobrać tokenu ID Google',
-          statusCode: 401,
-          data: null,
+        throw const InvalidCredentialsException(
+          'Nie udało się pobrać tokenu ID Google',
         );
       }
 
@@ -141,17 +137,15 @@ class AuthRepository extends ApiRepository {
 
         return session;
       } else {
-        throw ApiException(
-          message:
-              responseData['message'] ?? 'Nieznany błąd podczas rejestracji',
-          statusCode: response.statusCode,
-          data: responseData,
+        throw ValidationException(
+          responseData['message'] ?? 'Nieznany błąd podczas rejestracji',
         );
       }
-    } on ApiException {
-      rethrow;
     } catch (e) {
-      throw UnknownException(
+      if (e is AppException) {
+        rethrow;
+      }
+      throw ValidationException(
         'Wystąpił nieoczekiwany błąd podczas rejestracji: $e',
       );
     }
@@ -201,7 +195,7 @@ class AuthRepository extends ApiRepository {
       // Usunięcie danych sesji z lokalnego magazynu
       await storageService.clearSession();
     } catch (e) {
-      throw UnknownException(
+      throw ValidationException(
         'Wystąpił błąd podczas czyszczenia lokalnej sesji: $e',
       );
     }
@@ -227,10 +221,11 @@ class AuthRepository extends ApiRepository {
       );
 
       return ChangePasswordResponse.fromJson(response.data);
-    } on ApiException {
-      rethrow;
     } catch (e) {
-      throw UnknownException('Wystąpił błąd podczas zmiany hasła: $e');
+      if (e is AppException) {
+        rethrow;
+      }
+      throw ValidationException('Wystąpił błąd podczas zmiany hasła: $e');
     }
   }
 
@@ -247,10 +242,11 @@ class AuthRepository extends ApiRepository {
       );
 
       return ForgotPasswordResponse.fromJson(response.data);
-    } on ApiException {
-      rethrow;
     } catch (e) {
-      throw UnknownException(
+      if (e is AppException) {
+        rethrow;
+      }
+      throw ValidationException(
         'Wystąpił błąd podczas żądania resetowania hasła: $e',
       );
     }
@@ -276,10 +272,11 @@ class AuthRepository extends ApiRepository {
       );
 
       return ResetPasswordResponse.fromJson(response.data);
-    } on ApiException {
-      rethrow;
     } catch (e) {
-      throw UnknownException('Wystąpił błąd podczas resetowania hasła: $e');
+      if (e is AppException) {
+        rethrow;
+      }
+      throw ValidationException('Wystąpił błąd podczas resetowania hasła: $e');
     }
   }
 }

@@ -10,6 +10,7 @@ class BpmControl extends StatefulWidget {
   final String? label;
   final String addButtonText;
   final IconData addButtonIcon;
+  final bool disabled;
 
   const BpmControl({
     super.key,
@@ -19,6 +20,7 @@ class BpmControl extends StatefulWidget {
     this.label = 'Tempo (BPM)',
     this.addButtonText = 'Dodaj tempo',
     this.addButtonIcon = LucideIcons.music,
+    this.disabled = false,
   });
 
   @override
@@ -94,7 +96,7 @@ class _BpmControlState extends State<BpmControl> {
                 ),
               if (widget.showRemoveButton)
                 TextButton(
-                  onPressed: _removeBpm,
+                  onPressed: widget.disabled ? null : _removeBpm,
                   child: const Text('Usuń'),
                 ),
             ],
@@ -127,7 +129,9 @@ class _BpmControlState extends State<BpmControl> {
     required VoidCallback onPressed,
   }) {
     if (_bpm == null) return const SizedBox.shrink();
-    final bool isEnabled = icon == LucideIcons.minus ? _bpm! > 20 : _bpm! < 300;
+    final bool isEnabled =
+        !widget.disabled &&
+        (icon == LucideIcons.minus ? _bpm! > 20 : _bpm! < 300);
 
     return SizedBox(
       width: 48,
@@ -146,13 +150,14 @@ class _BpmControlState extends State<BpmControl> {
     return TextField(
       controller: _bpmController,
       textAlign: TextAlign.center,
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         hintText: '120',
       ),
       keyboardType: TextInputType.number,
       inputFormatters: [
         FilteringTextInputFormatter.digitsOnly,
       ],
+      enabled: !widget.disabled,
       onChanged: (value) {
         final newBpm = int.tryParse(value);
         if (newBpm != null && newBpm >= 20 && newBpm <= 300) {
@@ -187,13 +192,15 @@ class _BpmControlState extends State<BpmControl> {
           height: 56,
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: () {
-              setState(() {
-                _bpm = 120;
-                _bpmController.text = '120';
-              });
-              widget.onBpmChanged(120);
-            },
+            onPressed: widget.disabled
+                ? null
+                : () {
+                    setState(() {
+                      _bpm = 120;
+                      _bpmController.text = '120';
+                    });
+                    widget.onBpmChanged(120);
+                  },
             icon: Icon(
               widget.addButtonIcon,
               size: 20,

@@ -1,7 +1,7 @@
-import 'package:remote_caching/remote_caching.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'package:bandspace_mobile/core/api/api_repository.dart';
+import 'package:bandspace_mobile/core/storage/database_storage.dart';
 
 class RepositoryResponse<T> {
   final T? cached;
@@ -18,9 +18,12 @@ class RepositoryResponse<T> {
 /// Wszystkie repozytoria dziedziczące po tej klasie będą automatycznie
 /// cache'ować wyniki swoich metod i wspierać tryb offline-first.
 abstract class CachedRepository extends ApiRepository {
+  final DatabaseStorage _databaseStorage;
+
   const CachedRepository({
     required super.apiClient,
-  });
+    required DatabaseStorage databaseStorage,
+  }) : _databaseStorage = databaseStorage;
 
   /// Mapa przechowująca PublishSubject streams dla reaktywnych list.
   /// Klucz: cache key, wartość: PublishSubject z danymi.
@@ -29,15 +32,6 @@ abstract class CachedRepository extends ApiRepository {
   /// Mapa przechowująca PublishSubject streams dla reaktywnych pojedynczych elementów.
   /// Klucz: cache key, wartość: PublishSubject z danymi.
   static final Map<String, PublishSubject<dynamic>> _reactiveSingleStreams = {};
-
-  /// Domyślny czas cache'owania dla tego repozytorium.
-  /// Może być nadpisany w konkretnych implementacjach.
-  Duration? get defaultCacheDuration => null;
-
-  /// Strategia cache'owania dla poszczególnych metod.
-  /// Klucz: nazwa metody, wartość: czas cache'owania.
-  /// Jeśli metoda nie jest zdefiniowana, używany jest defaultCacheDuration.
-  Map<String, Duration> get methodCacheStrategies => {};
 
   /// Metody, które powinny invalidować cache innych metod po wykonaniu.
   /// Klucz: nazwa metody wywołującej, wartość: lista metod do invalidacji.
@@ -49,8 +43,8 @@ abstract class CachedRepository extends ApiRepository {
       runtimeType.toString().replaceAll('Repository', '').toLowerCase();
 
   /// Invaliduje wszystkie cache.
-  static Future<void> invalidateAll() async {
-    await RemoteCaching.instance.clearCache();
+  Future<void> invalidateAll() async {
+    await _databaseStorage.clear();
     // Zamknij wszystkie reaktywne streamy
     for (final subject in _reactiveStreams.values) {
       subject.close();
@@ -64,105 +58,6 @@ abstract class CachedRepository extends ApiRepository {
     _reactiveSingleStreams.clear();
   }
 
-  /// Wykonuje cache'owaną operację z strategią stale-while-revalidate.
-  ///
-  /// [methodName] - nazwa metody do cache'owania
-  /// [parameters] - parametry metody (używane do generowania unikalnego klucza)
-  /// [remoteCall] - funkcja wykonująca rzeczywiste wywołanie API
-  /// [fromJson] - funkcja deserializująca JSON do obiektu typu T
-  /// [cacheDuration] - opcjonalny czas cache'owania (nadpisuje domyślny)
-  Future<T> cachedCall<T>({
-    required String methodName,
-    required Map<String, dynamic> parameters,
-    required Future<T> Function() remoteCall,
-    required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
-  }) async {
-    return cachedStream<T>(
-      methodName: methodName,
-      parameters: parameters,
-      remoteCall: remoteCall,
-      fromJson: fromJson,
-      cacheDuration: cacheDuration,
-    ).first;
-  }
-
-  /// Wykonuje cache'owaną operację jako Stream z strategią stale-while-revalidate.
-  ///
-  /// Zwraca Stream który najpierw emituje dane z cache (jeśli istnieją),
-  /// następnie świeże dane z API po ich pobraniu.
-  Stream<T> cachedStream<T>({
-    required String methodName,
-    required Map<String, dynamic> parameters,
-    required Future<T> Function() remoteCall,
-    required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
-  }) async* {
-    final cacheKey = _generateCacheKey(methodName, parameters);
-    final duration =
-        cacheDuration ??
-        methodCacheStrategies[methodName] ??
-        defaultCacheDuration;
-
-    try {
-      // Najpierw próbuj pobrać z cache (bez force refresh)
-      T? cachedResult;
-      try {
-        cachedResult = await RemoteCaching.instance.call<T>(
-          cacheKey,
-          remote: () async => throw Exception('Cache miss'),
-          fromJson: (json) => fromJson(json as Map<String, dynamic>),
-          cacheDuration: duration,
-        );
-      } catch (error) {
-        // Jeśli cache miss - cachedResult pozostaje null
-        cachedResult = null;
-      }
-
-      if (cachedResult != null) {
-        // Najpierw emit dane z cache
-        yield cachedResult;
-      }
-
-      // Zawsze pobierz świeże dane z API
-      final freshResult = await RemoteCaching.instance.call<T>(
-        cacheKey,
-        remote: remoteCall,
-        fromJson: (json) => fromJson(json as Map<String, dynamic>),
-        cacheDuration: duration,
-        forceRefresh: true,
-      );
-
-      // Emit świeże dane (jeśli różnią się od cache)
-      if (cachedResult == null || cachedResult != freshResult) {
-        yield freshResult;
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  /// Wykonuje cache'owaną operację dla list z strategią stale-while-revalidate.
-  ///
-  /// Specjalna wersja dla operacji zwracających listy obiektów.
-  Future<List<T>> cachedListCall<T>({
-    required String methodName,
-    required Map<String, dynamic> parameters,
-    required Future<List<T>> Function() remoteCall,
-    required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
-    bool forceRefresh = false,
-  }) async {
-    return cachedListStream<T>(
-      methodName: methodName,
-      parameters: parameters,
-      remoteCall: remoteCall,
-      fromJson: fromJson,
-      cacheDuration: cacheDuration,
-      forceRefresh: forceRefresh,
-    ).first;
-  }
-
   /// Wykonuje cache'owaną operację dla list jako Stream z strategią stale-while-revalidate.
   ///
   /// Zwraca Stream który najpierw emituje dane z cache (jeśli istnieją),
@@ -173,14 +68,11 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<List<T>> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
+    Duration?
+    cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
     bool forceRefresh = false,
   }) async* {
     final cacheKey = _generateCacheKey(methodName, parameters);
-    final duration =
-        cacheDuration ??
-        methodCacheStrategies[methodName] ??
-        defaultCacheDuration;
 
     try {
       List<T>? cachedResult;
@@ -188,19 +80,12 @@ abstract class CachedRepository extends ApiRepository {
       if (!forceRefresh) {
         // Najpierw próbuj pobrać z cache (tylko jeśli nie forceRefresh)
         try {
-          cachedResult = await RemoteCaching.instance.call<List<T>>(
-            cacheKey,
-            remote: () async => throw Exception('Cache miss'),
-            fromJson: (json) {
-              if (json is List) {
-                return json
-                    .map((item) => fromJson(item as Map<String, dynamic>))
-                    .toList();
-              }
-              return <T>[];
-            },
-            cacheDuration: duration,
-          );
+          final cachedData = await _databaseStorage.get(cacheKey);
+          if (cachedData != null && cachedData['data'] is List) {
+            cachedResult = (cachedData['data'] as List)
+                .map((item) => fromJson(item as Map<String, dynamic>))
+                .toList();
+          }
         } catch (error) {
           // Jeśli cache miss - cachedResult pozostaje null
           cachedResult = null;
@@ -213,20 +98,12 @@ abstract class CachedRepository extends ApiRepository {
       }
 
       // Zawsze pobierz świeże dane z API
-      final freshResult = await RemoteCaching.instance.call<List<T>>(
-        cacheKey,
-        remote: remoteCall,
-        fromJson: (json) {
-          if (json is List) {
-            return json
-                .map((item) => fromJson(item as Map<String, dynamic>))
-                .toList();
-          }
-          return <T>[];
-        },
-        cacheDuration: duration,
-        forceRefresh: true,
-      );
+      final freshResult = await remoteCall();
+
+      // Zapisz w cache
+      await _databaseStorage.set(cacheKey, {
+        'data': freshResult.map((item) => (item as dynamic).toJson()).toList(),
+      });
 
       // Emit świeże dane (jeśli różnią się od cache lub jeśli forceRefresh)
       if (forceRefresh ||
@@ -250,7 +127,8 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<List<T>> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
+    Duration?
+    cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
     String? customCacheKeyPrefix,
   }) async {
     final cacheKey = _generateCacheKeyWithPrefix(
@@ -259,27 +137,15 @@ abstract class CachedRepository extends ApiRepository {
       customCacheKeyPrefix,
     );
 
-    final duration =
-        cacheDuration ??
-        methodCacheStrategies[methodName] ??
-        defaultCacheDuration;
-
     // Pobierz dane z cache (asynchronicznie)
     List<T>? cachedData;
     try {
-      cachedData = await RemoteCaching.instance.call<List<T>>(
-        cacheKey,
-        remote: () async => throw Exception('Cache miss'),
-        fromJson: (json) {
-          if (json is List) {
-            return json
-                .map((item) => fromJson(item as Map<String, dynamic>))
-                .toList();
-          }
-          return <T>[];
-        },
-        cacheDuration: duration,
-      );
+      final cachedResult = await _databaseStorage.get(cacheKey);
+      if (cachedResult != null && cachedResult['data'] is List) {
+        cachedData = (cachedResult['data'] as List)
+            .map((item) => fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
     } catch (_) {
       // Cache miss - cachedData pozostaje null
       cachedData = null;
@@ -296,7 +162,6 @@ abstract class CachedRepository extends ApiRepository {
       parameters: parameters,
       remoteCall: remoteCall,
       fromJson: fromJson,
-      cacheDuration: cacheDuration,
       customCacheKeyPrefix: customCacheKeyPrefix,
     );
 
@@ -305,45 +170,6 @@ abstract class CachedRepository extends ApiRepository {
       cached: cachedData,
       stream: _reactiveStreams[cacheKey]!.stream.cast<List<T>>(),
     );
-  }
-
-  /// Reaktywny stream dla listy z PublishSubject.
-  ///
-  /// Zwraca Stream który będzie emitować nowe dane za każdym razem,
-  /// gdy lista zostanie zaktualizowana przez inne metody.
-  /// [customCacheKeyPrefix] pozwala nadpisać domyślny prefiks cache key.
-  @Deprecated('Use hybridListStream instead')
-  Stream<List<T>> reactiveListStream<T>({
-    required String methodName,
-    required Map<String, dynamic> parameters,
-    required Future<List<T>> Function() remoteCall,
-    required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
-    String? customCacheKeyPrefix,
-  }) {
-    final cacheKey = _generateCacheKeyWithPrefix(
-      methodName,
-      parameters,
-      customCacheKeyPrefix,
-    );
-
-    // Sprawdź czy już istnieje subject dla tego klucza
-    if (!_reactiveStreams.containsKey(cacheKey)) {
-      _reactiveStreams[cacheKey] = PublishSubject<List<T>>();
-
-      // Rozpocznij ładowanie danych
-      _loadAndEmitData<T>(
-        cacheKey: cacheKey,
-        methodName: methodName,
-        parameters: parameters,
-        remoteCall: remoteCall,
-        fromJson: fromJson,
-        cacheDuration: cacheDuration,
-        customCacheKeyPrefix: customCacheKeyPrefix,
-      );
-    }
-
-    return _reactiveStreams[cacheKey]!.stream.cast<List<T>>();
   }
 
   /// Reaktywny stream dla pojedynczego elementu z PublishSubject.
@@ -355,7 +181,8 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<T> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
+    Duration?
+    cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
   }) {
     final cacheKey = _generateCacheKey(methodName, parameters);
 
@@ -370,7 +197,6 @@ abstract class CachedRepository extends ApiRepository {
         parameters: parameters,
         remoteCall: remoteCall,
         fromJson: fromJson,
-        cacheDuration: cacheDuration,
       );
     }
 
@@ -384,23 +210,15 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<T> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
   }) async {
-    final duration =
-        cacheDuration ??
-        methodCacheStrategies[methodName] ??
-        defaultCacheDuration;
-
     try {
       // Najpierw próbuj pobrać z cache
       T? cachedResult;
       try {
-        cachedResult = await RemoteCaching.instance.call<T>(
-          cacheKey,
-          remote: () async => throw Exception('Cache miss'),
-          fromJson: (json) => fromJson(json as Map<String, dynamic>),
-          cacheDuration: duration,
-        );
+        final cachedData = await _databaseStorage.get(cacheKey);
+        if (cachedData != null && cachedData['data'] is Map) {
+          cachedResult = fromJson(cachedData['data'] as Map<String, dynamic>);
+        }
       } catch (error) {
         cachedResult = null;
       }
@@ -411,15 +229,12 @@ abstract class CachedRepository extends ApiRepository {
       }
 
       // Zawsze pobierz świeże dane z API
-      final freshResult = await RemoteCaching.instance.call<T>(
-        cacheKey,
-        remote: remoteCall,
-        fromJson: (json) {
-          return fromJson(json as Map<String, dynamic>);
-        },
-        cacheDuration: duration,
-        forceRefresh: true,
-      );
+      final freshResult = await remoteCall();
+
+      // Zapisz w cache
+      await _databaseStorage.set(cacheKey, {
+        'data': (freshResult as dynamic).toJson(),
+      });
 
       // Emit świeże dane (jeśli różnią się od cache)
       if (cachedResult == null || cachedResult != freshResult) {
@@ -437,59 +252,21 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<List<T>> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
     String? customCacheKeyPrefix,
   }) async {
-    final duration =
-        cacheDuration ??
-        methodCacheStrategies[methodName] ??
-        defaultCacheDuration;
-
     try {
       // Zawsze pobierz świeże dane z API
-      final freshResult = await RemoteCaching.instance.call<List<T>>(
-        cacheKey,
-        remote: remoteCall,
-        fromJson: (json) {
-          if (json is List) {
-            return json
-                .map((item) => fromJson(item as Map<String, dynamic>))
-                .toList();
-          }
-          return <T>[];
-        },
-        cacheDuration: duration,
-        forceRefresh: true,
-      );
+      final freshResult = await remoteCall();
+
+      // Zapisz w cache
+      await _databaseStorage.set(cacheKey, {
+        'data': freshResult.map((item) => (item as dynamic).toJson()).toList(),
+      });
 
       // Emit świeże dane
       _reactiveStreams[cacheKey]?.add(freshResult);
     } catch (e) {
       _reactiveStreams[cacheKey]?.addError(e);
-    }
-  }
-
-  /// Wykonuje operację mutującą (POST, PUT, DELETE) i invaliduje odpowiednie cache.
-  ///
-  /// [methodName] - nazwa metody
-  /// [parameters] - parametry metody
-  /// [remoteCall] - funkcja wykonująca rzeczywiste wywołanie API
-  /// [fromJson] - opcjonalna funkcja deserializująca (dla operacji zwracających dane)
-  Future<T?> mutatingCall<T>({
-    required String methodName,
-    required Map<String, dynamic> parameters,
-    required Future<T?> Function() remoteCall,
-    T? Function(Map<String, dynamic>)? fromJson,
-  }) async {
-    try {
-      final result = await remoteCall();
-
-      // Invaliduj cache zgodnie z konfiguracją
-      await _invalidateCache(methodName);
-
-      return result;
-    } catch (e) {
-      rethrow;
     }
   }
 
@@ -499,7 +276,7 @@ abstract class CachedRepository extends ApiRepository {
     Map<String, dynamic>? parameters,
   ]) async {
     final cacheKey = _generateCacheKey(methodName, parameters ?? {});
-    await RemoteCaching.instance.clearCacheForKey(cacheKey);
+    await _databaseStorage.delete(cacheKey);
   }
 
   /// Generuje unikalny klucz cache na podstawie nazwy metody i parametrów.
@@ -528,16 +305,6 @@ abstract class CachedRepository extends ApiRepository {
         : '${prefix}_${methodName}_$paramString';
   }
 
-  /// Invaliduje cache na podstawie konfiguracji invalidationTriggers.
-  Future<void> _invalidateCache(String methodName) async {
-    final methodsToInvalidate = invalidationTriggers[methodName];
-    if (methodsToInvalidate != null) {
-      for (final method in methodsToInvalidate) {
-        await invalidateMethod(method);
-      }
-    }
-  }
-
   /// Dodaje nowy element do cache'owanej listy po wykonaniu API call.
   ///
   /// Najpierw wykonuje API call, następnie dodaje nowy element do cache.
@@ -548,7 +315,8 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> listParameters,
     required Future<T> Function() createCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
+    Duration?
+    cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
     bool addFirst = true,
     String? customCacheKeyPrefix,
   }) async {
@@ -564,19 +332,12 @@ abstract class CachedRepository extends ApiRepository {
     // Pobierz aktualną listę z cache
     List<T>? currentList;
     try {
-      currentList = await RemoteCaching.instance.call<List<T>>(
-        listCacheKey,
-        remote: () async => throw Exception('Cache miss'),
-        fromJson: (json) {
-          if (json is List) {
-            return json
-                .map((item) => fromJson(item as Map<String, dynamic>))
-                .toList();
-          }
-          return <T>[];
-        },
-        cacheDuration: cacheDuration,
-      );
+      final cachedData = await _databaseStorage.get(listCacheKey);
+      if (cachedData != null && cachedData['data'] is List) {
+        currentList = (cachedData['data'] as List)
+            .map((item) => fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
     } catch (e) {
       currentList = null;
     }
@@ -586,20 +347,10 @@ abstract class CachedRepository extends ApiRepository {
       final updatedList = addFirst
           ? [createdItem, ...currentList]
           : [...currentList, createdItem];
-      await RemoteCaching.instance.call<List<T>>(
-        listCacheKey,
-        remote: () async => updatedList,
-        fromJson: (json) {
-          if (json is List) {
-            return json
-                .map((item) => fromJson(item as Map<String, dynamic>))
-                .toList();
-          }
-          return updatedList;
-        },
-        cacheDuration: cacheDuration,
-        forceRefresh: true,
-      );
+
+      await _databaseStorage.set(listCacheKey, {
+        'data': updatedList.map((item) => (item as dynamic).toJson()).toList(),
+      });
 
       // Jeśli istnieje reaktywny stream, zaktualizuj go
       if (_reactiveStreams.containsKey(listCacheKey)) {
@@ -621,7 +372,8 @@ abstract class CachedRepository extends ApiRepository {
     required Future<void> Function() deleteCall,
     required T Function(Map<String, dynamic>) fromJson,
     required bool Function(T) predicate,
-    Duration? cacheDuration,
+    Duration?
+    cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
     String? customCacheKeyPrefix,
   }) async {
     final listCacheKey = _generateCacheKeyWithPrefix(
@@ -636,19 +388,12 @@ abstract class CachedRepository extends ApiRepository {
     // Pobierz aktualną listę z cache
     List<T>? currentList;
     try {
-      currentList = await RemoteCaching.instance.call<List<T>>(
-        listCacheKey,
-        remote: () async => throw Exception('Cache miss'),
-        fromJson: (json) {
-          if (json is List) {
-            return json
-                .map((item) => fromJson(item as Map<String, dynamic>))
-                .toList();
-          }
-          return <T>[];
-        },
-        cacheDuration: cacheDuration,
-      );
+      final cachedData = await _databaseStorage.get(listCacheKey);
+      if (cachedData != null && cachedData['data'] is List) {
+        currentList = (cachedData['data'] as List)
+            .map((item) => fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
     } catch (e) {
       currentList = null;
     }
@@ -658,98 +403,16 @@ abstract class CachedRepository extends ApiRepository {
       final updatedList = currentList
           .where((item) => !predicate(item))
           .toList();
-      await RemoteCaching.instance.call<List<T>>(
-        listCacheKey,
-        remote: () async => updatedList,
-        fromJson: (json) {
-          if (json is List) {
-            return json
-                .map((item) => fromJson(item as Map<String, dynamic>))
-                .toList();
-          }
-          return updatedList;
-        },
-        cacheDuration: cacheDuration,
-        forceRefresh: true,
-      );
+
+      await _databaseStorage.set(listCacheKey, {
+        'data': updatedList.map((item) => (item as dynamic).toJson()).toList(),
+      });
 
       // Jeśli istnieje reaktywny stream, zaktualizuj go
       if (_reactiveStreams.containsKey(listCacheKey)) {
         _reactiveStreams[listCacheKey]!.add(updatedList);
       }
     }
-  }
-
-  /// Aktualizuje element w cache'owanej liście po wykonaniu API call.
-  ///
-  /// Najpierw wykonuje API call, następnie aktualizuje element w cache.
-  /// [predicate] funkcja określająca który element zaktualizować w liście.
-  /// [customCacheKeyPrefix] pozwala nadpisać domyślny prefiks cache key.
-  Future<T> updateInList<T>({
-    required String listMethodName,
-    required Map<String, dynamic> listParameters,
-    required Future<T> Function() updateCall,
-    required T Function(Map<String, dynamic>) fromJson,
-    required bool Function(T) predicate,
-    Duration? cacheDuration,
-    String? customCacheKeyPrefix,
-  }) async {
-    final listCacheKey = _generateCacheKeyWithPrefix(
-      listMethodName,
-      listParameters,
-      customCacheKeyPrefix,
-    );
-
-    // Wykonaj API call
-    final updatedItem = await updateCall();
-
-    // Pobierz aktualną listę z cache
-    List<T>? currentList;
-    try {
-      currentList = await RemoteCaching.instance.call<List<T>>(
-        listCacheKey,
-        remote: () async => throw Exception('Cache miss'),
-        fromJson: (json) {
-          if (json is List) {
-            return json
-                .map((item) => fromJson(item as Map<String, dynamic>))
-                .toList();
-          }
-          return <T>[];
-        },
-        cacheDuration: cacheDuration,
-      );
-    } catch (e) {
-      currentList = null;
-    }
-
-    // Aktualizuj element w cache
-    if (currentList != null) {
-      final updatedList = currentList
-          .map((item) => predicate(item) ? updatedItem : item)
-          .toList();
-      await RemoteCaching.instance.call<List<T>>(
-        listCacheKey,
-        remote: () async => updatedList,
-        fromJson: (json) {
-          if (json is List) {
-            return json
-                .map((item) => fromJson(item as Map<String, dynamic>))
-                .toList();
-          }
-          return updatedList;
-        },
-        cacheDuration: cacheDuration,
-        forceRefresh: true,
-      );
-
-      // Jeśli istnieje reaktywny stream, zaktualizuj go
-      if (_reactiveStreams.containsKey(listCacheKey)) {
-        _reactiveStreams[listCacheKey]!.add(updatedList);
-      }
-    }
-
-    return updatedItem;
   }
 
   /// Aktualizuje pojedynczy element w cache po wykonaniu API call.
@@ -761,26 +424,18 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<T> Function() updateCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
+    Duration?
+    cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
   }) async {
     final cacheKey = _generateCacheKey(methodName, parameters);
 
     // Wykonaj API call
     final updatedItem = await updateCall();
 
-    final duration =
-        cacheDuration ??
-        methodCacheStrategies[methodName] ??
-        defaultCacheDuration;
-
     // Zaktualizuj cache
-    await RemoteCaching.instance.call<T>(
-      cacheKey,
-      remote: () async => updatedItem,
-      fromJson: (json) => fromJson(json as Map<String, dynamic>),
-      cacheDuration: duration,
-      forceRefresh: true,
-    );
+    await _databaseStorage.set(cacheKey, {
+      'data': (updatedItem as dynamic).toJson(),
+    });
 
     // Jeśli istnieje reaktywny stream, zaktualizuj go
     if (_reactiveSingleStreams.containsKey(cacheKey)) {
@@ -799,7 +454,8 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> listParameters,
     required Future<List<T>> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
+    Duration?
+    cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
     String? customCacheKeyPrefix,
   }) async {
     final cacheKey = _generateCacheKeyWithPrefix(
@@ -808,26 +464,12 @@ abstract class CachedRepository extends ApiRepository {
       customCacheKeyPrefix,
     );
 
-    final duration =
-        cacheDuration ??
-        methodCacheStrategies[listMethodName] ??
-        defaultCacheDuration;
+    // Wykonaj API call - to zaktualizuje cache
+    final freshData = await remoteCall();
 
-    // Wykonaj API call z forceRefresh - to zaktualizuje cache
-    final freshData = await RemoteCaching.instance.call<List<T>>(
-      cacheKey,
-      remote: remoteCall,
-      fromJson: (json) {
-        if (json is List) {
-          return json
-              .map((item) => fromJson(item as Map<String, dynamic>))
-              .toList();
-        }
-        return <T>[];
-      },
-      cacheDuration: duration,
-      forceRefresh: true,
-    );
+    await _databaseStorage.set(cacheKey, {
+      'data': freshData.map((item) => (item as dynamic).toJson()).toList(),
+    });
 
     // Jeśli istnieje reaktywny stream, zaktualizuj go
     if (_reactiveStreams.containsKey(cacheKey)) {
@@ -844,23 +486,17 @@ abstract class CachedRepository extends ApiRepository {
     required Map<String, dynamic> parameters,
     required Future<T> Function() remoteCall,
     required T Function(Map<String, dynamic>) fromJson,
-    Duration? cacheDuration,
+    Duration?
+    cacheDuration, // Zachowany dla kompatybilności API, ale ignorowany
   }) async {
     final cacheKey = _generateCacheKey(methodName, parameters);
 
-    final duration =
-        cacheDuration ??
-        methodCacheStrategies[methodName] ??
-        defaultCacheDuration;
+    // Wykonaj API call - to zaktualizuje cache
+    final freshData = await remoteCall();
 
-    // Wykonaj API call z forceRefresh - to zaktualizuje cache
-    final freshData = await RemoteCaching.instance.call<T>(
-      cacheKey,
-      remote: remoteCall,
-      fromJson: (json) => fromJson(json as Map<String, dynamic>),
-      cacheDuration: duration,
-      forceRefresh: true,
-    );
+    await _databaseStorage.set(cacheKey, {
+      'data': (freshData as dynamic).toJson(),
+    });
 
     // Jeśli istnieje reaktywny stream, zaktualizuj go
     if (_reactiveSingleStreams.containsKey(cacheKey)) {

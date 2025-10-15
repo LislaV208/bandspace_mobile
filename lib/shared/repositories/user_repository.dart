@@ -5,6 +5,7 @@ import 'package:bandspace_mobile/shared/models/user.dart';
 class UserRepository extends CachedRepository {
   const UserRepository({
     required super.apiClient,
+    required super.databaseStorage,
   });
 
   /// Pobiera profil zalogowanego użytkownika.
@@ -57,6 +58,6 @@ class UserRepository extends CachedRepository {
   /// Usuwa konto zalogowanego użytkownika.
   Future<void> deleteProfile() async {
     await apiClient.delete('/api/users/me');
-    await CachedRepository.invalidateAll();
+    await invalidateAll();
   }
 }

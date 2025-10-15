@@ -1,0 +1,123 @@
+import 'package:equatable/equatable.dart';
+import 'package:just_audio/just_audio.dart';
+
+import 'package:bandspace_mobile/shared/models/track.dart';
+
+enum PlayerUiStatus { playing, paused }
+
+enum CacheStatus { notStarted, caching, cached, noFile, error }
+
+class TrackPlayerState extends Equatable {
+  final String? errorMessage;
+
+  // Dane
+  final List<Track> tracks;
+  final int currentTrackIndex;
+  final int? currentProjectId;
+
+  // Stan odtwarzacza (bezpośrednio z just_audio)
+  final PlayerUiStatus playerUiStatus;
+  final Duration currentPosition;
+  final Duration bufferedPosition;
+  final Duration totalDuration;
+  final bool isSeeking;
+  final Duration? seekPosition;
+  final LoopMode loopMode;
+
+  // Stan cache'owania
+  final Map<int, CacheStatus> tracksCacheStatus;
+  final bool isPreCaching;
+  final int cachedTracksCount;
+
+  const TrackPlayerState({
+    this.errorMessage,
+    this.tracks = const [],
+    this.currentTrackIndex = 0,
+    this.currentProjectId,
+    this.playerUiStatus = PlayerUiStatus.paused,
+    this.currentPosition = Duration.zero,
+    this.bufferedPosition = Duration.zero,
+    this.totalDuration = Duration.zero,
+    this.isSeeking = false,
+    this.seekPosition,
+    this.loopMode = LoopMode.off,
+    this.tracksCacheStatus = const {},
+    this.isPreCaching = false,
+    this.cachedTracksCount = 0,
+  });
+
+  // Wygodne gettery
+  Track? get currentTrack =>
+      tracks.isNotEmpty && currentTrackIndex < tracks.length
+      ? tracks[currentTrackIndex]
+      : null;
+
+  String? get currentAudioUrl => currentTrack?.mainVersion?.file?.downloadUrl;
+
+  double get progress {
+    if (totalDuration.inMilliseconds == 0) return 0.0;
+    // Podczas przesuwania użyj seekPosition, w przeciwnym razie currentPosition
+    final position = isSeeking && seekPosition != null
+        ? seekPosition!
+        : currentPosition;
+
+    return position.inMilliseconds / totalDuration.inMilliseconds;
+  }
+
+  // Computed properties dla navigation controls
+  bool get hasNext =>
+      tracks.isNotEmpty && currentTrackIndex < tracks.length - 1;
+  bool get hasPrevious => tracks.isNotEmpty && currentTrackIndex > 0;
+
+  TrackPlayerState copyWith({
+    String? errorMessage,
+    List<Track>? tracks,
+    int? currentTrackIndex,
+    int? currentProjectId,
+    PlayerUiStatus? playerUiStatus,
+    Duration? currentPosition,
+    Duration? bufferedPosition,
+    Duration? totalDuration,
+    bool? isSeeking,
+    Duration? seekPosition,
+    LoopMode? loopMode,
+    Map<int, CacheStatus>? tracksCacheStatus,
+    bool? isPreCaching,
+    int? cachedTracksCount,
+  }) {
+    return TrackPlayerState(
+      errorMessage: errorMessage ?? this.errorMessage,
+      tracks: tracks ?? this.tracks,
+      currentTrackIndex: currentTrackIndex ?? this.currentTrackIndex,
+      currentProjectId: currentProjectId ?? this.currentProjectId,
+      playerUiStatus: playerUiStatus ?? this.playerUiStatus,
+      currentPosition: currentPosition ?? this.currentPosition,
+      bufferedPosition: bufferedPosition ?? this.bufferedPosition,
+      totalDuration: totalDuration ?? this.totalDuration,
+      isSeeking: isSeeking ?? this.isSeeking,
+      seekPosition: seekPosition ?? this.seekPosition,
+      loopMode: loopMode ?? this.loopMode,
+      tracksCacheStatus: tracksCacheStatus ?? this.tracksCacheStatus,
+      isPreCaching: isPreCaching ?? this.isPreCaching,
+      cachedTracksCount: cachedTracksCount ?? this.cachedTracksCount,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    errorMessage,
+    tracks,
+    currentTrackIndex,
+    currentProjectId,
+    playerUiStatus,
+    currentPosition,
+    bufferedPosition,
+    totalDuration,
+    isSeeking,
+    seekPosition,
+    loopMode,
+    tracksCacheStatus,
+    isPreCaching,
+    cachedTracksCount,
+  ];
+}

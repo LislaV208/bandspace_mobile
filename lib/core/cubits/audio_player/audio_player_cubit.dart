@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -214,7 +215,12 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
       if (playWhenReady) {
         await _audioPlayer.play();
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to load audio from URL: $url',
+      );
       emit(
         state.copyWith(
           status: PlayerStatus.error,
@@ -397,7 +403,12 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
       if (playWhenReady) {
         await _audioPlayer.play();
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to load audio playlist',
+      );
       emit(
         state.copyWith(
           status: PlayerStatus.error,
@@ -414,7 +425,12 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
 
     try {
       await _audioPlayer.seekToNext();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to play next track in playlist',
+      );
       log('Error playing next track: $e');
     }
   }
@@ -425,7 +441,12 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
 
     try {
       await _audioPlayer.seekToPrevious();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to play previous track in playlist',
+      );
       log('Error playing previous track: $e');
     }
   }
@@ -438,7 +459,12 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
 
     try {
       await _audioPlayer.seek(Duration.zero, index: index);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to play track at index $index',
+      );
       log('Error playing track at index $index: $e');
     }
   }
@@ -448,7 +474,12 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     try {
       await _audioPlayer.setShuffleModeEnabled(enabled);
       emit(state.copyWith(isShuffleEnabled: enabled));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to set shuffle mode: $enabled',
+      );
       log('Error setting shuffle mode: $e');
     }
   }
@@ -458,7 +489,12 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
     try {
       await _audioPlayer.setLoopMode(loopMode);
       emit(state.copyWith(loopMode: loopMode));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to set loop mode: $loopMode',
+      );
       log('Error setting loop mode: $e');
     }
   }
@@ -485,7 +521,12 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
       }
 
       emit(state.copyWith(playlist: newPlaylist));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to add track to playlist',
+      );
       log('Error adding to playlist: $e');
     }
   }
@@ -508,7 +549,12 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
       } else {
         emit(state.copyWith(playlist: newPlaylist));
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to remove track from playlist at index $index',
+      );
       log('Error removing from playlist: $e');
     }
   }
@@ -567,7 +613,12 @@ class AudioPlayerCubit extends Cubit<AudioPlayerState> {
       }
 
       log('Audio cache cleared successfully');
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logError(
+        e,
+        stackTrace: stackTrace,
+        hint: 'Failed to clear audio cache',
+      );
       log('Error clearing audio cache: $e');
     }
   }

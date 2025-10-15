@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:bandspace_mobile/core/utils/formatters.dart';
+
 class AudioPreviewPlayer extends StatefulWidget {
   final File? audioFile;
   final VoidCallback? onRemoveFile;
@@ -106,14 +108,10 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
     }
   }
 
-  String _formatDuration(Duration duration) {
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-  }
-
   String _getFileName() {
-    return widget.audioFile != null ? widget.audioFile!.path.split('/').last : 'Brak pliku';
+    return widget.audioFile != null
+        ? widget.audioFile!.path.split('/').last
+        : 'Brak pliku';
   }
 
   String _getFileSize() {
@@ -144,7 +142,9 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
-                  widget.audioFile != null ? LucideIcons.fileAudio : Icons.music_off,
+                  widget.audioFile != null
+                      ? LucideIcons.fileAudio
+                      : Icons.music_off,
                   size: 24,
                   color: Colors.white,
                 ),
@@ -288,14 +288,14 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                _formatDuration(_position),
+                                Formatters.formatDuration(_position),
                                 style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       fontWeight: FontWeight.w500,
                                     ),
                               ),
                               Text(
-                                _formatDuration(_duration),
+                                Formatters.formatDuration(_duration),
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],

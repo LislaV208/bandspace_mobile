@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
@@ -58,7 +59,12 @@ class UserProfileCubit extends Cubit<UserProfileState> {
         await userRepository.updateProfile(name: name.isNotEmpty ? name : null);
 
         await refreshProfile();
-      } catch (e) {
+      } catch (e, stackTrace) {
+        logError(
+          e,
+          stackTrace: stackTrace,
+          hint: 'Failed to update user profile name',
+        );
         emit(UserProfileEditNameFailure(user, e.toString()));
       }
     }
@@ -74,7 +80,12 @@ class UserProfileCubit extends Cubit<UserProfileState> {
       try {
         await userRepository.deleteProfile();
         emit(const UserProfileDeleteSuccess());
-      } catch (e) {
+      } catch (e, stackTrace) {
+        logError(
+          e,
+          stackTrace: stackTrace,
+          hint: 'Failed to delete user account',
+        );
         emit(UserProfileDeleteFailure(user, e.toString()));
       }
     }
