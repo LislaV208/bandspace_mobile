@@ -41,6 +41,7 @@ class _AddTrackVersionViewState extends State<AddTrackVersionView> {
     return BlocProvider(
       create: (context) => AddTrackVersionCubit(
         repository: context.read(),
+        wakelockService: context.read(),
         projectId: widget.projectId,
         trackId: widget.track.id,
         track: widget.track,

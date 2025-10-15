@@ -11,11 +11,13 @@ import 'package:bandspace_mobile/features/track_player/services/audio_pre_cachin
 import 'package:bandspace_mobile/features/track_player/services/audio_source_factory.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
 import 'package:bandspace_mobile/shared/models/version.dart';
+import 'package:bandspace_mobile/shared/services/wakelock_service.dart';
 
 class TrackPlayerCubit extends Cubit<TrackPlayerState> {
   final AudioPlayerService _playerService;
   final AudioSourceFactory _sourceFactory;
   final AudioPreCachingOrchestrator _preCachingOrchestrator;
+  final WakelockService _wakelockService;
   final Map<int, int> _trackIdToPlayerIndex = {};
 
   StreamSubscription? _playerStateSubscription;
@@ -30,9 +32,11 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     required AudioPlayerService playerService,
     required AudioSourceFactory sourceFactory,
     required AudioPreCachingOrchestrator preCachingOrchestrator,
+    required WakelockService wakelockService,
   }) : _playerService = playerService,
        _sourceFactory = sourceFactory,
        _preCachingOrchestrator = preCachingOrchestrator,
+       _wakelockService = wakelockService,
        super(const TrackPlayerState());
 
   void _listenToPlayerEvents() {
@@ -67,6 +71,17 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
         '_listenToPlayerEvents: Player state changed - processingState=${playerState.processingState}, playing=${playerState.playing}, newStatus=$newStatus',
         name: 'TrackPlayerCubit',
       );
+
+      // Zarządzaj wakelock w zależności od stanu odtwarzania
+      final oldStatus = state.playerUiStatus;
+      if (oldStatus != newStatus) {
+        if (newStatus == PlayerUiStatus.playing) {
+          _wakelockService.enable(reason: 'audio playback');
+        } else if (newStatus == PlayerUiStatus.paused) {
+          _wakelockService.disable(reason: 'audio paused');
+        }
+      }
+
       emit(state.copyWith(playerUiStatus: newStatus));
     });
 
@@ -799,6 +814,10 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     );
     _preCachingOrchestrator.dispose();
     _playerService.dispose();
+
+    // Wyłącz wakelock na wszelki wypadek
+    log('close: Disabling wakelock', name: 'TrackPlayerCubit');
+    _wakelockService.disable(reason: 'player closed');
 
     log('close: TrackPlayerCubit closed', name: 'TrackPlayerCubit');
     return super.close();

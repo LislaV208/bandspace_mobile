@@ -131,6 +131,7 @@ class _TrackVersionsScreenState extends State<TrackVersionsScreen> {
         builder: (context) => BlocProvider(
           create: (context) => AddTrackVersionCubit(
             repository: context.read<ProjectsRepository>(),
+            wakelockService: context.read(),
             projectId: widget.projectId,
             trackId: widget.track.id,
             track: widget.track,

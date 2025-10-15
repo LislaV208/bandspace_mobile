@@ -4,25 +4,28 @@ import 'package:bandspace_mobile/core/utils/error_logger.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'package:bandspace_mobile/features/track_versions/cubit/add_track_version/add_track_version_state.dart';
 import 'package:bandspace_mobile/features/track_versions/models/add_version_data.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
+import 'package:bandspace_mobile/shared/services/wakelock_service.dart';
 
 class AddTrackVersionCubit extends Cubit<AddTrackVersionState> {
   final ProjectsRepository _repository;
+  final WakelockService _wakelockService;
   final int projectId;
   final int trackId;
   final Track track;
 
   AddTrackVersionCubit({
     required ProjectsRepository repository,
+    required WakelockService wakelockService,
     required this.projectId,
     required this.trackId,
     required this.track,
   }) : _repository = repository,
+       _wakelockService = wakelockService,
        super(const AddTrackVersionInitial());
 
   /// Krok 1: Wybór pliku audio
@@ -126,37 +129,36 @@ class AddTrackVersionCubit extends Cubit<AddTrackVersionState> {
     );
 
     try {
-      // Włącz Wake Lock aby zapobiec uśpieniu urządzenia podczas uploadu
-      await WakelockPlus.enable();
-      log(
-        'Wake Lock enabled for version upload: ${currentState.fileName}',
-        name: 'AddTrackVersionCubit',
-      );
+      await _wakelockService.runWithWakelock(
+        reason: 'version upload: ${currentState.fileName}',
+        operation: () async {
+          final newVersion = await _repository.addTrackVersion(
+            projectId,
+            trackId,
+            currentState.file,
+            bpm: currentState.metadata.bpm,
+            onProgress: (sent, total) {
+              if (total > 0) {
+                final progress = sent / total;
+                emit(
+                  AddTrackVersionUploading(
+                    progress: progress,
+                    file: currentState.file,
+                    fileName: currentState.fileName,
+                    metadata: currentState.metadata,
+                  ),
+                );
+              }
+            },
+          );
 
-      final newVersion = await _repository.addTrackVersion(
-        projectId,
-        trackId,
-        currentState.file,
-        bpm: currentState.metadata.bpm,
-        onProgress: (sent, total) {
-          if (total > 0) {
-            final progress = sent / total;
-            emit(
-              AddTrackVersionUploading(
-                progress: progress,
-                file: currentState.file,
-                fileName: currentState.fileName,
-                metadata: currentState.metadata,
-              ),
-            );
-          }
+          emit(AddTrackVersionSuccess(newVersion));
+          log(
+            'Version upload completed successfully: ${currentState.fileName}',
+            name: 'AddTrackVersionCubit',
+          );
+          return newVersion;
         },
-      );
-
-      emit(AddTrackVersionSuccess(newVersion));
-      log(
-        'Version upload completed successfully: ${currentState.fileName}',
-        name: 'AddTrackVersionCubit',
       );
     } catch (e, stackTrace) {
       logError(
@@ -173,13 +175,6 @@ class AddTrackVersionCubit extends Cubit<AddTrackVersionState> {
           fileName: currentState.fileName,
           metadata: currentState.metadata,
         ),
-      );
-    } finally {
-      // Zawsze wyłącz Wake Lock po zakończeniu uploadu (sukces lub błąd)
-      await WakelockPlus.disable();
-      log(
-        'Wake Lock disabled after version upload',
-        name: 'AddTrackVersionCubit',
       );
     }
   }

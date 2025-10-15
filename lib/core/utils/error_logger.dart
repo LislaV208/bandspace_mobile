@@ -69,3 +69,69 @@ void logError(
     );
   }
 }
+
+/// Ustawia kontekst użytkownika w Sentry.
+///
+/// Automatycznie przypisuje zalogowanego użytkownika do wszystkich przyszłych błędów
+/// i eventów wysyłanych do Sentry. Ułatwia to śledzenie problemów konkretnych użytkowników.
+///
+/// Parametry:
+/// - [userId] - Unikalny identyfikator użytkownika (np. ID z bazy danych).
+/// - [email] - Email użytkownika (opcjonalny).
+/// - [username] - Nazwa użytkownika (opcjonalny).
+/// - [extras] - Dodatkowe pola użytkownika (opcjonalne).
+///
+/// Aby wyczyścić kontekst użytkownika (np. po wylogowaniu), wywołaj funkcję
+/// bez parametrów lub z `null`:
+/// ```dart
+/// setSentryUser(); // Wyczyści kontekst użytkownika
+/// ```
+///
+/// Przykład użycia:
+/// ```dart
+/// // Po zalogowaniu
+/// setSentryUser(
+///   userId: user.id.toString(),
+///   email: user.email,
+///   username: user.name,
+///   extras: {'authProviders': user.authProviders.join(',')},
+/// );
+///
+/// // Po wylogowaniu
+/// setSentryUser();
+/// ```
+void setSentryUser({
+  String? userId,
+  String? email,
+  String? username,
+  Map<String, dynamic>? extras,
+}) {
+  if (kDebugMode) {
+    // W trybie debug loguj informację o ustawieniu użytkownika
+    if (userId != null) {
+      developer.log(
+        'Sentry user context set: $userId ($email)',
+        name: 'SentryUserContext',
+      );
+    } else {
+      developer.log(
+        'Sentry user context cleared',
+        name: 'SentryUserContext',
+      );
+    }
+  }
+
+  // Ustaw lub wyczyść kontekst użytkownika w Sentry
+  if (userId != null) {
+    final sentryUser = SentryUser(
+      id: userId,
+      email: email,
+      username: username,
+      data: extras,
+    );
+    Sentry.configureScope((scope) => scope.setUser(sentryUser));
+  } else {
+    // Wyczyść kontekst użytkownika
+    Sentry.configureScope((scope) => scope.setUser(null));
+  }
+}

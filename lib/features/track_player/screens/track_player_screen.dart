@@ -52,6 +52,7 @@ class TrackPlayerScreen extends StatelessWidget {
             playerService: playerService,
             sourceFactory: sourceFactory,
             preCachingOrchestrator: preCachingOrchestrator,
+            wakelockService: context.read(),
           )..initialize(tracks, initialTrack, project.id),
         ),
         BlocProvider(

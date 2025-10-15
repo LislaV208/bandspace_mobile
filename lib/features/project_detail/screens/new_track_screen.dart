@@ -17,6 +17,7 @@ class NewTrackScreen extends StatelessWidget {
       create: (context) => CreateTrackCubit(
         projectId: project.id,
         projectsRepository: context.read<ProjectsRepository>(),
+        wakelockService: context.read(),
       ),
       child: NewTrackScreen(project: project),
     );

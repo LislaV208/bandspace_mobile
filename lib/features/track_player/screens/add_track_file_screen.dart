@@ -32,6 +32,7 @@ class AddTrackFileScreen extends StatelessWidget {
       create: (context) {
         return AddTrackFileCubit(
           projectsRepository: context.read<ProjectsRepository>(),
+          wakelockService: context.read(),
           projectId: projectId,
           trackId: trackId,
         );

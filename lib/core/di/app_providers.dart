@@ -17,6 +17,7 @@ import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 import 'package:bandspace_mobile/shared/repositories/user_repository.dart';
 import 'package:bandspace_mobile/shared/services/google_sign_in_service.dart';
 import 'package:bandspace_mobile/shared/services/session_storage_service.dart';
+import 'package:bandspace_mobile/shared/services/wakelock_service.dart';
 
 final appProviders = [
   // Core
@@ -27,6 +28,7 @@ final appProviders = [
     ),
   ),
   Provider(create: (context) => SharedPreferencesStorage()),
+  Provider(create: (context) => WakelockService()),
 
   // Database Storage dla cache'owania
   Provider<DatabaseStorage>(

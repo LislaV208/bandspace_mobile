@@ -4,20 +4,22 @@ import 'package:bandspace_mobile/core/utils/error_logger.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'package:bandspace_mobile/features/project_detail/cubit/create_track/create_track_state.dart';
 import 'package:bandspace_mobile/shared/models/track_create_data.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
+import 'package:bandspace_mobile/shared/services/wakelock_service.dart';
 
 /// Cubit zarządzający stanem tworzenia nowego utworu (Track)
 class CreateTrackCubit extends Cubit<CreateTrackState> {
   final int projectId;
   final ProjectsRepository projectsRepository;
+  final WakelockService wakelockService;
 
   CreateTrackCubit({
     required this.projectId,
     required this.projectsRepository,
+    required this.wakelockService,
   }) : super(const CreateTrackInitial());
 
   Future<void> selectFile() async {
@@ -66,28 +68,26 @@ class CreateTrackCubit extends Cubit<CreateTrackState> {
       emit(CreateTrackUploading(0.0, trackName, hasFile: hasFile));
 
       try {
-        // Włącz Wake Lock aby zapobiec uśpieniu urządzenia podczas uploadu
-        await WakelockPlus.enable();
-        log(
-          'Wake Lock enabled for track upload: $trackName',
-          name: 'CreateTrackCubit',
-        );
+        await wakelockService.runWithWakelock(
+          reason: 'track upload: $trackName',
+          operation: () async {
+            await projectsRepository.createTrack(
+              projectId,
+              trackData,
+              currentState.file,
+              onProgress: (sent, total) {
+                emit(
+                  CreateTrackUploading(sent / total, trackName, hasFile: hasFile),
+                );
+              },
+            );
 
-        await projectsRepository.createTrack(
-          projectId,
-          trackData,
-          currentState.file,
-          onProgress: (sent, total) {
-            emit(
-              CreateTrackUploading(sent / total, trackName, hasFile: hasFile),
+            emit(CreateTrackUploadSuccess(1.0, trackName));
+            log(
+              'Track upload completed successfully: $trackName',
+              name: 'CreateTrackCubit',
             );
           },
-        );
-
-        emit(CreateTrackUploadSuccess(1.0, trackName));
-        log(
-          'Track upload completed successfully: $trackName',
-          name: 'CreateTrackCubit',
         );
       } catch (e, stackTrace) {
         final progress = state is CreateTrackUploading
@@ -103,10 +103,6 @@ class CreateTrackCubit extends Cubit<CreateTrackState> {
           hint: 'Failed to upload track: $trackName',
         );
         emit(CreateTrackUploadFailure(progress, trackName, e.toString()));
-      } finally {
-        // Zawsze wyłącz Wake Lock po zakończeniu uploadu (sukces lub błąd)
-        await WakelockPlus.disable();
-        log('Wake Lock disabled after track upload', name: 'CreateTrackCubit');
       }
     }
   }
