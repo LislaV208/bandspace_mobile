@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:just_audio/just_audio.dart';
 
@@ -7,7 +8,17 @@ import 'package:just_audio/just_audio.dart';
 class AudioPlayerService {
   final AudioPlayer _audioPlayer;
 
-  AudioPlayerService(this._audioPlayer);
+  AudioPlayerService(this._audioPlayer) {
+    // iOS optimization: Nie czekaj na pełny buffer przed rozpoczęciem playback
+    // Redukuje initial load time dla AVPlayer
+    if (Platform.isIOS) {
+      _audioPlayer.setAutomaticallyWaitsToMinimizeStalling(false);
+      log(
+        'AudioPlayerService: iOS detected - set automaticallyWaitsToMinimizeStalling to false',
+        name: 'AudioPlayerService',
+      );
+    }
+  }
 
   // Streams
   Stream<Duration> get positionStream => _audioPlayer.positionStream;
@@ -63,12 +74,14 @@ class AudioPlayerService {
     }
 
     log(
-      'setAudioSources: BEFORE _audioPlayer.setAudioSources() - sources count: ${sources.length}',
+      'setAudioSources: BEFORE _audioPlayer.setAudioSources() - sources count: ${sources.length}, preload: false',
       name: 'AudioPlayerService',
     );
 
     final startTime = DateTime.now();
-    await _audioPlayer.setAudioSources(sources);
+    // preload: false - opóźnia ładowanie audio sources do momentu play()
+    // Zapobiega blokowaniu main thread podczas inicjalizacji (szczególnie na iOS AVPlayer)
+    await _audioPlayer.setAudioSources(sources, preload: false);
     final duration = DateTime.now().difference(startTime);
 
     log(
