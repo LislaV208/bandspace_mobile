@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:just_audio/just_audio.dart';
 
 /// Wrapper nad AudioPlayer z just_audio.
@@ -33,8 +35,21 @@ class AudioPlayerService {
 
   Future<void> stop() => _audioPlayer.stop();
 
-  Future<void> seek(Duration position, {int? index}) =>
-      _audioPlayer.seek(position, index: index);
+  Future<void> seek(Duration position, {int? index}) async {
+    log(
+      'seek: BEFORE _audioPlayer.seek() - position=$position, index=$index',
+      name: 'AudioPlayerService',
+    );
+
+    final startTime = DateTime.now();
+    await _audioPlayer.seek(position, index: index);
+    final duration = DateTime.now().difference(startTime);
+
+    log(
+      'seek: AFTER _audioPlayer.seek() - took ${duration.inMilliseconds}ms',
+      name: 'AudioPlayerService',
+    );
+  }
 
   Future<void> seekToNext() => _audioPlayer.seekToNext();
 
@@ -46,7 +61,20 @@ class AudioPlayerService {
     if (sources.isEmpty) {
       return;
     }
+
+    log(
+      'setAudioSources: BEFORE _audioPlayer.setAudioSources() - sources count: ${sources.length}',
+      name: 'AudioPlayerService',
+    );
+
+    final startTime = DateTime.now();
     await _audioPlayer.setAudioSources(sources);
+    final duration = DateTime.now().difference(startTime);
+
+    log(
+      'setAudioSources: AFTER _audioPlayer.setAudioSources() - took ${duration.inMilliseconds}ms',
+      name: 'AudioPlayerService',
+    );
   }
 
   void dispose() {

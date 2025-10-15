@@ -45,20 +45,26 @@ class AudioPreCachingOrchestrator {
   /// cache'uje tylko te które nie są cached.
   /// Progress jest emitowany przez progressStream.
   Future<void> preCacheTracks(List<Track> tracks) async {
+    final preCacheStartTime = DateTime.now();
     log(
-      'preCacheTracks: Starting for ${tracks.length} tracks',
+      'preCacheTracks: START - for ${tracks.length} tracks',
       name: 'AudioPreCachingOrchestrator',
     );
 
     // 1. Sprawdź które tracki są już w cache
+    final checkCacheStart = DateTime.now();
     final tracksCacheStatus = <int, CacheStatus>{};
+    int trackNumber = 0;
     for (final track in tracks) {
+      trackNumber++;
+      final trackCheckStart = DateTime.now();
+
       final url = track.mainVersion?.file?.downloadUrl;
 
       if (url == null) {
         tracksCacheStatus[track.id] = CacheStatus.noFile;
         log(
-          'preCacheTracks: Track ${track.id} has no download URL',
+          'preCacheTracks: [$trackNumber/${tracks.length}] Track ${track.id} has no download URL',
           name: 'AudioPreCachingOrchestrator',
         );
         continue;
@@ -70,11 +76,18 @@ class AudioPreCachingOrchestrator {
           ? CacheStatus.cached
           : CacheStatus.notStarted;
 
+      final trackCheckDuration = DateTime.now().difference(trackCheckStart);
       log(
-        'preCacheTracks: Track ${track.id} cache status: ${isCached ? "cached" : "not cached"}',
+        'preCacheTracks: [$trackNumber/${tracks.length}] Track ${track.id} cache check took ${trackCheckDuration.inMilliseconds}ms - status: ${isCached ? "cached" : "not cached"}',
         name: 'AudioPreCachingOrchestrator',
       );
     }
+
+    final checkCacheDuration = DateTime.now().difference(checkCacheStart);
+    log(
+      'preCacheTracks: Cache status check for all tracks took ${checkCacheDuration.inMilliseconds}ms',
+      name: 'AudioPreCachingOrchestrator',
+    );
 
     // 2. Emit initial progress (user od razu widzi co jest cached)
     final cachedCount = tracksCacheStatus.values
@@ -87,14 +100,21 @@ class AudioPreCachingOrchestrator {
     _emitProgress(tracksCacheStatus);
 
     // 3. Cache tylko te które nie są cached
+    final downloadStart = DateTime.now();
     for (final track in tracks) {
       if (tracksCacheStatus[track.id] == CacheStatus.notStarted) {
         await _cacheTrack(track, tracksCacheStatus);
       }
     }
-
+    final downloadDuration = DateTime.now().difference(downloadStart);
     log(
-      'preCacheTracks: Completed',
+      'preCacheTracks: Downloading uncached tracks took ${downloadDuration.inMilliseconds}ms',
+      name: 'AudioPreCachingOrchestrator',
+    );
+
+    final totalDuration = DateTime.now().difference(preCacheStartTime);
+    log(
+      'preCacheTracks: COMPLETE - TOTAL TIME: ${totalDuration.inMilliseconds}ms',
       name: 'AudioPreCachingOrchestrator',
     );
   }

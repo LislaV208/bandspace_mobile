@@ -23,20 +23,47 @@ class AudioSourceFactory {
   /// Graceful degradation: użytkownik zawsze może odtwarzać track,
   /// nawet jeśli cache nie działa.
   Future<AudioSource> createAudioSource(String url, int trackId) async {
-    try {
-      final cacheFile = await _cacheRepo.getCacheFile(trackId);
+    final startTime = DateTime.now();
+    log(
+      'createAudioSource: START for track $trackId',
+      name: 'AudioSourceFactory',
+    );
 
+    try {
+      final getCacheFileStart = DateTime.now();
+      final cacheFile = await _cacheRepo.getCacheFile(trackId);
+      final getCacheFileDuration = DateTime.now().difference(getCacheFileStart);
+      log(
+        'createAudioSource: getCacheFile() took ${getCacheFileDuration.inMilliseconds}ms',
+        name: 'AudioSourceFactory',
+      );
+
+      final createSourceStart = DateTime.now();
       // LockCachingAudioSource automatycznie fallback'uje do streaming
       // jeśli cache file nie istnieje
-      return LockCachingAudioSource(
+      final source = LockCachingAudioSource(
         Uri.parse(url),
         cacheFile: cacheFile,
       );
+      final createSourceDuration = DateTime.now().difference(createSourceStart);
+      log(
+        'createAudioSource: LockCachingAudioSource creation took ${createSourceDuration.inMilliseconds}ms',
+        name: 'AudioSourceFactory',
+      );
+
+      final totalDuration = DateTime.now().difference(startTime);
+      log(
+        'createAudioSource: COMPLETE for track $trackId - TOTAL TIME: ${totalDuration.inMilliseconds}ms',
+        name: 'AudioSourceFactory',
+      );
+
+      return source;
     } catch (e) {
+      final totalDuration = DateTime.now().difference(startTime);
       // Jeśli cokolwiek pójdzie nie tak (brak cache, błąd file system, etc.)
       // fallback do pure streaming
       log(
-        'Failed to create caching audio source for track $trackId: $e. '
+        'createAudioSource: FAILED for track $trackId after ${totalDuration.inMilliseconds}ms: $e. '
         'Falling back to streaming.',
         name: 'AudioSourceFactory',
       );

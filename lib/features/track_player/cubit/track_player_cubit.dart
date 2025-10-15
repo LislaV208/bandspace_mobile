@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:developer';
-import 'package:bandspace_mobile/core/utils/error_logger.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio/just_audio.dart';
 
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_state.dart';
 import 'package:bandspace_mobile/features/track_player/services/audio_player_service.dart';
 import 'package:bandspace_mobile/features/track_player/services/audio_pre_caching_orchestrator.dart';
@@ -123,8 +123,9 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     Track initialTrack,
     int projectId,
   ) async {
+    final initStartTime = DateTime.now();
     log(
-      'initialize: Starting initialization - tracksCount=${tracks.length}, initialTrackId=$initialTrack, projectId=$projectId',
+      'initialize: START - tracksCount=${tracks.length}, initialTrackId=$initialTrack, projectId=$projectId',
       name: 'TrackPlayerCubit',
     );
 
@@ -142,35 +143,84 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
         currentProjectId: projectId,
       ),
     );
+
+    log(
+      'initialize: About to call _processTracks()',
+      name: 'TrackPlayerCubit',
+    );
+    final processTracksStart = DateTime.now();
     await _processTracks(tracks);
+    final processTracksDuration = DateTime.now().difference(processTracksStart);
+    log(
+      'initialize: _processTracks() COMPLETED - took ${processTracksDuration.inMilliseconds}ms',
+      name: 'TrackPlayerCubit',
+    );
 
     log(
       'initialize: Starting pre-caching for ${state.tracks.length} tracks',
       name: 'TrackPlayerCubit',
     );
+    final preCacheStart = DateTime.now();
     _preCachingOrchestrator.preCacheTracks(state.tracks);
+    final preCacheDuration = DateTime.now().difference(preCacheStart);
+    log(
+      'initialize: preCacheTracks() initiated (async) - synchronous part took ${preCacheDuration.inMilliseconds}ms',
+      name: 'TrackPlayerCubit',
+    );
 
+    log(
+      'initialize: About to call seek()',
+      name: 'TrackPlayerCubit',
+    );
+    final seekStart = DateTime.now();
     await _playerService.seek(
       Duration.zero,
       index: _trackIdToPlayerIndex[initialTrack.id],
     );
+    final seekDuration = DateTime.now().difference(seekStart);
+    log(
+      'initialize: seek() COMPLETED - took ${seekDuration.inMilliseconds}ms',
+      name: 'TrackPlayerCubit',
+    );
 
+    log(
+      'initialize: About to setup event listeners',
+      name: 'TrackPlayerCubit',
+    );
     _listenToPlayerEvents();
-    _listenToCacheProgress();
+    log(
+      'initialize: Player event listeners setup complete',
+      name: 'TrackPlayerCubit',
+    );
 
-    log('initialize: Initialization complete', name: 'TrackPlayerCubit');
+    _listenToCacheProgress();
+    log(
+      'initialize: Cache progress listener setup complete',
+      name: 'TrackPlayerCubit',
+    );
+
+    final totalInitDuration = DateTime.now().difference(initStartTime);
+    log(
+      'initialize: COMPLETE - TOTAL TIME: ${totalInitDuration.inMilliseconds}ms',
+      name: 'TrackPlayerCubit',
+    );
   }
 
   Future<void> _processTracks(List<Track> tracks) async {
+    final processTracksStartTime = DateTime.now();
     log(
-      '_processTracks: Processing ${tracks.length} tracks',
+      '_processTracks: START - Processing ${tracks.length} tracks',
       name: 'TrackPlayerCubit',
     );
 
     final List<AudioSource> playableSources = [];
     _trackIdToPlayerIndex.clear();
 
+    int trackNumber = 0;
     for (final track in tracks) {
+      trackNumber++;
+      final trackStartTime = DateTime.now();
+
       final url = track.mainVersion?.file?.downloadUrl;
 
       if (url == null) {
@@ -188,18 +238,22 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
         );
         _trackIdToPlayerIndex[track.id] = playableSources.length;
         playableSources.add(audioSource);
+
+        final trackDuration = DateTime.now().difference(trackStartTime);
         log(
-          '_processTracks: Successfully created audio source for track ${track.id} at index ${playableSources.length - 1}',
+          '_processTracks: [$trackNumber/${tracks.length}] Successfully created audio source for track ${track.id} in ${trackDuration.inMilliseconds}ms',
           name: 'TrackPlayerCubit',
         );
       } catch (e, stackTrace) {
+        final trackDuration = DateTime.now().difference(trackStartTime);
         logError(
           e,
           stackTrace: stackTrace,
-          hint: 'Failed to create audio source for track ${track.id} (${track.title})',
+          hint:
+              'Failed to create audio source for track ${track.id} (${track.title}) after ${trackDuration.inMilliseconds}ms',
         );
         log(
-          '_processTracks: Failed to create audio source for track ${track.id}: $e. Skipping.',
+          '_processTracks: [$trackNumber/${tracks.length}] Failed to create audio source for track ${track.id} after ${trackDuration.inMilliseconds}ms: $e. Skipping.',
           name: 'TrackPlayerCubit',
         );
       }
@@ -211,9 +265,26 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
     );
 
     if (playableSources.isNotEmpty) {
-      await _playerService.setAudioSources(playableSources);
       log(
-        '_processTracks: Set audio sources in player service',
+        '_processTracks: About to call setAudioSources() with ${playableSources.length} sources',
+        name: 'TrackPlayerCubit',
+      );
+
+      final setSourcesStart = DateTime.now();
+      log(
+        '_processTracks: BEFORE setAudioSources() call - timestamp=${setSourcesStart.millisecondsSinceEpoch}',
+        name: 'TrackPlayerCubit',
+      );
+
+      await _playerService.setAudioSources(playableSources);
+
+      final setSourcesDuration = DateTime.now().difference(setSourcesStart);
+      log(
+        '_processTracks: AFTER setAudioSources() call - took ${setSourcesDuration.inMilliseconds}ms',
+        name: 'TrackPlayerCubit',
+      );
+      log(
+        '_processTracks: setAudioSources() COMPLETED successfully',
         name: 'TrackPlayerCubit',
       );
     } else {
@@ -223,7 +294,11 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       );
     }
 
-    log('_processTracks: Processing complete', name: 'TrackPlayerCubit');
+    final totalDuration = DateTime.now().difference(processTracksStartTime);
+    log(
+      '_processTracks: COMPLETE - TOTAL TIME: ${totalDuration.inMilliseconds}ms',
+      name: 'TrackPlayerCubit',
+    );
   }
 
   // bool _didPlaylistChange(List<AudioSource> newSources) {
@@ -691,7 +766,8 @@ class TrackPlayerCubit extends Cubit<TrackPlayerState> {
       logError(
         e,
         stackTrace: stackTrace,
-        hint: 'Failed to rebuild audio sources for track ${updatedTrack.id} (${updatedTrack.title})',
+        hint:
+            'Failed to rebuild audio sources for track ${updatedTrack.id} (${updatedTrack.title})',
       );
       log(
         '_rebuildAudioSourcesForCurrentTrack: Failed to rebuild audio sources for track ${updatedTrack.id}: $e',

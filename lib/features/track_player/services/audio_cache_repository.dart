@@ -18,26 +18,75 @@ class AudioCacheRepository {
   /// Zwraca File object reprezentujący lokalizację cache dla danego tracka.
   /// Tworzy katalog jeśli nie istnieje.
   Future<File> getCacheFile(int trackId) async {
+    final startTime = DateTime.now();
+
+    log(
+      'getCacheFile: START for track $trackId',
+      name: 'AudioCacheRepository',
+    );
+
+    final getTempDirStart = DateTime.now();
     final cacheDir = await getTemporaryDirectory();
+    final getTempDirDuration = DateTime.now().difference(getTempDirStart);
+    log(
+      'getCacheFile: getTemporaryDirectory() took ${getTempDirDuration.inMilliseconds}ms',
+      name: 'AudioCacheRepository',
+    );
+
     final projectCacheDir = Directory(
       '${cacheDir.path}/audio_cache/project_$projectId',
     );
 
-    if (!await projectCacheDir.exists()) {
+    final existsCheckStart = DateTime.now();
+    final exists = await projectCacheDir.exists();
+    final existsCheckDuration = DateTime.now().difference(existsCheckStart);
+    log(
+      'getCacheFile: directory.exists() took ${existsCheckDuration.inMilliseconds}ms, result=$exists',
+      name: 'AudioCacheRepository',
+    );
+
+    if (!exists) {
+      final createDirStart = DateTime.now();
       await projectCacheDir.create(recursive: true);
+      final createDirDuration = DateTime.now().difference(createDirStart);
+      log(
+        'getCacheFile: directory.create() took ${createDirDuration.inMilliseconds}ms',
+        name: 'AudioCacheRepository',
+      );
     }
+
+    final totalDuration = DateTime.now().difference(startTime);
+    log(
+      'getCacheFile: COMPLETE for track $trackId - TOTAL TIME: ${totalDuration.inMilliseconds}ms',
+      name: 'AudioCacheRepository',
+    );
 
     return File('${projectCacheDir.path}/track_$trackId.cache');
   }
 
   /// Sprawdza czy plik jest już w cache.
   Future<bool> isCached(int trackId) async {
+    final startTime = DateTime.now();
     try {
+      final getCacheFileStart = DateTime.now();
       final file = await getCacheFile(trackId);
-      return await file.exists();
-    } catch (e) {
+      final getCacheFileDuration = DateTime.now().difference(getCacheFileStart);
+
+      final existsCheckStart = DateTime.now();
+      final exists = await file.exists();
+      final existsCheckDuration = DateTime.now().difference(existsCheckStart);
+
+      final totalDuration = DateTime.now().difference(startTime);
       log(
-        'Failed to check cache status for track $trackId: $e',
+        'isCached: track $trackId - getCacheFile: ${getCacheFileDuration.inMilliseconds}ms, file.exists: ${existsCheckDuration.inMilliseconds}ms, total: ${totalDuration.inMilliseconds}ms, result=$exists',
+        name: 'AudioCacheRepository',
+      );
+
+      return exists;
+    } catch (e) {
+      final totalDuration = DateTime.now().difference(startTime);
+      log(
+        'isCached: Failed to check cache status for track $trackId after ${totalDuration.inMilliseconds}ms: $e',
         name: 'AudioCacheRepository',
       );
       return false;
