@@ -1,7 +1,10 @@
 import 'dart:developer' as developer;
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+
+import 'package:bandspace_mobile/core/exceptions/app_exceptions.dart';
 
 /// Centralna funkcja do logowania błędów w aplikacji.
 ///
@@ -68,6 +71,98 @@ void logError(
       },
     );
   }
+}
+
+/// Ekstraktuje czytelny komunikat błędu z wyjątku.
+///
+/// Funkcja obsługuje różne typy błędów w aplikacji i zwraca najbardziej
+/// odpowiedni komunikat dla użytkownika:
+/// - [AppException] - zwraca message (błędy przetworzone przez ErrorInterceptor)
+/// - [DioException] - próbuje wydobyć message z response.data['message']
+/// - Inne wyjątki - zwraca toString() lub fallback message
+///
+/// Parametry:
+/// - [error] - Wyjątek do przetworzenia
+/// - [fallbackMessage] - Opcjonalny komunikat zastępczy, gdy nie można wydobyć
+///   sensownego komunikatu (domyślnie: "Wystąpił nieoczekiwany błąd")
+///
+/// Przykład użycia:
+/// ```dart
+/// try {
+///   await repository.someOperation();
+/// } catch (e, stackTrace) {
+///   logError(e, stackTrace: stackTrace, hint: 'Operation failed');
+///   final message = getErrorMessage(e);
+///   emit(state.copyWith(errorMessage: Value(message)));
+/// }
+/// ```
+String getErrorMessage(
+  dynamic error, {
+  String fallbackMessage = 'Wystąpił nieoczekiwany błąd',
+}) {
+  // 1. Sprawdź czy to AppException (już przetransformowane przez ErrorInterceptor)
+  if (error is AppException) {
+    return error.message;
+  }
+
+  // 2. Sprawdź czy to DioException (jeśli ominęło interceptor lub jest w error.error)
+  if (error is DioException) {
+    // Najpierw sprawdź czy error.error zawiera AppException
+    if (error.error is AppException) {
+      return (error.error as AppException).message;
+    }
+
+    // Jeśli nie, spróbuj wydobyć message z response
+    final message = _extractMessageFromDioException(error);
+    if (message != null) {
+      return message;
+    }
+  }
+
+  // 3. Fallback - spróbuj toString() lub użyj fallback message
+  final stringValue = error.toString();
+
+  // Jeśli toString() zwraca coś sensownego (nie tylko typ), użyj tego
+  if (stringValue.isNotEmpty &&
+      !stringValue.startsWith('Instance of ') &&
+      !stringValue.startsWith('Exception:')) {
+    return stringValue;
+  }
+
+  return fallbackMessage;
+}
+
+/// Ekstraktuje wiadomość błędu z DioException response
+String? _extractMessageFromDioException(DioException error) {
+  final response = error.response;
+  if (response?.data == null) return null;
+
+  try {
+    final data = response!.data;
+    if (data is Map<String, dynamic>) {
+      // Próbuj różnych standardowych pól z komunikatem błędu
+      if (data.containsKey('message')) {
+        return data['message'] as String?;
+      }
+      if (data.containsKey('error')) {
+        final errorField = data['error'];
+        if (errorField is String) {
+          return errorField;
+        }
+        if (errorField is Map<String, dynamic> &&
+            errorField.containsKey('message')) {
+          return errorField['message'] as String?;
+        }
+      }
+      if (data.containsKey('detail')) {
+        return data['detail'] as String?;
+      }
+    }
+  } catch (e) {
+    // Ignoruj błędy parsowania
+  }
+
+  return null;
 }
 
 /// Ustawia kontekst użytkownika w Sentry.

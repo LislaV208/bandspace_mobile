@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:bandspace_mobile/core/api/api_repository.dart';
@@ -37,21 +35,17 @@ class AuthRepository extends ApiRepository {
     required String email,
     required String password,
   }) async {
-    try {
-      final response = await apiClient.post(
-        '/api/auth/login',
-        data: {'email': email, 'password': password},
-      );
+    final response = await apiClient.post(
+      '/api/auth/login',
+      data: {'email': email, 'password': password},
+    );
 
-      final session = Session.fromMap(response.data);
+    final session = Session.fromMap(response.data);
 
-      // Zapisanie danych sesji w lokalnym magazynie
-      await storageService.saveSession(session);
+    // Zapisanie danych sesji w lokalnym magazynie
+    await storageService.saveSession(session);
 
-      return session;
-    } catch (e) {
-      rethrow;
-    }
+    return session;
   }
 
   /// Loguje użytkownika za pomocą Google Sign-In.
@@ -97,9 +91,8 @@ class AuthRepository extends ApiRepository {
 
       return session;
     } catch (e) {
-      log(e.toString());
+      // Cleanup: wyloguj z Google przy błędzie logowania
       await googleSignInService.signOut();
-
       rethrow;
     }
   }
@@ -113,42 +106,28 @@ class AuthRepository extends ApiRepository {
     required String password,
     required String confirmPassword,
   }) async {
-    try {
-      final response = await apiClient.post(
-        '/api/auth/register',
-        data: {'email': email, 'password': password},
-      );
+    final response = await apiClient.post(
+      '/api/auth/register',
+      data: {'email': email, 'password': password},
+    );
 
-      final responseData = response.data;
+    final responseData = response.data;
 
-      // Nowy backend zwraca bezpośrednio accessToken i user, nie ma wrapper 'success'
-      if (responseData['accessToken'] != null && responseData['user'] != null) {
-        // Tworzymy sesję z danych odpowiedzi
-        final session = Session(
-          accessToken: responseData['accessToken'],
-          refreshToken: '', // Backend nie zwraca refreshToken przy rejestracji
-          user: User.fromMap(responseData['user']),
-        );
+    // Nowy backend zwraca bezpośrednio accessToken i user, nie ma wrapper 'success'
+    final session = Session(
+      accessToken: responseData['accessToken'],
+      refreshToken:
+          responseData['refreshToken'] ??
+          '', // Backend może zwrócić lub nie refreshToken
+      user: User.fromMap(responseData['user']),
+    );
 
-        // Tokeny są automatycznie zarządzane przez AuthInterceptor
+    // Tokeny są automatycznie zarządzane przez AuthInterceptor
 
-        // Zapisanie danych sesji w lokalnym magazynie
-        await storageService.saveSession(session);
+    // Zapisanie danych sesji w lokalnym magazynie
+    await storageService.saveSession(session);
 
-        return session;
-      } else {
-        throw ValidationException(
-          responseData['message'] ?? 'Nieznany błąd podczas rejestracji',
-        );
-      }
-    } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
-      throw ValidationException(
-        'Wystąpił nieoczekiwany błąd podczas rejestracji: $e',
-      );
-    }
+    return session;
   }
 
   /// Wylogowuje użytkownika.
@@ -161,13 +140,9 @@ class AuthRepository extends ApiRepository {
       await apiClient.post('/api/auth/logout');
 
       // Wylogowanie z Google Sign-In
-      // if (await googleSignInService.isSignedIn()) {
       await googleSignInService.signOut();
-      // }
-    } catch (e) {
-      rethrow;
     } finally {
-      // Usunięcie danych sesji z lokalnego magazynu
+      // Usunięcie danych sesji z lokalnego magazynu (zawsze wykonaj cleanup)
       await storageService.clearSession();
     }
   }
@@ -191,14 +166,7 @@ class AuthRepository extends ApiRepository {
   ///
   /// Używane po usunięciu konta, gdy użytkownik już nie istnieje w systemie
   Future<void> clearLocalSession() async {
-    try {
-      // Usunięcie danych sesji z lokalnego magazynu
-      await storageService.clearSession();
-    } catch (e) {
-      throw ValidationException(
-        'Wystąpił błąd podczas czyszczenia lokalnej sesji: $e',
-      );
-    }
+    await storageService.clearSession();
   }
 
   /// Zmienia hasło użytkownika.
@@ -209,47 +177,31 @@ class AuthRepository extends ApiRepository {
     required String currentPassword,
     required String newPassword,
   }) async {
-    try {
-      final request = ChangePasswordRequest(
-        currentPassword: currentPassword,
-        newPassword: newPassword,
-      );
+    final request = ChangePasswordRequest(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
 
-      final response = await apiClient.patch(
-        '/api/auth/change-password',
-        data: request.toJson(),
-      );
+    final response = await apiClient.patch(
+      '/api/auth/change-password',
+      data: request.toJson(),
+    );
 
-      return ChangePasswordResponse.fromJson(response.data);
-    } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
-      throw ValidationException('Wystąpił błąd podczas zmiany hasła: $e');
-    }
+    return ChangePasswordResponse.fromJson(response.data);
   }
 
   /// Wysyła żądanie resetowania hasła na podany adres email.
   ///
   /// Zwraca odpowiedź z informacją o wysłaniu instrukcji resetowania.
   Future<ForgotPasswordResponse> forgotPassword({required String email}) async {
-    try {
-      final request = ForgotPasswordRequest(email: email);
+    final request = ForgotPasswordRequest(email: email);
 
-      final response = await apiClient.post(
-        '/api/auth/password/request-reset',
-        data: request.toJson(),
-      );
+    final response = await apiClient.post(
+      '/api/auth/password/request-reset',
+      data: request.toJson(),
+    );
 
-      return ForgotPasswordResponse.fromJson(response.data);
-    } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
-      throw ValidationException(
-        'Wystąpił błąd podczas żądania resetowania hasła: $e',
-      );
-    }
+    return ForgotPasswordResponse.fromJson(response.data);
   }
 
   /// Resetuje hasło używając tokenu otrzymanego w emailu.
@@ -260,23 +212,16 @@ class AuthRepository extends ApiRepository {
     required String token,
     required String newPassword,
   }) async {
-    try {
-      final request = ResetPasswordRequest(
-        token: token,
-        newPassword: newPassword,
-      );
+    final request = ResetPasswordRequest(
+      token: token,
+      newPassword: newPassword,
+    );
 
-      final response = await apiClient.post(
-        '/api/auth/password/reset',
-        data: request.toJson(),
-      );
+    final response = await apiClient.post(
+      '/api/auth/password/reset',
+      data: request.toJson(),
+    );
 
-      return ResetPasswordResponse.fromJson(response.data);
-    } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
-      throw ValidationException('Wystąpił błąd podczas resetowania hasła: $e');
-    }
+    return ResetPasswordResponse.fromJson(response.data);
   }
 }

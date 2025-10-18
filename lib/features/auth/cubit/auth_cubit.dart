@@ -144,7 +144,12 @@ class AuthCubit extends Cubit<AuthState> {
         hint: 'Login failed',
         extras: {'email': emailController.text.trim()},
       );
-      emit(state.copyWith(isLoading: false, errorMessage: Value(e.toString())));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: Value(getErrorMessage(e)),
+        ),
+      );
     }
   }
 
@@ -196,7 +201,12 @@ class AuthCubit extends Cubit<AuthState> {
         hint: 'Registration failed',
         extras: {'email': emailController.text.trim()},
       );
-      emit(state.copyWith(isLoading: false, errorMessage: Value(e.toString())));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: Value(getErrorMessage(e)),
+        ),
+      );
     }
   }
 
@@ -226,7 +236,12 @@ class AuthCubit extends Cubit<AuthState> {
         stackTrace: stackTrace,
         hint: 'Google login failed',
       );
-      emit(state.copyWith(isLoading: false, errorMessage: Value(e.toString())));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: Value(getErrorMessage(e)),
+        ),
+      );
     }
   }
 
