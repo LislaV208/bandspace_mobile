@@ -71,7 +71,8 @@ class TrackVersionsListWidget extends StatelessWidget {
                     final version = versions[index];
                     final versionNumber = versions.length - index;
                     final isSelected = currentVersion?.id == version.id;
-                    final isPlaying = isSelected && playerUiStatus == PlayerUiStatus.playing;
+                    final isPlaying =
+                        isSelected && playerUiStatus == PlayerUiStatus.playing;
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 8),
@@ -148,7 +149,8 @@ class TrackVersionsListWidget extends StatelessWidget {
                                             ),
                                           ),
                                           Text(
-                                            version.uploader!.name,
+                                            version.uploader!.name ??
+                                                version.uploader!.email,
                                             style: TextStyle(
                                               fontSize: 13,
                                               color: Theme.of(

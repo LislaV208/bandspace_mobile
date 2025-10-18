@@ -55,10 +55,6 @@ class MainApp extends StatelessWidget {
               userId: user.id.toString(),
               email: user.email,
               username: user.name,
-              extras: {
-                'authProviders': user.authProviders.join(','),
-                'lastLoginAt': user.lastLoginAt.toIso8601String(),
-              },
             );
           } else {
             // Użytkownik wylogowany - wyczyść kontekst w Sentry

@@ -3,14 +3,14 @@ import 'package:equatable/equatable.dart';
 class User extends Equatable {
   final int id;
   final String email;
-  final String name;
-  final DateTime lastLoginAt;
-  final List<String> authProviders;
+  final String? name;
+  final DateTime? lastLoginAt;
+  final List<String>? authProviders;
 
   const User({
     required this.id,
     required this.email,
-    required this.name,
+    this.name,
     required this.lastLoginAt,
     required this.authProviders,
   });
@@ -20,8 +20,12 @@ class User extends Equatable {
       id: json['id'],
       email: json['email'],
       name: json['name'],
-      lastLoginAt: DateTime.parse(json['lastLoginAt']).toLocal(),
-      authProviders: List<String>.from(json['authProviders']),
+      lastLoginAt: json['lastLoginAt'] == null
+          ? null
+          : DateTime.parse(json['lastLoginAt']).toLocal(),
+      authProviders: json['authProviders'] == null
+          ? null
+          : List<String>.from(json['authProviders']),
     );
   }
 
@@ -30,7 +34,7 @@ class User extends Equatable {
       'id': id,
       'email': email,
       'name': name,
-      'lastLoginAt': lastLoginAt.toIso8601String(),
+      'lastLoginAt': lastLoginAt?.toIso8601String(),
       'authProviders': authProviders,
     };
   }
