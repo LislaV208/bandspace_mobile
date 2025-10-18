@@ -17,7 +17,7 @@ class AuthCubit extends Cubit<AuthState> {
   final AuthRepository authRepository;
   final AuthEventService authEventService;
   final DatabaseStorage databaseStorage;
-  
+
   // Subskrypcja do eventów auth
   StreamSubscription<AuthEvent>? _authEventSubscription;
 
@@ -32,7 +32,7 @@ class AuthCubit extends Cubit<AuthState> {
         _handleTokenRefreshFailed();
       }
     });
-    
+
     // Inicjalizacja sesji przy tworzeniu cubita
     _initSession();
   }
@@ -56,7 +56,7 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> close() {
     // Zwolnienie zasobów streamów
     _authEventSubscription?.cancel();
-    
+
     // Zwolnienie zasobów kontrolerów
     emailController.dispose();
     passwordController.dispose();
@@ -99,6 +99,11 @@ class AuthCubit extends Cubit<AuthState> {
     emit(state.copyWith(showConfirmPassword: !state.showConfirmPassword));
   }
 
+  /// Czyści komunikat błędu
+  void clearError() {
+    emit(state.copyWith(errorMessage: Value(null)));
+  }
+
   /// Obsługuje proces logowania
   Future<void> login() async {
     // Sprawdź, czy pola nie są puste
@@ -125,10 +130,13 @@ class AuthCubit extends Cubit<AuthState> {
 
       // Nawigacja do DashboardScreen zostanie obsłużona przez widok
       // Emitujemy stan z danymi użytkownika, co oznacza że jest zalogowany
-      emit(state.copyWith(
-        user: Value(session.user),
-        loggedOutDueToTokenFailure: false, // Reset flagi przy udanym logowaniu
-      ));
+      emit(
+        state.copyWith(
+          user: Value(session.user),
+          loggedOutDueToTokenFailure:
+              false, // Reset flagi przy udanym logowaniu
+        ),
+      );
     } catch (e, stackTrace) {
       logError(
         e,
@@ -174,10 +182,13 @@ class AuthCubit extends Cubit<AuthState> {
       debugPrint("Zarejestrowano pomyślnie: ${session.user.email}");
 
       // Emitujemy stan z danymi użytkownika, co oznacza że jest zalogowany
-      emit(state.copyWith(
-        user: Value(session.user),
-        loggedOutDueToTokenFailure: false, // Reset flagi przy udanym logowaniu
-      ));
+      emit(
+        state.copyWith(
+          user: Value(session.user),
+          loggedOutDueToTokenFailure:
+              false, // Reset flagi przy udanym logowaniu
+        ),
+      );
     } catch (e, stackTrace) {
       logError(
         e,
@@ -202,10 +213,13 @@ class AuthCubit extends Cubit<AuthState> {
       emit(state.copyWith(isLoading: false));
 
       // Emitujemy stan z danymi użytkownika, co oznacza że jest zalogowany
-      emit(state.copyWith(
-        user: Value(session.user),
-        loggedOutDueToTokenFailure: false, // Reset flagi przy udanym logowaniu
-      ));
+      emit(
+        state.copyWith(
+          user: Value(session.user),
+          loggedOutDueToTokenFailure:
+              false, // Reset flagi przy udanym logowaniu
+        ),
+      );
     } catch (e, stackTrace) {
       logError(
         e,
@@ -269,10 +283,12 @@ class AuthCubit extends Cubit<AuthState> {
       errorMessage = e.toString();
     }
 
-    emit(const AuthState().copyWith(
-      errorMessage: Value(errorMessage),
-      loggedOutDueToTokenFailure: false, // Reset flagi
-    ));
+    emit(
+      const AuthState().copyWith(
+        errorMessage: Value(errorMessage),
+        loggedOutDueToTokenFailure: false, // Reset flagi
+      ),
+    );
   }
 
   /// Aktualizuje dane użytkownika w stanie autoryzacji
@@ -333,13 +349,15 @@ class AuthCubit extends Cubit<AuthState> {
   /// Obsługuje niepowodzenie odświeżania tokenu - automatyczne wylogowanie użytkownika
   void _handleTokenRefreshFailed() {
     debugPrint("Token refresh failed - automatyczne wylogowanie użytkownika");
-    
+
     // Ustaw flagę wylogowania z powodu błędu tokenu i wyczyść sesję
-    emit(state.copyWith(
-      loggedOutDueToTokenFailure: true,
-      user: Value(null),
-    ));
-    
+    emit(
+      state.copyWith(
+        loggedOutDueToTokenFailure: true,
+        user: Value(null),
+      ),
+    );
+
     // Wyczyść lokalne dane (bez API call - token już jest nieprawidłowy)
     _clearLocalData();
   }
@@ -369,5 +387,4 @@ class AuthCubit extends Cubit<AuthState> {
       );
     }
   }
-
 }

@@ -42,6 +42,9 @@ class _AuthScreenContentState extends State<_AuthScreenContent> {
   }
 
   void _toggleEmailForm() {
+    // Wyczyść błędy walidacji przy przełączaniu widoku
+    context.read<AuthCubit>().clearError();
+
     setState(() {
       _showEmailForm = !_showEmailForm;
     });
