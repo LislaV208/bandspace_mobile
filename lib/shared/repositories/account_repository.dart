@@ -1,9 +1,10 @@
 import 'package:bandspace_mobile/core/api/cached_repository.dart';
+import 'package:bandspace_mobile/shared/models/change_password_request.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
 
-/// Repozytorium odpowiedzialne za operacje związane z profilem użytkownika.
-class UserRepository extends CachedRepository {
-  const UserRepository({
+/// Repozytorium odpowiedzialne za operacje związane z kontem użytkownika.
+class AccountRepository extends CachedRepository {
+  const AccountRepository({
     required super.apiClient,
     required super.databaseStorage,
   });
@@ -14,7 +15,7 @@ class UserRepository extends CachedRepository {
       methodName: 'getProfile',
       parameters: {},
       remoteCall: () async {
-        final response = await apiClient.get('/api/users/me');
+        final response = await apiClient.get('/api/account');
         return User.fromMap(response.data);
       },
       fromJson: (json) => User.fromMap(json),
@@ -27,7 +28,7 @@ class UserRepository extends CachedRepository {
       methodName: 'getProfile',
       parameters: {},
       remoteCall: () async {
-        final response = await apiClient.get('/api/users/me');
+        final response = await apiClient.get('/api/account');
         return User.fromMap(response.data);
       },
       fromJson: (json) => User.fromMap(json),
@@ -43,7 +44,7 @@ class UserRepository extends CachedRepository {
       parameters: {},
       updateCall: () async {
         final response = await apiClient.patch(
-          '/api/users/me',
+          '/api/account',
           data: {
             'name': name,
           },
@@ -55,9 +56,24 @@ class UserRepository extends CachedRepository {
     );
   }
 
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final request = ChangePasswordRequest(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
+
+    await apiClient.post(
+      '/api/account/password',
+      data: request.toJson(),
+    );
+  }
+
   /// Usuwa konto zalogowanego użytkownika.
-  Future<void> deleteProfile() async {
-    await apiClient.delete('/api/users/me');
+  Future<void> deleteAccount() async {
+    await apiClient.delete('/api/account');
     await invalidateAll();
   }
 }

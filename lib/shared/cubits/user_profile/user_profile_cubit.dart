@@ -1,15 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:bandspace_mobile/core/utils/error_logger.dart';
 
+import 'package:bandspace_mobile/core/utils/error_logger.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
-import 'package:bandspace_mobile/shared/repositories/user_repository.dart';
+import 'package:bandspace_mobile/shared/repositories/account_repository.dart';
 
 /// Cubit zarządzający stanem profilu użytkownika
 class UserProfileCubit extends Cubit<UserProfileState> {
-  final UserRepository userRepository;
+  final AccountRepository userRepository;
 
   UserProfileCubit({
     required this.userRepository,
@@ -78,7 +78,7 @@ class UserProfileCubit extends Cubit<UserProfileState> {
       emit(UserProfileDeleteLoading(user));
 
       try {
-        await userRepository.deleteProfile();
+        await userRepository.deleteAccount();
         emit(const UserProfileDeleteSuccess());
       } catch (e, stackTrace) {
         logError(

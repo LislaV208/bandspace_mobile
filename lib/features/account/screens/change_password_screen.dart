@@ -5,7 +5,6 @@ import 'package:gap/gap.dart';
 
 import 'package:bandspace_mobile/features/account/cubit/change_password_cubit.dart';
 import 'package:bandspace_mobile/features/account/cubit/change_password_state.dart';
-import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
 
 class ChangePasswordScreen extends StatelessWidget {
   const ChangePasswordScreen({super.key});
@@ -13,8 +12,9 @@ class ChangePasswordScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          ChangePasswordCubit(authRepository: context.read<AuthRepository>()),
+      create: (context) => ChangePasswordCubit(
+        repository: context.read(),
+      ),
       child: const _ChangePasswordContent(),
     );
   }

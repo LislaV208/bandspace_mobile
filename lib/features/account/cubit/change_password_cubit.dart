@@ -5,13 +5,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bandspace_mobile/core/utils/error_logger.dart';
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 import 'package:bandspace_mobile/features/account/cubit/change_password_state.dart';
-import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
+import 'package:bandspace_mobile/shared/repositories/account_repository.dart';
 
 /// Cubit zarządzający stanem zmiany hasła
 class ChangePasswordCubit extends Cubit<ChangePasswordState> {
-  final AuthRepository authRepository;
+  final AccountRepository repository;
 
-  ChangePasswordCubit({required this.authRepository})
+  ChangePasswordCubit({required this.repository})
     : super(const ChangePasswordState());
 
   // Kontrolery tekstowe
@@ -113,7 +113,7 @@ class ChangePasswordCubit extends Cubit<ChangePasswordState> {
 
     try {
       // Wywołanie metody zmiany hasła z repozytorium
-      final response = await authRepository.changePassword(
+      await repository.changePassword(
         currentPassword: currentPasswordController.text,
         newPassword: newPasswordController.text,
       );
@@ -122,7 +122,7 @@ class ChangePasswordCubit extends Cubit<ChangePasswordState> {
       emit(
         state.copyWith(
           isLoading: false,
-          successMessage: Value(response.message),
+          successMessage: Value('Hasło zostało zmienione'),
         ),
       );
 

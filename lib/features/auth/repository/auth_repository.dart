@@ -1,7 +1,6 @@
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:bandspace_mobile/core/api/api_repository.dart';
-import 'package:bandspace_mobile/shared/models/change_password_request.dart';
 import 'package:bandspace_mobile/shared/models/forgot_password_request.dart';
 import 'package:bandspace_mobile/shared/models/session.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
@@ -166,27 +165,6 @@ class AuthRepository extends ApiRepository {
   /// Używane po usunięciu konta, gdy użytkownik już nie istnieje w systemie
   Future<void> clearLocalSession() async {
     await storageService.clearSession();
-  }
-
-  /// Zmienia hasło użytkownika.
-  ///
-  /// Wymaga podania aktualnego hasła oraz nowego hasła.
-  /// Zwraca odpowiedź z informacją o powodzeniu operacji.
-  Future<ChangePasswordResponse> changePassword({
-    required String currentPassword,
-    required String newPassword,
-  }) async {
-    final request = ChangePasswordRequest(
-      currentPassword: currentPassword,
-      newPassword: newPassword,
-    );
-
-    final response = await apiClient.patch(
-      '/api/auth/change-password',
-      data: request.toJson(),
-    );
-
-    return ChangePasswordResponse.fromJson(response.data);
   }
 
   /// Wysyła żądanie resetowania hasła na podany adres email.
