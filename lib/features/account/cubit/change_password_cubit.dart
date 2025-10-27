@@ -11,12 +11,15 @@ import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
 class ChangePasswordCubit extends Cubit<ChangePasswordState> {
   final AuthRepository authRepository;
 
-  ChangePasswordCubit({required this.authRepository}) : super(const ChangePasswordState());
+  ChangePasswordCubit({required this.authRepository})
+    : super(const ChangePasswordState());
 
   // Kontrolery tekstowe
-  final TextEditingController currentPasswordController = TextEditingController();
+  final TextEditingController currentPasswordController =
+      TextEditingController();
   final TextEditingController newPasswordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
 
   // Węzły fokusa
   final FocusNode currentPasswordFocus = FocusNode();
@@ -63,7 +66,11 @@ class ChangePasswordCubit extends Cubit<ChangePasswordState> {
     }
 
     if (newPasswordController.text.length < 6) {
-      emit(state.copyWith(errorMessage: Value("Nowe hasło musi mieć co najmniej 6 znaków.")));
+      emit(
+        state.copyWith(
+          errorMessage: Value("Nowe hasło musi mieć co najmniej 6 znaków."),
+        ),
+      );
       return false;
     }
 
@@ -78,7 +85,11 @@ class ChangePasswordCubit extends Cubit<ChangePasswordState> {
     }
 
     if (currentPasswordController.text == newPasswordController.text) {
-      emit(state.copyWith(errorMessage: Value("Nowe hasło musi być różne od aktualnego.")));
+      emit(
+        state.copyWith(
+          errorMessage: Value("Nowe hasło musi być różne od aktualnego."),
+        ),
+      );
       return false;
     }
 
@@ -88,7 +99,9 @@ class ChangePasswordCubit extends Cubit<ChangePasswordState> {
   /// Obsługuje proces zmiany hasła
   Future<void> changePassword() async {
     // Wyczyść poprzednie komunikaty
-    emit(state.copyWith(errorMessage: Value(null), successMessage: Value(null)));
+    emit(
+      state.copyWith(errorMessage: Value(null), successMessage: Value(null)),
+    );
 
     // Walidacja formularza
     if (!_validateForm()) {
@@ -106,7 +119,12 @@ class ChangePasswordCubit extends Cubit<ChangePasswordState> {
       );
 
       // Wyczyść stan ładowania i wyświetl komunikat sukcesu
-      emit(state.copyWith(isLoading: false, successMessage: Value(response.message)));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          successMessage: Value(response.message),
+        ),
+      );
 
       // Wyczyść pola formularza po udanej zmianie hasła
       _clearForm();
@@ -116,7 +134,12 @@ class ChangePasswordCubit extends Cubit<ChangePasswordState> {
         stackTrace: stackTrace,
         hint: 'Change password failed',
       );
-      emit(state.copyWith(isLoading: false, errorMessage: Value(e.toString())));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: Value(getErrorMessage(e)),
+        ),
+      );
     }
   }
 
@@ -129,6 +152,8 @@ class ChangePasswordCubit extends Cubit<ChangePasswordState> {
 
   /// Czyści komunikaty błędów i sukcesu
   void clearMessages() {
-    emit(state.copyWith(errorMessage: Value(null), successMessage: Value(null)));
+    emit(
+      state.copyWith(errorMessage: Value(null), successMessage: Value(null)),
+    );
   }
 }

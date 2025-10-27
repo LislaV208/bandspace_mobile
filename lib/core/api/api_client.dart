@@ -3,7 +3,6 @@ import 'package:dio/dio.dart';
 import 'package:bandspace_mobile/core/auth/auth_event_service.dart';
 import 'package:bandspace_mobile/core/auth/auth_interceptor.dart';
 import 'package:bandspace_mobile/core/config/env_config.dart';
-import 'package:bandspace_mobile/core/exceptions/error_interceptor.dart';
 import 'package:bandspace_mobile/shared/services/session_storage_service.dart';
 
 /// Klasa ApiClient odpowiedzialna za wykonywanie żądań HTTP
@@ -37,7 +36,6 @@ class ApiClient {
         SessionStorageService(),
         authEventService: authEventService,
       ),
-      ErrorInterceptor(), // Nasz nowy interceptor błędów
       LogInterceptor(requestBody: true, responseBody: true, error: true),
     ]);
   }

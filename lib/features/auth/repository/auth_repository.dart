@@ -1,7 +1,6 @@
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:bandspace_mobile/core/api/api_repository.dart';
-import 'package:bandspace_mobile/core/exceptions/app_exceptions.dart';
 import 'package:bandspace_mobile/shared/models/change_password_request.dart';
 import 'package:bandspace_mobile/shared/models/forgot_password_request.dart';
 import 'package:bandspace_mobile/shared/models/session.dart';
@@ -60,7 +59,7 @@ class AuthRepository extends ApiRepository {
           .signIn();
 
       if (googleAccount == null) {
-        throw const InvalidCredentialsException(
+        throw Exception(
           'Anulowano logowanie przez Google',
         );
       }
@@ -70,7 +69,7 @@ class AuthRepository extends ApiRepository {
           googleAccount.authentication;
 
       if (googleAuth.idToken == null) {
-        throw const InvalidCredentialsException(
+        throw Exception(
           'Nie udało się pobrać tokenu ID Google',
         );
       }
