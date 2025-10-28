@@ -103,39 +103,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileView(BuildContext context, UserProfileLoadSuccess state) {
+    final userAuthProviders = state.user.authProviders;
+
+    //TODO: jakis enum czy cos
+    final canChangePassword = (userAuthProviders ?? []).contains('local');
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Profile Information
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHigh,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    'Profil publiczny',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-
-                Divider(color: Colors.black54),
-
-                // Name Field
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
+          Card(
+            // decoration: BoxDecoration(
+            //   color: Theme.of(context).colorScheme.surfaceContainerHigh,
+            //   borderRadius: BorderRadius.circular(16),
+            // ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                spacing: 20,
+                children: [
+                  // Name Field
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Nazwa',
-                        style: Theme.of(context).textTheme.labelMedium,
+                      Padding(
+                        padding: const EdgeInsets.only(left: 3.0),
+                        child: Text(
+                          'Nazwa',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
                       ),
                       const Gap(8),
                       TextFormField(
@@ -198,18 +195,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ],
                   ),
-                ),
-
-                // Email Field (Read-only)
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
+                  // Email Field (Read-only)
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Email',
-                        style: Theme.of(context).textTheme.labelMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 3.0),
+                        child: Text(
+                          'Email',
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
                       ),
                       const Gap(8),
                       TextField(
@@ -225,108 +223,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           const Gap(24),
 
           // Security Section
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHigh,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    'Bezpieczeństwo',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+          if (canChangePassword)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24.0),
+              child: ListTile(
+                leading: Icon(Icons.lock_reset),
+                title: const Text('Zmień hasło'),
+                subtitle: const Text('Zaktualizuj swoje hasło'),
+                trailing: const Icon(Icons.chevron_right),
+                tileColor: Theme.of(context).cardColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                onTap: () {
+                  Navigator.of(
+                    context,
+                  ).push(
+                    MaterialPageRoute(
+                      builder: (context) => const ChangePasswordScreen(),
                     ),
-                  ),
-                ),
-
-                Divider(color: Colors.black54),
-
-                // Change Password
-                ListTile(
-                  leading: Icon(Icons.lock_reset),
-                  title: const Text('Zmień hasło'),
-                  subtitle: const Text('Zaktualizuj swoje hasło'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    Navigator.of(
-                      context,
-                    ).push(
-                      MaterialPageRoute(
-                        builder: (context) => const ChangePasswordScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-          const Gap(24),
-
-          // Danger Zone
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.errorContainer.withAlpha(90),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.error.withAlpha(50),
+                  );
+                },
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    'Strefa zagrożenia',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const Divider(height: 1, color: Colors.white54),
 
-                // Delete Account
-                BlocBuilder<UserProfileCubit, UserProfileState>(
-                  builder: (context, state) {
-                    final isDeleting = state is UserProfileDeleteLoading;
+          // Danger Zone
+          BlocBuilder<UserProfileCubit, UserProfileState>(
+            builder: (context, state) {
+              final isDeleting = state is UserProfileDeleteLoading;
 
-                    return ListTile(
-                      leading: Icon(
-                        Icons.delete_forever,
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                      title: Text(
-                        'Usuń konto',
-                      ),
-                      subtitle: const Text('Ta operacja jest nieodwracalna'),
-                      trailing: isDeleting
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.chevron_right),
-                      onTap: isDeleting
-                          ? null
-                          : () => _showDeleteAccountDialog(context),
-                    );
-                  },
+              return ListTile(
+                leading: Icon(
+                  Icons.delete_forever,
+                  color: Theme.of(context).colorScheme.error,
                 ),
-              ],
-            ),
+                title: Text(
+                  'Usuń konto',
+                ),
+                subtitle: const Text('Ta operacja jest nieodwracalna'),
+                trailing: isDeleting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.chevron_right),
+                tileColor: Theme.of(
+                  context,
+                ).colorScheme.errorContainer.withAlpha(90),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                onTap: isDeleting
+                    ? null
+                    : () => _showDeleteAccountDialog(context),
+              );
+            },
           ),
         ],
       ),

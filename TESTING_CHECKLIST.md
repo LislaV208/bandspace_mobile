@@ -3,11 +3,10 @@
 ## Ekrany do testowania (kolejność alfabetyczna)
 
 ### 1. ✓ change_password_screen.dart
-- [ ] Walidacja: wszystkie pola puste → błąd
-- [ ] Walidacja: hasło < 6 znaków → błąd
-- [ ] Walidacja: hasła się nie zgadzają → błąd
-- [ ] Walidacja: nowe = aktualne hasło → błąd
-- [ ] Prawidłowe hasła: formularz wysyła, loading spinner się pojawia
-- [ ] Sukces: SnackBar + powrót do poprzedniego ekranu
-- [ ] Błąd API: wyświetla się komunikat błędu
-
+- [x] Walidacja: wszystkie pola puste → błąd
+- [x] Walidacja: hasło < 6 znaków → błąd
+- [x] Walidacja: hasła się nie zgadzają → błąd
+- [x] Walidacja: nowe = aktualne hasło → błąd
+- [x] Prawidłowe hasła: formularz wysyła, loading spinner się pojawia
+- [x] Sukces: SnackBar + powrót do poprzedniego ekranu
+- [x] Błąd API: wyświetla się komunikat błędu
