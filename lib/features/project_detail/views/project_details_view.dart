@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/core/widgets/load_failure_view.dart';
+import 'package:bandspace_mobile/shared/widgets/load_failure_view.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_songs/project_songs_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_songs/project_songs_state.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/project_details/project_songs_list.dart';
