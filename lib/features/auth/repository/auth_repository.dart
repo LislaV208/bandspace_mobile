@@ -49,18 +49,14 @@ class AuthRepository extends ApiRepository {
   /// Loguje użytkownika za pomocą Google Sign-In.
   ///
   /// Wykorzystuje Google OAuth do autoryzacji i wymienia token Google na JWT token aplikacji.
-  /// Zwraca sesję użytkownika w przypadku powodzenia.
-  /// W przypadku niepowodzenia rzuca wyjątek.
-  Future<Session> loginWithGoogle() async {
+  Future<Session?> loginWithGoogle() async {
     try {
       // Krok 1: Logowanie przez Google
       final GoogleSignInAccount? googleAccount = await googleSignInService
           .signIn();
 
       if (googleAccount == null) {
-        throw Exception(
-          'Anulowano logowanie przez Google',
-        );
+        return null;
       }
 
       // Krok 2: Pobranie tokenów autoryzacji Google
@@ -91,6 +87,7 @@ class AuthRepository extends ApiRepository {
     } catch (e) {
       // Cleanup: wyloguj z Google przy błędzie logowania
       await googleSignInService.signOut();
+
       rethrow;
     }
   }

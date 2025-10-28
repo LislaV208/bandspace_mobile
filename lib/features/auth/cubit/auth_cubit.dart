@@ -220,12 +220,12 @@ class AuthCubit extends Cubit<AuthState> {
       final session = await authRepository.loginWithGoogle();
 
       // Wyczyść stan ładowania
-      emit(state.copyWith(isLoading: false));
 
       // Emitujemy stan z danymi użytkownika, co oznacza że jest zalogowany
       emit(
         state.copyWith(
-          user: Value(session.user),
+          isLoading: false,
+          user: Value(session?.user),
           loggedOutDueToTokenFailure:
               false, // Reset flagi przy udanym logowaniu
         ),
@@ -296,7 +296,7 @@ class AuthCubit extends Cubit<AuthState> {
           stackTrace: stackTrace,
           hint: 'Logout failed',
         );
-        errorMessage = e.toString();
+        errorMessage = getErrorMessage(e);
       }
     }
 

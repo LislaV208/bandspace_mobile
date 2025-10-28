@@ -20,7 +20,33 @@
 ---
 
 ## Auth
-- TBD
+
+### auth_screen.dart
+**Google Login:**
+- [ ] Kliknięcie "Kontynuuj z kontem Google" → loading → sukces/błąd
+- [ ] Sukces: redirect do dashboard
+
+**Email/Password Login:**
+- [ ] Przełączenie na "Użyj adresu email i hasła" → pokazuje formularz email
+- [ ] Walidacja: puste pola → błąd
+- [ ] Prawidłowe dane: loading spinner → sukces/błąd
+- [ ] Sukces: redirect do dashboard
+- [ ] Toggle visibility hasła działa
+
+**Register:**
+- [ ] Przełączenie na "Zarejestruj się" → pokazuje pole "Potwierdź hasło"
+- [ ] Walidacja: puste pola → błąd
+- [ ] Walidacja: hasła się nie zgadzają → błąd
+- [ ] Prawidłowe dane: loading spinner → sukces/błąd
+- [ ] Sukces: redirect do dashboard
+- [ ] Toggle visibility obu haseł działa
+
+**Reset hasła:**
+- [ ] "Zapomniałeś hasła?" → redirect do reset_password_screen
+
+**Ogólne:**
+- [ ] Błędy wyświetlają się w czerwonym kontenerze
+- [ ] Przełączanie login/register czyści błędy
 
 ## Dashboard
 - TBD

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
@@ -29,17 +28,28 @@ class GoogleSignInService {
     _googleSignIn = GoogleSignIn.instance;
 
     // Nasłuchuj zmian stanu autentyfikacji z właściwym zarządzaniem subscription
-    _authSubscription = _googleSignIn.authenticationEvents.listen((event) {
-      if (event is GoogleSignInAuthenticationEventSignIn) {
-        _currentUser = event.user;
-        debugPrint(
-          'Google Sign-In: Użytkownik zalogowany: ${event.user.email}',
-        );
-      } else if (event is GoogleSignInAuthenticationEventSignOut) {
-        _currentUser = null;
-        debugPrint('Google Sign-In: Użytkownik wylogowany');
-      }
-    });
+    _authSubscription = _googleSignIn.authenticationEvents.listen(
+      (event) {
+        if (event is GoogleSignInAuthenticationEventSignIn) {
+          _currentUser = event.user;
+          log(
+            'Google Sign-In: Użytkownik zalogowany: ${event.user.email}',
+          );
+        } else if (event is GoogleSignInAuthenticationEventSignOut) {
+          _currentUser = null;
+          log('Google Sign-In: Użytkownik wylogowany');
+        }
+      },
+      onError: (error) {
+        if (error is GoogleSignInException) {
+          if (error.code == GoogleSignInExceptionCode.canceled) {
+            log('Google Sign-In: Użytkownik anulował logowanie');
+          }
+        } else {
+          throw error;
+        }
+      },
+    );
   }
 
   /// Czyści zasoby - wywołaj gdy serwis nie jest już potrzebny
@@ -66,9 +76,9 @@ class GoogleSignInService {
       // Spróbuj lekkiej autentyfikacji przy starcie
       // _currentUser = await _googleSignIn.attemptLightweightAuthentication();
       _isInitialized = true;
-      debugPrint('Google Sign-In: Zainicjalizowano pomyślnie');
+      log('Google Sign-In: Zainicjalizowano pomyślnie');
     } catch (error) {
-      debugPrint('Google Sign-In: Błąd podczas inicjalizacji: $error');
+      log('Google Sign-In: Błąd podczas inicjalizacji: $error');
       _isInitialized = true; // Ustaw jako zainicjalizowany mimo błędu
       // Nie rethrow - inicjalizacja może się nie powieść, ale serwis dalej może działać
     }
@@ -80,16 +90,24 @@ class GoogleSignInService {
   Future<GoogleSignInAccount?> signIn() async {
     await _ensureInitialized();
 
-    // W wersji 7.x używamy attemptLightweightAuthentication() + authenticate()
-    GoogleSignInAccount? account = await _googleSignIn
-        .attemptLightweightAuthentication();
+    try {
+      // W wersji 7.x używamy attemptLightweightAuthentication() + authenticate()
+      // GoogleSignInAccount? account = await _googleSignIn
+      //     .attemptLightweightAuthentication();
 
-    // Jeśli lightweight nie zadziała, spróbuj pełnej autoryzacji
-    account ??= await _googleSignIn.authenticate();
+      // Jeśli lightweight nie zadziała, spróbuj pełnej autoryzacji
+      final account = await _googleSignIn.authenticate();
 
-    _currentUser = account;
-    log('Google Sign-In: Pomyślnie zalogowano ${account.email}');
-    return account;
+      _currentUser = account;
+      log('Google Sign-In: Pomyślnie zalogowano ${account.email}');
+      return account;
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        log('Google Sign-In: Użytkownik anulował logowanie');
+        return null;
+      }
+      rethrow;
+    }
   }
 
   /// Wylogowuje użytkownika z Google
@@ -99,16 +117,16 @@ class GoogleSignInService {
     try {
       await _googleSignIn.signOut();
       _currentUser = null;
-      debugPrint('Google Sign-In: Pomyślnie wylogowano');
+      log('Google Sign-In: Pomyślnie wylogowano');
     } on PlatformException catch (e) {
-      debugPrint(
+      log(
         'Google Sign-In: Platform error podczas wylogowywania [${e.code}]: ${e.message}',
       );
       // Mimo błędu, wyczyść lokalny stan
       _currentUser = null;
       rethrow;
     } catch (error) {
-      debugPrint('Google Sign-In: Błąd podczas wylogowywania: $error');
+      log('Google Sign-In: Błąd podczas wylogowywania: $error');
       // Mimo błędu, wyczyść lokalny stan
       _currentUser = null;
       rethrow;
@@ -124,16 +142,16 @@ class GoogleSignInService {
     try {
       await _googleSignIn.disconnect();
       _currentUser = null;
-      debugPrint('Google Sign-In: Pomyślnie rozłączono konto');
+      log('Google Sign-In: Pomyślnie rozłączono konto');
     } on PlatformException catch (e) {
-      debugPrint(
+      log(
         'Google Sign-In: Platform error podczas rozłączania [${e.code}]: ${e.message}',
       );
       // Mimo błędu, wyczyść lokalny stan
       _currentUser = null;
       rethrow;
     } catch (error) {
-      debugPrint('Google Sign-In: Błąd podczas rozłączania: $error');
+      log('Google Sign-In: Błąd podczas rozłączania: $error');
       // Mimo błędu, wyczyść lokalny stan
       _currentUser = null;
       rethrow;
@@ -149,7 +167,7 @@ class GoogleSignInService {
       final user = await currentUser;
       return user != null;
     } catch (error) {
-      debugPrint(
+      log(
         'Google Sign-In: Błąd podczas sprawdzania stanu logowania: $error',
       );
       return false;
@@ -164,7 +182,7 @@ class GoogleSignInService {
       try {
         _currentUser = await _googleSignIn.attemptLightweightAuthentication();
       } catch (error) {
-        debugPrint(
+        log(
           'Google Sign-In: Błąd podczas pobierania aktualnego użytkownika: $error',
         );
         return null;
@@ -183,12 +201,12 @@ class GoogleSignInService {
         final GoogleSignInAuthentication auth = account.authentication;
         return auth.idToken;
       } on PlatformException catch (e) {
-        debugPrint(
+        log(
           'Google Sign-In: Platform error podczas pobierania ID token [${e.code}]: ${e.message}',
         );
         return null;
       } catch (error) {
-        debugPrint('Google Sign-In: Błąd podczas pobierania ID token: $error');
+        log('Google Sign-In: Błąd podczas pobierania ID token: $error');
         return null;
       }
     }
