@@ -1,23 +1,24 @@
 import 'dart:async';
+
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sembast/sembast_io.dart';
 
-import 'database_storage.dart';
+import '../../../core/storage/database_storage.dart';
 
 /// Implementacja DatabaseStorage używająca biblioteki sembast.
-/// 
+///
 /// Zapewnia trwałe przechowywanie danych w lokalnej bazie danych
 /// z automatycznym zarządzaniem połączeniem i obsługą błędów.
 class SembastDatabaseStorage implements DatabaseStorage {
   final String _name;
   late final StoreRef<String, Map<String, Object?>> _store;
-  
+
   Database? _database;
   bool _isInitialized = false;
 
   /// Tworzy nową instancję SembastDatabaseStorage.
-  /// 
+  ///
   /// [name] - nazwa używana zarówno jako nazwa pliku bazy danych ({name}.db)
   /// jak i nazwa store'a w bazie danych
   SembastDatabaseStorage({
@@ -29,11 +30,11 @@ class SembastDatabaseStorage implements DatabaseStorage {
   @override
   Future<void> initialize() async {
     if (_isInitialized) return;
-    
+
     try {
       final appDocDir = await getApplicationDocumentsDirectory();
       final dbPath = join(appDocDir.path, '$_name.db');
-      
+
       _database = await databaseFactoryIo.openDatabase(dbPath);
       _isInitialized = true;
     } catch (e) {

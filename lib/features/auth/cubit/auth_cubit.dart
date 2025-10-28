@@ -7,11 +7,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/auth/auth_event_service.dart';
 import 'package:bandspace_mobile/core/storage/database_storage.dart';
-import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
 import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
+import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository authRepository;

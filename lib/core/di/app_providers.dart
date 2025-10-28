@@ -5,7 +5,6 @@ import 'package:bandspace_mobile/core/api/api_client.dart';
 import 'package:bandspace_mobile/core/auth/auth_event_service.dart';
 import 'package:bandspace_mobile/core/storage/database_storage.dart';
 import 'package:bandspace_mobile/core/storage/sembast_database_storage.dart';
-import 'package:bandspace_mobile/core/storage/shared_preferences_storage.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
 import 'package:bandspace_mobile/features/project_detail/repository/project_members_repository.dart';
@@ -16,6 +15,7 @@ import 'package:bandspace_mobile/shared/repositories/invitations_repository.dart
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 import 'package:bandspace_mobile/shared/services/google_sign_in_service.dart';
 import 'package:bandspace_mobile/shared/services/session_storage_service.dart';
+import 'package:bandspace_mobile/shared/services/shared_preferences_storage.dart';
 import 'package:bandspace_mobile/shared/services/wakelock_service.dart';
 
 final appProviders = [
