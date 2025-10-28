@@ -114,10 +114,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           // Profile Information
           Card(
-            // decoration: BoxDecoration(
-            //   color: Theme.of(context).colorScheme.surfaceContainerHigh,
-            //   borderRadius: BorderRadius.circular(16),
-            // ),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
