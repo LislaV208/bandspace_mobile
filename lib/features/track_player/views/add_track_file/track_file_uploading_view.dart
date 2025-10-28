@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/shared/theme/theme.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/add_track_file/add_track_file_cubit.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/add_track_file/add_track_file_state.dart';
 
@@ -29,7 +29,10 @@ class TrackFileUploadingView extends StatelessWidget {
     return const Center(child: Text('Nieznany stan uploadu'));
   }
 
-  Widget _buildUploadingView(BuildContext context, AddTrackFileUploading state) {
+  Widget _buildUploadingView(
+    BuildContext context,
+    AddTrackFileUploading state,
+  ) {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(

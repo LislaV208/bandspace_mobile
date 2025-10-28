@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/shared/theme/theme.dart';
 import 'package:bandspace_mobile/shared/utils/formatters.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_cubit.dart';
 import 'package:bandspace_mobile/features/track_player/screens/track_player_screen.dart';

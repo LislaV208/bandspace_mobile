@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/core/theme/app_colors.dart';
+import 'package:bandspace_mobile/shared/theme/app_colors.dart';
 import 'package:bandspace_mobile/features/track_versions/cubit/add_track_version/add_track_version_cubit.dart';
 import 'package:bandspace_mobile/features/track_versions/cubit/track_versions_cubit.dart';
 import 'package:bandspace_mobile/features/track_versions/cubit/track_versions_state.dart';

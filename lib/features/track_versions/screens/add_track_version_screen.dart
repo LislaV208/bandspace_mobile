@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:bandspace_mobile/core/theme/app_colors.dart';
+import 'package:bandspace_mobile/shared/theme/app_colors.dart';
 import 'package:bandspace_mobile/features/track_versions/views/add_track_version/add_track_version_view.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
 

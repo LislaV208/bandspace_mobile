@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:bandspace_mobile/core/theme/app_colors.dart';
-import 'package:bandspace_mobile/core/theme/text_styles.dart';
+import 'package:bandspace_mobile/shared/theme/app_colors.dart';
+import 'package:bandspace_mobile/shared/theme/text_styles.dart';
 
 /// Model opcji w arkuszu dolnym
 class BottomSheetOption {

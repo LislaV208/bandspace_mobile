@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/core/theme/app_colors.dart';
-import 'package:bandspace_mobile/core/theme/text_styles.dart';
+import 'package:bandspace_mobile/shared/theme/app_colors.dart';
+import 'package:bandspace_mobile/shared/theme/text_styles.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_tracks/project_tracks_cubit.dart';
 
 class ProjectTracksSearch extends StatefulWidget {

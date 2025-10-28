@@ -6,7 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 // import 'package:bandspace_mobile/shared/providers/connectivity_cubit.dart';
 // import 'package:bandspace_mobile/shared/services/sync_service.dart';
 import 'package:bandspace_mobile/core/navigation/custom_page_routes.dart';
-import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/shared/theme/theme.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
 import 'package:bandspace_mobile/features/auth/screens/auth_screen.dart';

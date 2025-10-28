@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/core/theme/app_colors.dart';
+import 'package:bandspace_mobile/shared/theme/app_colors.dart';
 import 'package:bandspace_mobile/core/widgets/options_bottom_sheet.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/project_detail/project_detail_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/screens/project_members_screen.dart';

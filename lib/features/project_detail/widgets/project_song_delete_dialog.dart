@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/shared/theme/theme.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
 
 /// Dialog potwierdzający usunięcie utworu z projektu

@@ -5,7 +5,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:bandspace_mobile/core/config/env_config.dart';
 import 'package:bandspace_mobile/core/di/app_providers.dart';
-import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/shared/theme/theme.dart';
 import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';

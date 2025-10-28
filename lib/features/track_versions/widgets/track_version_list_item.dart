@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/core/theme/app_colors.dart';
+import 'package:bandspace_mobile/shared/theme/app_colors.dart';
 import 'package:bandspace_mobile/shared/utils/formatters.dart';
 import 'package:bandspace_mobile/shared/models/version.dart';
 

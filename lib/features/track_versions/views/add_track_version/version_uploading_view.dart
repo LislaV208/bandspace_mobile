@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/shared/theme/theme.dart';
 import 'package:bandspace_mobile/features/track_versions/cubit/add_track_version/add_track_version_state.dart';
 
 class VersionUploadingView extends StatelessWidget {
@@ -25,7 +25,10 @@ class VersionUploadingView extends StatelessWidget {
     );
   }
 
-  Widget _buildUploadingState(BuildContext context, AddTrackVersionUploading state) {
+  Widget _buildUploadingState(
+    BuildContext context,
+    AddTrackVersionUploading state,
+  ) {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -68,7 +71,9 @@ class VersionUploadingView extends StatelessWidget {
                 LinearProgressIndicator(
                   value: state.progress,
                   backgroundColor: AppColors.textHint.withValues(alpha: 0.3),
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    AppColors.primary,
+                  ),
                   minHeight: 8,
                 ),
                 const SizedBox(height: 12),
@@ -98,7 +103,10 @@ class VersionUploadingView extends StatelessWidget {
     );
   }
 
-  Widget _buildSuccessState(BuildContext context, AddTrackVersionSuccess state) {
+  Widget _buildSuccessState(
+    BuildContext context,
+    AddTrackVersionSuccess state,
+  ) {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/shared/theme/theme.dart';
 
 /// Uniwersalny komponent wyboru pliku audio - używany w NewSong i AddSongFile
 class FileSelectionWidget extends StatelessWidget {
@@ -19,7 +19,7 @@ class FileSelectionWidget extends StatelessWidget {
     required this.onSelectFile,
     this.onSkipFile,
     this.title = 'Wybierz plik audio',
-    this.subtitle = 'Dotknij aby wybrać plik z urządzenia', 
+    this.subtitle = 'Dotknij aby wybrać plik z urządzenia',
     this.buttonText = 'Przeglądaj pliki',
     this.showSupportedFormats = true,
   });
@@ -34,7 +34,12 @@ class FileSelectionWidget extends StatelessWidget {
           const Spacer(),
           Container(
             width: double.infinity,
-            padding: EdgeInsets.fromLTRB(32, 32, 32, onSkipFile != null ? 16 : 32),
+            padding: EdgeInsets.fromLTRB(
+              32,
+              32,
+              32,
+              onSkipFile != null ? 16 : 32,
+            ),
             decoration: BoxDecoration(
               color: Theme.of(
                 context,

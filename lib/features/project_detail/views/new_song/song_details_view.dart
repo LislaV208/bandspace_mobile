@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/core/theme/theme.dart';
+import 'package:bandspace_mobile/shared/theme/theme.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/create_song/new_song_state.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/create_song/song_create_cubit.dart';
 import 'package:bandspace_mobile/features/project_detail/widgets/audio_preview_player.dart';
