@@ -9,7 +9,6 @@ import 'package:bandspace_mobile/core/storage/shared_preferences_storage.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
 import 'package:bandspace_mobile/features/project_detail/repository/project_members_repository.dart';
-import 'package:bandspace_mobile/features/song_detail/song_list_urls_cache_storage.dart';
 import 'package:bandspace_mobile/shared/cubits/user_invitations/user_invitations_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 import 'package:bandspace_mobile/shared/repositories/account_repository.dart';
@@ -39,12 +38,6 @@ final appProviders = [
       return storage;
     },
     dispose: (context, storage) => storage.dispose(),
-  ),
-
-  Provider(
-    create: (context) => SongListUrlsCacheStorage(
-      context.read<SharedPreferencesStorage>(),
-    ),
   ),
 
   // Repozytoria

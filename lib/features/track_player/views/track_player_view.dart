@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/features/song_detail/utils/player_math_utils.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_cubit.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_state.dart';
+import 'package:bandspace_mobile/features/track_player/player_math_utils.dart';
 import 'package:bandspace_mobile/features/track_player/widgets/new_full_player_widget.dart';
 import 'package:bandspace_mobile/features/track_player/widgets/new_mini_player_widget.dart';
 import 'package:bandspace_mobile/features/track_player/widgets/track_list_widget.dart';

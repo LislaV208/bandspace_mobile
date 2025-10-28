@@ -28,21 +28,23 @@ class PlayerMathUtils {
     double maxHeight,
     double minBottomHeight,
   ) {
-    return 1 - normalizeValue(
-      maxHeight - minBottomHeight,
-      0,
-      maxHeight,
-    );
+    return 1 -
+        normalizeValue(
+          maxHeight - minBottomHeight,
+          0,
+          maxHeight,
+        );
   }
 
   static double calculateMaxDraggableScrollSize(
     double minBottomHeight,
     double maxHeight,
   ) {
-    return 1 - normalizeValue(
-      minBottomHeight,
-      0,
-      maxHeight,
-    );
+    return 1 -
+        normalizeValue(
+          minBottomHeight,
+          0,
+          maxHeight,
+        );
   }
 }
