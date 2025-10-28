@@ -50,7 +50,7 @@ class AccountRepository extends CachedRepository {
           },
         );
 
-        return User.fromMap(response.data['user']);
+        return User.fromMap(response.data);
       },
       fromJson: (json) => User.fromMap(json),
     );

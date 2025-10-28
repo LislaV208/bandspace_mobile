@@ -69,7 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           if (state is UserProfileDeleteSuccess) {
             // Wyloguj użytkownika - nawigacja będzie obsłużona przez listener w DashboardScreen
-            await context.read<AuthCubit>().logout();
+            await context.read<AuthCubit>().logout(deleteAccount: true);
           }
 
           if (state is UserProfileDeleteFailure) {
@@ -206,10 +206,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       const Gap(8),
-                      TextField(
-                        controller: TextEditingController(
-                          text: state.user.email,
-                        ),
+                      TextFormField(
+                        initialValue: state.user.email,
                         readOnly: true,
                         decoration: InputDecoration(
                           focusedBorder: Theme.of(

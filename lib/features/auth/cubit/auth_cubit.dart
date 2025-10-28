@@ -281,21 +281,23 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   /// Obsługuje proces wylogowania
-  Future<void> logout() async {
+  Future<void> logout({bool deleteAccount = false}) async {
     await databaseStorage.clear();
     emit(state.copyWith(isLoading: true, errorMessage: Value(null)));
 
     String? errorMessage;
 
-    try {
-      await authRepository.logout();
-    } catch (e, stackTrace) {
-      logError(
-        e,
-        stackTrace: stackTrace,
-        hint: 'Logout failed',
-      );
-      errorMessage = e.toString();
+    if (!deleteAccount) {
+      try {
+        await authRepository.logout();
+      } catch (e, stackTrace) {
+        logError(
+          e,
+          stackTrace: stackTrace,
+          hint: 'Logout failed',
+        );
+        errorMessage = e.toString();
+      }
     }
 
     emit(

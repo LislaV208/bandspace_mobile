@@ -15,11 +15,11 @@ class UserProfileCubit extends Cubit<UserProfileState> {
     required this.userRepository,
   }) : super(const UserProfileInitial());
 
-  late StreamSubscription<User> _profileSubscription;
+  StreamSubscription<User>? _profileSubscription;
 
   @override
   Future<void> close() {
-    _profileSubscription.cancel();
+    _profileSubscription?.cancel();
     return super.close();
   }
 
@@ -31,7 +31,7 @@ class UserProfileCubit extends Cubit<UserProfileState> {
         userRepository.getProfile().listen((user) {
           emit(UserProfileLoadSuccess(user));
         })..onError((error) {
-          emit(UserProfileLoadFailure(error.toString()));
+          emit(UserProfileLoadFailure(getErrorMessage(error)));
         });
   }
 
@@ -65,7 +65,7 @@ class UserProfileCubit extends Cubit<UserProfileState> {
           stackTrace: stackTrace,
           hint: 'Failed to update user profile name',
         );
-        emit(UserProfileEditNameFailure(user, e.toString()));
+        emit(UserProfileEditNameFailure(user, getErrorMessage(e)));
       }
     }
   }
@@ -86,7 +86,7 @@ class UserProfileCubit extends Cubit<UserProfileState> {
           stackTrace: stackTrace,
           hint: 'Failed to delete user account',
         );
-        emit(UserProfileDeleteFailure(user, e.toString()));
+        emit(UserProfileDeleteFailure(user, getErrorMessage(e)));
       }
     }
   }
