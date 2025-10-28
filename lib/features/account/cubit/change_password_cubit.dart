@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/core/utils/error_logger.dart';
+import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 import 'package:bandspace_mobile/core/utils/value_wrapper.dart';
 import 'package:bandspace_mobile/features/account/cubit/change_password_state.dart';
 import 'package:bandspace_mobile/shared/repositories/account_repository.dart';

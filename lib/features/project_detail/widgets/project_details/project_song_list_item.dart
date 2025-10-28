@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/core/theme/theme.dart';
-import 'package:bandspace_mobile/core/utils/formatters.dart';
+import 'package:bandspace_mobile/shared/utils/formatters.dart';
 import 'package:bandspace_mobile/shared/models/song.dart';
 
 /// Komponent elementu listy utworów

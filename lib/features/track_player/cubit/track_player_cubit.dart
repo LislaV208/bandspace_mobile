@@ -4,7 +4,7 @@ import 'dart:developer';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio/just_audio.dart';
 
-import 'package:bandspace_mobile/core/utils/error_logger.dart';
+import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/track_player_state.dart';
 import 'package:bandspace_mobile/features/track_player/services/audio_player_service.dart';
 import 'package:bandspace_mobile/features/track_player/services/audio_pre_caching_orchestrator.dart';

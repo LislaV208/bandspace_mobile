@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/core/utils/error_logger.dart';
+import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/create_song/new_song_state.dart';
 import 'package:bandspace_mobile/shared/models/song_create_data.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
@@ -51,7 +51,7 @@ class NewSongCubit extends Cubit<NewSongState> {
 
   Future<void> uploadFile(CreateSongData songData) async {
     final currentState = state;
-    
+
     if (currentState is NewSongFileSelected) {
       final songName = songData.title;
 
@@ -86,7 +86,11 @@ class NewSongCubit extends Cubit<NewSongState> {
           e,
           stackTrace: stackTrace,
           hint: 'Failed to upload song',
-          extras: {'songName': songName, 'projectId': projectId, 'hasFile': hasFile},
+          extras: {
+            'songName': songName,
+            'projectId': projectId,
+            'hasFile': hasFile,
+          },
         );
         final progress = state is NewSongUploading
             ? (state as NewSongUploading).uploadProgress

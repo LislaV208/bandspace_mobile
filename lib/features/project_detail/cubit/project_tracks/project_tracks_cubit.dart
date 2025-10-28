@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
-import 'package:bandspace_mobile/core/utils/error_logger.dart';
+import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -34,11 +34,11 @@ class ProjectTracksCubit extends Cubit<ProjectTracksState> {
     // Dla nowo utworzonych projektów od razu pokazuj pustą listę utworów
     if (isNewlyCreated) {
       emit(const ProjectTracksReady([]));
-      
+
       // W tle i tak pobierz dane z serwera (na wypadek gdyby coś było)
       final response = await projectsRepository.getTracks(projectId);
       final stream = response.stream;
-      
+
       _tracksSubscription =
           stream.listen((tracks) {
             // Jeśli jednak coś przyszło z serwera, zaktualizuj stan
@@ -75,7 +75,10 @@ class ProjectTracksCubit extends Cubit<ProjectTracksState> {
           final currentState = state;
           if (currentState is ProjectTracksReady) {
             emit(
-              ProjectTracksRefreshFailure(currentState.tracks, error.toString()),
+              ProjectTracksRefreshFailure(
+                currentState.tracks,
+                error.toString(),
+              ),
             );
           } else {
             emit(ProjectTracksLoadFailure(error.toString()));
@@ -123,13 +126,15 @@ class ProjectTracksCubit extends Cubit<ProjectTracksState> {
 
     if (query.isEmpty) {
       if (state is! ProjectTracksFiltered) return;
-      
+
       emit(ProjectTracksReady(originalTracks));
       return;
     }
 
     final filteredList = originalTracks
-        .where((track) => track.title.toLowerCase().contains(query.toLowerCase()))
+        .where(
+          (track) => track.title.toLowerCase().contains(query.toLowerCase()),
+        )
         .toList();
 
     emit(ProjectTracksFiltered(originalTracks, filteredList));

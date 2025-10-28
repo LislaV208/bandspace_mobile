@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/core/utils/error_logger.dart';
+import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/create_project/create_project_state.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 

@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:bandspace_mobile/core/utils/error_logger.dart';
+import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 
 import 'package:bandspace_mobile/shared/models/project_invitation.dart';
 import 'package:bandspace_mobile/shared/repositories/invitations_repository.dart';
@@ -12,14 +12,16 @@ class ProjectInvitationsCubit extends Cubit<ProjectInvitationsState> {
   ProjectInvitationsCubit({
     required InvitationsRepository invitationsRepository,
     required this.projectId,
-  })  : _invitationsRepository = invitationsRepository,
-        super(const ProjectInvitationsInitial());
+  }) : _invitationsRepository = invitationsRepository,
+       super(const ProjectInvitationsInitial());
 
   Future<void> loadInvitations() async {
     emit(const ProjectInvitationsLoading());
 
     try {
-      final invitations = await _invitationsRepository.getProjectInvitations(projectId);
+      final invitations = await _invitationsRepository.getProjectInvitations(
+        projectId,
+      );
       emit(ProjectInvitationsLoadSuccess(invitations));
     } catch (e, stackTrace) {
       logError(
@@ -42,21 +44,26 @@ class ProjectInvitationsCubit extends Cubit<ProjectInvitationsState> {
         email: email,
       );
 
-      final updatedInvitations = await _invitationsRepository.getProjectInvitations(projectId);
-      emit(ProjectInvitationsSendSuccess(
-        message: 'Zaproszenie zostało wysłane',
-        invitations: updatedInvitations,
-      ));
+      final updatedInvitations = await _invitationsRepository
+          .getProjectInvitations(projectId);
+      emit(
+        ProjectInvitationsSendSuccess(
+          message: 'Zaproszenie zostało wysłane',
+          invitations: updatedInvitations,
+        ),
+      );
     } catch (e, stackTrace) {
       logError(
         e,
         stackTrace: stackTrace,
         hint: 'Failed to send project invitation',
       );
-      emit(ProjectInvitationsSendFailure(
-        message: e.toString(),
-        invitations: currentInvitations,
-      ));
+      emit(
+        ProjectInvitationsSendFailure(
+          message: e.toString(),
+          invitations: currentInvitations,
+        ),
+      );
     }
   }
 
@@ -71,7 +78,8 @@ class ProjectInvitationsCubit extends Cubit<ProjectInvitationsState> {
         invitationId: invitationId,
       );
 
-      final updatedInvitations = await _invitationsRepository.getProjectInvitations(projectId);
+      final updatedInvitations = await _invitationsRepository
+          .getProjectInvitations(projectId);
       emit(ProjectInvitationsCancelSuccess(updatedInvitations));
     } catch (e, stackTrace) {
       logError(
@@ -79,10 +87,12 @@ class ProjectInvitationsCubit extends Cubit<ProjectInvitationsState> {
         stackTrace: stackTrace,
         hint: 'Failed to cancel project invitation',
       );
-      emit(ProjectInvitationsCancelFailure(
-        message: e.toString(),
-        invitations: currentInvitations,
-      ));
+      emit(
+        ProjectInvitationsCancelFailure(
+          message: e.toString(),
+          invitations: currentInvitations,
+        ),
+      );
     }
   }
 

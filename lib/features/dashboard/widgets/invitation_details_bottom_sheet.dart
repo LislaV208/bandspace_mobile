@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/core/utils/formatters.dart';
+import 'package:bandspace_mobile/shared/utils/formatters.dart';
 import 'package:bandspace_mobile/shared/cubits/user_invitations/user_invitations_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_invitations/user_invitations_state.dart';
 import 'package:bandspace_mobile/shared/models/project_invitation.dart';

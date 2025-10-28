@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:bandspace_mobile/core/utils/formatters.dart';
+import 'package:bandspace_mobile/shared/utils/formatters.dart';
 import 'package:bandspace_mobile/features/project_detail/screens/project_detail_screen.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/widgets/user_avatar.dart';
