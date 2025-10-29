@@ -37,6 +37,7 @@ dependencies:
   flutter_native_splash: ^2.4.6
   wakelock_plus: ^1.4.0
   sentry_flutter: ^9.7.0
+  meta: ^1.16.0
 
 dev_dependencies:
   flutter_test:

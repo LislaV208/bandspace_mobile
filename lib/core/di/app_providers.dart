@@ -22,9 +22,7 @@ final appProviders = [
   // Core
   Provider(create: (context) => AuthEventService()),
   Provider(
-    create: (context) => ApiClient(
-      authEventService: context.read<AuthEventService>(),
-    ),
+    create: (context) => ApiClient(),
   ),
   Provider(create: (context) => SharedPreferencesStorage()),
   Provider(create: (context) => WakelockService()),

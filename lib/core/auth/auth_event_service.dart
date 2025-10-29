@@ -7,11 +7,11 @@ enum AuthEvent {
 }
 
 /// Serwis zarządzający wydarzeniami uwierzytelniania w całej aplikacji.
-/// 
+///
 /// Używa wzorca Provider i Stream do komunikacji między komponentami
 /// architektury uwierzytelniania.
 class AuthEventService {
-  final StreamController<AuthEvent> _eventController = 
+  final StreamController<AuthEvent> _eventController =
       StreamController<AuthEvent>.broadcast();
 
   /// Stream wydarzeń uwierzytelniania

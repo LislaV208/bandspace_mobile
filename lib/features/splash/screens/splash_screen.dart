@@ -3,15 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
+import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
+import 'package:bandspace_mobile/features/auth/cubit/authentication_screen_cubit.dart';
+import 'package:bandspace_mobile/features/auth/screens/auth_screen.dart';
+import 'package:bandspace_mobile/features/dashboard/screens/dashboard_screen.dart';
+import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 // import 'package:bandspace_mobile/shared/providers/connectivity_cubit.dart';
 // import 'package:bandspace_mobile/shared/services/sync_service.dart';
 import 'package:bandspace_mobile/shared/navigation/custom_page_routes.dart';
 import 'package:bandspace_mobile/shared/theme/theme.dart';
-import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
-import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
-import 'package:bandspace_mobile/features/auth/screens/auth_screen.dart';
-import 'package:bandspace_mobile/features/dashboard/screens/dashboard_screen.dart';
-import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 
 /// Ekran ładowania wyświetlany podczas sprawdzania stanu logowania użytkownika.
 class SplashScreen extends StatefulWidget {
@@ -42,7 +43,12 @@ class _SplashScreenState extends State<SplashScreen> {
           } else {
             // Użytkownik nie jest zalogowany, przekieruj do AuthScreen
             Navigator.of(context).pushReplacement(
-              FadePageRoute(page: const AuthScreen()),
+              FadePageRoute(
+                page: BlocProvider(
+                  create: (context) => AuthenticationScreenCubit(),
+                  child: const AuthScreen(),
+                ),
+              ),
             );
           }
         }

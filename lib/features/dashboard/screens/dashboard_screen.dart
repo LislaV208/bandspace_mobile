@@ -5,6 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
+import 'package:bandspace_mobile/features/auth/cubit/authentication_screen_cubit.dart';
 import 'package:bandspace_mobile/features/auth/screens/auth_screen.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_cubit.dart';
 import 'package:bandspace_mobile/features/dashboard/views/projects_view.dart';
@@ -65,7 +66,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             // Użytkownik został wylogowany - przekieruj do AuthScreen
             Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const AuthScreen()),
+              MaterialPageRoute(
+                builder: (context) => BlocProvider(
+                  create: (context) => AuthenticationScreenCubit(),
+                  child: const AuthScreen(),
+                ),
+              ),
               (route) => false, // Usuń wszystkie poprzednie ekrany ze stosu
             );
           },
