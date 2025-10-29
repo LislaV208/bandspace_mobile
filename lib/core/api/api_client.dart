@@ -31,13 +31,12 @@ class ApiClient {
 
     // Dodanie interceptorów
     dio.interceptors.addAll([
-      // AuthInterceptor(
-      //   SessionStorageService(),
-      //   authEventService: authEventService,
-      // ),
       LogInterceptor(requestBody: true, responseBody: true, error: true),
     ]);
   }
+
+  // void addInterceptor(Interceptor interceptor) =>
+  //     dio.interceptors.add(interceptor);
 
   /// Wykonuje żądanie GET
   Future<Response> get(
