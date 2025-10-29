@@ -4,13 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import 'package:bandspace_mobile/shared/theme/theme.dart';
 import 'package:bandspace_mobile/features/account/screens/profile_screen.dart';
-import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
-import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
+import 'package:bandspace_mobile/shared/theme/theme.dart';
 import 'package:bandspace_mobile/shared/widgets/user_avatar.dart';
 
 ///
@@ -60,52 +58,47 @@ class UserDrawer extends StatelessWidget {
         horizontal: 20.0,
         vertical: 24.0,
       ), // Zwiększony padding
-      child: BlocSelector<AuthCubit, AuthState, User?>(
-        selector: (state) => state.user,
-        builder: (context, authUser) {
-          return BlocSelector<UserProfileCubit, UserProfileState, User?>(
-            selector: (state) =>
-                state is UserProfileLoadSuccess ? state.user : null,
-            builder: (context, profileUser) {
-              final user = profileUser ?? authUser;
+      child: BlocSelector<UserProfileCubit, UserProfileState, User?>(
+        selector: (state) =>
+            state is UserProfileLoadSuccess ? state.user : null,
+        builder: (context, profileUser) {
+          final user = profileUser;
 
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  UserAvatar(
-                    size: 64,
-                  ),
-                  const SizedBox(width: 16), // Zwiększony odstęp
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          user?.name ?? user?.email ?? 'Użytkownik',
-                          style: AppTextStyles.titleMedium.copyWith(
-                            color: AppColors.textPrimary,
-                          ), // Lekko mniejszy niż titleLarge
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                        if (user?.name != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            user?.email ?? 'Brak adresu email',
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ],
-                      ],
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              UserAvatar(
+                size: 64,
+              ),
+              const SizedBox(width: 16), // Zwiększony odstęp
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      user?.name ?? user?.email ?? 'Użytkownik',
+                      style: AppTextStyles.titleMedium.copyWith(
+                        color: AppColors.textPrimary,
+                      ), // Lekko mniejszy niż titleLarge
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
-                  ),
-                ],
-              );
-            },
+                    if (user?.name != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        user?.email ?? 'Brak adresu email',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -207,7 +200,7 @@ class UserDrawer extends StatelessWidget {
   /// Obsługuje proces wylogowania
   void _handleLogout(BuildContext context) async {
     // Pobierz AuthCubit przed operacją asynchroniczną
-    final authCubit = context.read<AuthCubit>();
+    // final authCubit = context.read<AuthCubit>();
 
     // Pokaż dialog potwierdzenia
     final shouldLogout = await showDialog<bool>(
@@ -233,7 +226,8 @@ class UserDrawer extends StatelessWidget {
 
     if (shouldLogout == true) {
       // Wywołaj metodę logout
-      await authCubit.logout();
+      // TODO: wylogowanie
+      // await authCubit.logout();
 
       // Sprawdź ponownie, czy widget jest nadal w drzewie widgetów
       if (!context.mounted) return;

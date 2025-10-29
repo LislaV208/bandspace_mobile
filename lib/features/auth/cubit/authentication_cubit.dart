@@ -1,14 +1,35 @@
+import 'dart:developer';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/features/auth/cubit/authentication_state.dart';
 import 'package:bandspace_mobile/features/auth/repository/authentication_repository.dart';
+import 'package:bandspace_mobile/features/auth/services/authentication_storage.dart';
 
 class AuthenticationCubit extends Cubit<AuthenticationState> {
   final AuthenticationRepository repository;
+  final AuthenticationStorage storage;
 
   AuthenticationCubit({
     required this.repository,
-  }) : super(AuthenticationInitial());
+    required this.storage,
+  }) : super(AuthenticationInitial()) {
+    _init();
+  }
+
+  Future<void> _init() async {
+    try {
+      final tokens = await storage.getTokens();
+      if (tokens != null) {
+        emit(Authenticated(tokens: tokens));
+      } else {
+        emit(Unauthenticated());
+      }
+    } catch (e) {
+      log(e.toString());
+      emit(Unauthenticated());
+    }
+  }
 
   Future<void> signInWithEmail({
     required String email,
@@ -21,6 +42,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
         email: email,
         password: password,
       );
+      await storage.saveTokens(tokens);
       emit(Authenticated(tokens: tokens));
     } catch (e) {
       emit(AuthenticationError(e));
@@ -38,6 +60,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
         email: email,
         password: password,
       );
+      await storage.saveTokens(tokens);
       emit(Authenticated(tokens: tokens));
     } catch (e) {
       emit(AuthenticationError(e));

@@ -3,14 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
-import 'package:bandspace_mobile/features/auth/cubit/auth_state.dart';
 import 'package:bandspace_mobile/features/auth/cubit/authentication_screen_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/authentication_screen_state.dart';
 import 'package:bandspace_mobile/features/auth/view/email_authentication_view.dart';
 import 'package:bandspace_mobile/features/auth/view/google_authentication_view.dart';
-import 'package:bandspace_mobile/features/dashboard/screens/dashboard_screen.dart';
-import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 
 class AuthScreen extends StatelessWidget {
   const AuthScreen({super.key});
@@ -20,66 +16,60 @@ class AuthScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthCubit, AuthState>(
-      listener: (context, state) {
-        if (state.user != null) {
-          context.read<UserProfileCubit>().loadProfile();
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => DashboardScreen.create()),
-          );
-        }
-      },
-      builder: (context, state) {
-        return Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          resizeToAvoidBottomInset: true,
-          body: SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 46,
-                        height: 46,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Theme.of(context).colorScheme.primary,
-                              Theme.of(
-                                context,
-                              ).colorScheme.primary.withValues(alpha: 0.8),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(LucideIcons.music),
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Row(
+                children: [
+                  Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.primary,
+                          Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.8),
+                        ],
                       ),
-                      const SizedBox(width: 16),
-                      Text(
-                        "BandSpace",
-                        style: Theme.of(context).textTheme.headlineLarge,
-                      ),
-                    ],
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(LucideIcons.music),
                   ),
-                ),
+                  const SizedBox(width: 16),
+                  Text(
+                    "BandSpace",
+                    style: Theme.of(context).textTheme.headlineLarge,
+                  ),
+                ],
+              ),
+            ),
 
-                // Main content area
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    keyboardDismissBehavior:
-                        ScrollViewKeyboardDismissBehavior.onDrag,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight:
-                            MediaQuery.of(context).size.height -
-                            MediaQuery.of(context).padding.top -
-                            MediaQuery.of(context).padding.bottom -
-                            120, // Header height approximation
-                      ),
-                      child: BlocBuilder<AuthenticationScreenCubit, AuthenticationScreenState>(
+            // Main content area
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight:
+                        MediaQuery.of(context).size.height -
+                        MediaQuery.of(context).padding.top -
+                        MediaQuery.of(context).padding.bottom -
+                        120, // Header height approximation
+                  ),
+                  child:
+                      BlocBuilder<
+                        AuthenticationScreenCubit,
+                        AuthenticationScreenState
+                      >(
                         builder: (context, state) {
                           return Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -214,14 +204,12 @@ class AuthScreen extends StatelessWidget {
                           );
                         },
                       ),
-                    ),
-                  ),
                 ),
-              ],
+              ),
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 }

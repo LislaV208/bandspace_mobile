@@ -5,7 +5,6 @@ import 'package:gap/gap.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/features/account/screens/change_password_screen.dart';
-import 'package:bandspace_mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 
@@ -69,7 +68,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           if (state is UserProfileDeleteSuccess) {
             // Wyloguj użytkownika - nawigacja będzie obsłużona przez listener w DashboardScreen
-            await context.read<AuthCubit>().logout(deleteAccount: true);
+            // TODO: wylogowanie
+            // await context.read<AuthCubit>().logout(deleteAccount: true);
           }
 
           if (state is UserProfileDeleteFailure) {

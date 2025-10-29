@@ -35,8 +35,11 @@ class ApiClient {
     ]);
   }
 
-  // void addInterceptor(Interceptor interceptor) =>
-  //     dio.interceptors.add(interceptor);
+  void addInterceptor(Interceptor interceptor) {
+    if (!dio.interceptors.contains(interceptor)) {
+      dio.interceptors.add(interceptor);
+    }
+  }
 
   /// Wykonuje żądanie GET
   Future<Response> get(
