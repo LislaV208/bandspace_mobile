@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:bandspace_mobile/features/auth/cubit/authentication_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/authentication_screen_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/authentication_screen_state.dart';
 import 'package:bandspace_mobile/features/auth/screens/auth_screen.dart';
@@ -180,7 +181,27 @@ class _EmailAuthenticationViewState extends State<EmailAuthenticationView> {
               onPressed: isLoading
                   ? null
                   : () {
-                      _formKey.currentState?.validate();
+                      final isValid =
+                          _formKey.currentState?.validate() ?? false;
+                      if (!isValid) return;
+
+                      final email = _emailController.text;
+                      final password = _passwordController.text;
+
+                      final authenticationCubit = context
+                          .read<AuthenticationCubit>();
+
+                      if (isLoginView) {
+                        authenticationCubit.signInWithEmail(
+                          email: email,
+                          password: password,
+                        );
+                      } else {
+                        authenticationCubit.registerWithEmail(
+                          email: email,
+                          password: password,
+                        );
+                      }
                     },
               child: isLoading
                   ? const SizedBox(

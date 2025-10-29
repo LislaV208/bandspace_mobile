@@ -23,7 +23,7 @@ class UserProfileLoadSuccess extends UserProfileState {
   const UserProfileLoadSuccess(this.user);
 
   @override
-  List<Object?> get props => [user];
+  List<Object?> get props => [...super.props, user];
 }
 
 class UserProfileLoadFailure extends UserProfileState {
@@ -32,7 +32,7 @@ class UserProfileLoadFailure extends UserProfileState {
   const UserProfileLoadFailure(this.message);
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [...super.props, message];
 }
 
 class UserProfileEditingName extends UserProfileLoadSuccess {
@@ -49,7 +49,7 @@ class UserProfileEditNameFailure extends UserProfileLoadSuccess {
   const UserProfileEditNameFailure(super.user, this.message);
 
   @override
-  List<Object?> get props => [user, message];
+  List<Object?> get props => [...super.props, message];
 }
 
 class UserProfileDeleteLoading extends UserProfileLoadSuccess {
@@ -66,5 +66,21 @@ class UserProfileDeleteFailure extends UserProfileLoadSuccess {
   const UserProfileDeleteFailure(super.user, this.message);
 
   @override
-  List<Object?> get props => [user, message];
+  List<Object?> get props => [...super.props, message];
+}
+
+class UserSigningOut extends UserProfileLoadSuccess {
+  const UserSigningOut(super.user);
+}
+
+class UserSignedOut extends UserProfileState {
+  const UserSignedOut();
+}
+
+class UserSigningOutError extends UserProfileLoadSuccess {
+  final String message;
+  const UserSigningOutError(this.message, super.user);
+
+  @override
+  List<Object?> get props => [...super.props, message];
 }

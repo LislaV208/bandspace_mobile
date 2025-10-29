@@ -3,9 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import 'package:bandspace_mobile/core/api/api_client.dart';
 import 'package:bandspace_mobile/core/config/env_config.dart';
 import 'package:bandspace_mobile/core/di/app_providers.dart';
+import 'package:bandspace_mobile/features/auth/api/authentication_interceptor.dart';
+import 'package:bandspace_mobile/features/auth/cubit/authentication_cubit.dart';
+import 'package:bandspace_mobile/features/auth/cubit/authentication_screen_cubit.dart';
+import 'package:bandspace_mobile/features/auth/cubit/authentication_state.dart';
+import 'package:bandspace_mobile/features/auth/screens/auth_screen.dart';
 import 'package:bandspace_mobile/features/auth/screens/splash_screen.dart';
+import 'package:bandspace_mobile/features/dashboard/screens/dashboard_screen.dart';
+import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
+import 'package:bandspace_mobile/shared/navigation/custom_page_routes.dart';
 import 'package:bandspace_mobile/shared/theme/theme.dart';
 
 /// Główna funkcja uruchamiająca aplikację.
@@ -71,7 +80,37 @@ class MainApp extends StatelessWidget {
             },
           ),
         ),
-        home: const SplashScreen(),
+        home: Builder(
+          builder: (context) {
+            return BlocListener<AuthenticationCubit, AuthenticationState>(
+              listener: (context, state) {
+                if (state is Authenticated) {
+                  context.read<ApiClient>().addInterceptor(
+                    AuthenticationInterceptor(tokens: state.tokens),
+                  );
+
+                  context.read<UserProfileCubit>().loadProfile();
+                  Navigator.of(context).pushReplacement(
+                    FadePageRoute(page: DashboardScreen.create()),
+                  );
+                } else if (state is Unauthenticated) {
+                  Navigator.of(
+                    context,
+                  ).popUntil((context) => context.isFirst);
+                  Navigator.of(context).pushReplacement(
+                    FadePageRoute(
+                      page: BlocProvider(
+                        create: (context) => AuthenticationScreenCubit(),
+                        child: const AuthScreen(),
+                      ),
+                    ),
+                  );
+                }
+              },
+              child: const SplashScreen(),
+            );
+          },
+        ),
         debugShowCheckedModeBanner: false,
       ),
     );

@@ -5,6 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:bandspace_mobile/features/account/screens/profile_screen.dart';
+import 'package:bandspace_mobile/features/auth/cubit/authentication_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
@@ -202,38 +203,49 @@ class UserDrawer extends StatelessWidget {
     // Pobierz AuthCubit przed operacją asynchroniczną
     // final authCubit = context.read<AuthCubit>();
 
+    // final userCubit = context.read<UserProfileCubit>();
+
     // Pokaż dialog potwierdzenia
-    final shouldLogout = await showDialog<bool>(
+    await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Wylogowanie'),
-        content: const Text('Czy na pewno chcesz się wylogować?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Anuluj'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Wyloguj'),
-          ),
-        ],
+      builder: (context) => BlocConsumer<UserProfileCubit, UserProfileState>(
+        listener: (context, state) {
+          if (state is UserSignedOut) {
+            context.read<AuthenticationCubit>().onSignedOut();
+          }
+        },
+        builder: (context, state) {
+          final isSigningOut = state is UserSigningOut;
+
+          return AlertDialog(
+            title: const Text('Wylogowanie'),
+            content: const Text('Czy na pewno chcesz się wylogować?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Anuluj'),
+              ),
+              ElevatedButton(
+                onPressed: isSigningOut
+                    ? null
+                    : () => context.read<UserProfileCubit>().signOut(),
+                child: isSigningOut
+                    ? SizedBox.square(
+                        dimension: 20,
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 3,
+                        ),
+                      )
+                    : const Text('Wyloguj'),
+              ),
+            ],
+          );
+        },
       ),
     );
 
-    // Sprawdź, czy widget jest nadal w drzewie widgetów
-    if (!context.mounted) return;
+    // if (!context.mounted) return;
 
-    if (shouldLogout == true) {
-      // Wywołaj metodę logout
-      // TODO: wylogowanie
-      // await authCubit.logout();
-
-      // Sprawdź ponownie, czy widget jest nadal w drzewie widgetów
-      if (!context.mounted) return;
-
-      // Zamknij drawer - nawigacja do AuthScreen będzie obsłużona przez listener w DashboardScreen
-      Navigator.of(context).pop();
-    }
+    // Navigator.of(context).pop();
   }
 }

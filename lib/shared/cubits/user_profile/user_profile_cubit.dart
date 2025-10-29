@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
 import 'package:bandspace_mobile/shared/repositories/account_repository.dart';
+import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 
 /// Cubit zarządzający stanem profilu użytkownika
 class UserProfileCubit extends Cubit<UserProfileState> {
@@ -87,6 +87,20 @@ class UserProfileCubit extends Cubit<UserProfileState> {
           hint: 'Failed to delete user account',
         );
         emit(UserProfileDeleteFailure(user, getErrorMessage(e)));
+      }
+    }
+  }
+
+  Future<void> signOut() async {
+    if (state is UserProfileLoadSuccess) {
+      final currentState = state as UserProfileLoadSuccess;
+      try {
+        emit(UserSigningOut(currentState.user));
+
+        await userRepository.signOut();
+        emit(const UserSignedOut());
+      } catch (e) {
+        emit(UserSigningOutError(getErrorMessage(e), currentState.user));
       }
     }
   }
