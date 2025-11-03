@@ -147,7 +147,7 @@ class AuthScreen extends StatelessWidget {
                                 },
                             child: switch (state) {
                               EmailAuthentication() => EmailAuthenticationView(state: state),
-                              GoogleAuthentication() => GoogleAuthenticationView(state: state),
+                              GoogleAuthentication() => const GoogleAuthenticationView(),
                               _ => const SizedBox.shrink(),
                             },
                             // child: _showEmailForm

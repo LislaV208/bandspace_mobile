@@ -34,6 +34,8 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
       final tokens = await repository.authenticateWithGoogle();
       await storage.saveTokens(tokens);
       emit(Authenticated(tokens: tokens));
+    } on GoogleSignInCancelledByUser {
+      emit(Unauthenticated());
     } catch (e) {
       emit(AuthenticationError(e));
     }

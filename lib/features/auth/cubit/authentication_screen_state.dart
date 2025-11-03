@@ -8,19 +8,6 @@ abstract class AuthenticationScreenState extends Equatable {
 // Google Authentication
 class GoogleAuthentication extends AuthenticationScreenState {}
 
-class GoogleAuthenticationLoading extends GoogleAuthentication {}
-
-class GoogleAuthenticationSuccess extends GoogleAuthentication {}
-
-class GoogleAuthenticationError extends GoogleAuthentication {
-  final Object error;
-
-  GoogleAuthenticationError(this.error);
-
-  @override
-  List<Object?> get props => [...super.props, error];
-}
-
 // Email Authentication
 class EmailAuthentication extends AuthenticationScreenState {
   final bool showPassword;

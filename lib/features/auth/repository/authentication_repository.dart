@@ -2,6 +2,10 @@ import 'package:bandspace_mobile/core/api/api_repository.dart';
 import 'package:bandspace_mobile/core/auth/google_sign_in_service.dart';
 import 'package:bandspace_mobile/features/auth/models/authentication_tokens.dart';
 
+class GoogleSignInCancelledByUser implements Exception {
+  const GoogleSignInCancelledByUser();
+}
+
 class AuthenticationRepository extends ApiRepository {
   final GoogleSignInService googleSignInService;
 
@@ -18,7 +22,7 @@ class AuthenticationRepository extends ApiRepository {
     final account = await googleSignInService.signIn();
 
     if (account == null) {
-      throw Exception('Google Sign-In: Użytkownik anulował logowanie');
+      throw GoogleSignInCancelledByUser();
     }
 
     final idToken = account.authentication.idToken;
