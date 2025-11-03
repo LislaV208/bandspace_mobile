@@ -198,14 +198,7 @@ class UserDrawer extends StatelessWidget {
     );
   }
 
-  /// Obsługuje proces wylogowania
   void _handleLogout(BuildContext context) async {
-    // Pobierz AuthCubit przed operacją asynchroniczną
-    // final authCubit = context.read<AuthCubit>();
-
-    // final userCubit = context.read<UserProfileCubit>();
-
-    // Pokaż dialog potwierdzenia
     await showDialog(
       context: context,
       builder: (context) => BlocConsumer<UserProfileCubit, UserProfileState>(
@@ -215,7 +208,8 @@ class UserDrawer extends StatelessWidget {
           }
         },
         builder: (context, state) {
-          final isSigningOut = state is UserSigningOut;
+          final isSigningOut =
+              state is UserSigningOut || state is UserSignedOut;
 
           return AlertDialog(
             title: const Text('Wylogowanie'),
@@ -243,9 +237,5 @@ class UserDrawer extends StatelessWidget {
         },
       ),
     );
-
-    // if (!context.mounted) return;
-
-    // Navigator.of(context).pop();
   }
 }

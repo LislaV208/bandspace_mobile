@@ -111,9 +111,7 @@ String getErrorMessage(
   final stringValue = error.toString();
 
   // Jeśli toString() zwraca coś sensownego (nie tylko typ), użyj tego
-  if (stringValue.isNotEmpty &&
-      !stringValue.startsWith('Instance of ') &&
-      !stringValue.startsWith('Exception:')) {
+  if (stringValue.isNotEmpty && !stringValue.startsWith('Instance of ') && !stringValue.startsWith('Exception:')) {
     return stringValue;
   }
 
@@ -122,6 +120,27 @@ String getErrorMessage(
 
 /// Ekstraktuje wiadomość błędu z DioException response
 String? _extractMessageFromDioException(DioException error) {
+  // Najpierw sprawdź typ błędu sieciowego - zwróć user-friendly komunikat
+  switch (error.type) {
+    case DioExceptionType.connectionTimeout:
+      return 'Przekroczono limit czasu połączenia. Sprawdź swoje połączenie internetowe i spróbuj ponownie.';
+    case DioExceptionType.sendTimeout:
+      return 'Przekroczono limit czasu wysyłania danych. Sprawdź swoje połączenie internetowe i spróbuj ponownie.';
+    case DioExceptionType.receiveTimeout:
+      return 'Przekroczono limit czasu odpowiedzi serwera. Spróbuj ponownie za chwilę.';
+    case DioExceptionType.connectionError:
+      return 'Brak połączenia z internetem. Sprawdź swoje połączenie i spróbuj ponownie.';
+    case DioExceptionType.badCertificate:
+      return 'Problem z certyfikatem bezpieczeństwa. Skontaktuj się z administratorem.';
+    case DioExceptionType.cancel:
+      return 'Żądanie zostało anulowane.';
+    case DioExceptionType.badResponse:
+    case DioExceptionType.unknown:
+      // Kontynuuj do próby ekstrakcji z response
+      break;
+  }
+
+  // Sprawdź czy jest response z danymi
   final response = error.response;
   if (response?.data == null) return null;
 
@@ -137,8 +156,7 @@ String? _extractMessageFromDioException(DioException error) {
         if (errorField is String) {
           return errorField;
         }
-        if (errorField is Map<String, dynamic> &&
-            errorField.containsKey('message')) {
+        if (errorField is Map<String, dynamic> && errorField.containsKey('message')) {
           return errorField['message'] as String?;
         }
       }

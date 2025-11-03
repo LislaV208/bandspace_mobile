@@ -5,8 +5,11 @@ import 'package:gap/gap.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/features/account/screens/change_password_screen.dart';
+import 'package:bandspace_mobile/features/auth/cubit/authentication_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
+import 'package:bandspace_mobile/shared/utils/error_logger.dart';
+import 'package:bandspace_mobile/shared/widgets/dialogs/error_dialog.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -58,28 +61,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
 
           if (state is UserProfileEditNameFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
-            );
+            ErrorDialog.show(context, error: state.error);
           }
 
           if (state is UserProfileDeleteSuccess) {
-            // Wyloguj użytkownika - nawigacja będzie obsłużona przez listener w DashboardScreen
-            // TODO: wylogowanie
-            // await context.read<AuthCubit>().logout(deleteAccount: true);
+            await context.read<AuthenticationCubit>().onSignedOut();
           }
 
           if (state is UserProfileDeleteFailure) {
             if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
-            );
+            ErrorDialog.show(context, error: state.error);
           }
         },
         child: BlocBuilder<UserProfileCubit, UserProfileState>(
@@ -92,7 +83,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               UserProfileLoadSuccess() => _buildProfileView(context, state),
               UserProfileLoadFailure() => _buildErrorState(
                 context,
-                state.message,
+                getErrorMessage(state.error),
               ),
               _ => const SizedBox(),
             };
@@ -141,11 +132,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             UserProfileEditingName() => IconButton(
                               icon: const Icon(Icons.check),
                               onPressed: () {
-                                context
-                                    .read<UserProfileCubit>()
-                                    .submitEditingName(
-                                      _nameController.text.trim(),
-                                    );
+                                context.read<UserProfileCubit>().submitEditingName(
+                                  _nameController.text.trim(),
+                                );
                               },
                             ),
                             UserProfileEditNameSubmitting() => Column(
@@ -163,9 +152,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _ => IconButton(
                               icon: const Icon(Icons.edit),
                               onPressed: () {
-                                context
-                                    .read<UserProfileCubit>()
-                                    .startEditingName();
+                                context.read<UserProfileCubit>().startEditingName();
                               },
                             ),
                           },
@@ -199,10 +186,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         padding: const EdgeInsets.only(left: 3.0),
                         child: Text(
                           'Email',
-                          style: Theme.of(context).textTheme.labelMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                       const Gap(8),
@@ -275,9 +261,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
-                onTap: isDeleting
-                    ? null
-                    : () => _showDeleteAccountDialog(context),
+                onTap: isDeleting ? null : () => _showDeleteAccountDialog(context),
               );
             },
           ),
@@ -348,8 +332,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             const Gap(20),
             OutlinedButton(
-              onPressed: () =>
-                  context.read<UserProfileCubit>().refreshProfile(),
+              onPressed: () => context.read<UserProfileCubit>().refreshProfile(),
               child: const Text('Spróbuj ponownie'),
             ),
           ],

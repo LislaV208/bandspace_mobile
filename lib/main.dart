@@ -44,6 +44,8 @@ Future<void> main({String envFileName = '.env'}) async {
   );
 }
 
+final _navigatorKey = GlobalKey<NavigatorState>();
+
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
@@ -69,6 +71,7 @@ class MainApp extends StatelessWidget {
       // },
       child: MaterialApp(
         title: 'BandSpace',
+        navigatorKey: _navigatorKey,
         theme: AppTheme.darkTheme.copyWith(
           pageTransitionsTheme: const PageTransitionsTheme(
             builders: <TargetPlatform, PageTransitionsBuilder>{
@@ -80,37 +83,48 @@ class MainApp extends StatelessWidget {
             },
           ),
         ),
-        home: Builder(
-          builder: (context) {
-            return BlocListener<AuthenticationCubit, AuthenticationState>(
-              listener: (context, state) {
-                if (state is Authenticated) {
-                  context.read<ApiClient>().addInterceptor(
-                    AuthenticationInterceptor(tokens: state.tokens),
-                  );
+        builder: (context, child) {
+          return BlocListener<AuthenticationCubit, AuthenticationState>(
+            listener: (context, state) {
+              // zalogowany
+              if (state is Authenticated) {
+                context.read<ApiClient>().addInterceptor(
+                  AuthenticationInterceptor(tokens: state.tokens),
+                );
 
-                  context.read<UserProfileCubit>().loadProfile();
-                  Navigator.of(context).pushReplacement(
-                    FadePageRoute(page: DashboardScreen.create()),
-                  );
-                } else if (state is Unauthenticated) {
-                  Navigator.of(
-                    context,
-                  ).popUntil((context) => context.isFirst);
-                  Navigator.of(context).pushReplacement(
-                    FadePageRoute(
-                      page: BlocProvider(
-                        create: (context) => AuthenticationScreenCubit(),
-                        child: const AuthScreen(),
-                      ),
-                    ),
-                  );
+                context.read<UserProfileCubit>().loadProfile();
+                _navigatorKey.currentState?.pushReplacement(
+                  FadePageRoute(page: DashboardScreen.create()),
+                );
+              } else if (state is Unauthenticated) {
+                // błąd
+                if (state is AuthenticationError) {
+                  return;
                 }
-              },
-              child: const SplashScreen(),
-            );
-          },
-        ),
+
+                // ładowanie
+                if (state is AuthenticationInProgress) {
+                  return;
+                }
+
+                // niezalogowany
+                _navigatorKey.currentState?.popUntil(
+                  (context) => context.isFirst,
+                );
+                _navigatorKey.currentState?.pushReplacement(
+                  FadePageRoute(
+                    page: BlocProvider(
+                      create: (context) => AuthenticationScreenCubit(),
+                      child: const AuthScreen(),
+                    ),
+                  ),
+                );
+              }
+            },
+            child: child ?? const SizedBox(),
+          );
+        },
+        home: const SplashScreen(),
         debugShowCheckedModeBanner: false,
       ),
     );

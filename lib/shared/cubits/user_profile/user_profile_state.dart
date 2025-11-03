@@ -27,12 +27,12 @@ class UserProfileLoadSuccess extends UserProfileState {
 }
 
 class UserProfileLoadFailure extends UserProfileState {
-  final String message;
+  final Object error;
 
-  const UserProfileLoadFailure(this.message);
+  const UserProfileLoadFailure(this.error);
 
   @override
-  List<Object?> get props => [...super.props, message];
+  List<Object?> get props => [...super.props, error];
 }
 
 class UserProfileEditingName extends UserProfileLoadSuccess {
@@ -44,12 +44,12 @@ class UserProfileEditNameSubmitting extends UserProfileLoadSuccess {
 }
 
 class UserProfileEditNameFailure extends UserProfileLoadSuccess {
-  final String message;
+  final Object error;
 
-  const UserProfileEditNameFailure(super.user, this.message);
+  const UserProfileEditNameFailure(super.user, this.error);
 
   @override
-  List<Object?> get props => [...super.props, message];
+  List<Object?> get props => [...super.props, error];
 }
 
 class UserProfileDeleteLoading extends UserProfileLoadSuccess {
@@ -61,26 +61,26 @@ class UserProfileDeleteSuccess extends UserProfileState {
 }
 
 class UserProfileDeleteFailure extends UserProfileLoadSuccess {
-  final String message;
+  final Object error;
 
-  const UserProfileDeleteFailure(super.user, this.message);
+  const UserProfileDeleteFailure(super.user, this.error);
 
   @override
-  List<Object?> get props => [...super.props, message];
+  List<Object?> get props => [...super.props, error];
 }
 
 class UserSigningOut extends UserProfileLoadSuccess {
   const UserSigningOut(super.user);
 }
 
-class UserSignedOut extends UserProfileState {
-  const UserSignedOut();
+class UserSignedOut extends UserProfileLoadSuccess {
+  const UserSignedOut(super.user);
 }
 
 class UserSigningOutError extends UserProfileLoadSuccess {
-  final String message;
-  const UserSigningOutError(this.message, super.user);
+  final Object error;
+  const UserSigningOutError(this.error, super.user);
 
   @override
-  List<Object?> get props => [...super.props, message];
+  List<Object?> get props => [...super.props, error];
 }

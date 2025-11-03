@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bandspace_mobile/features/auth/cubit/authentication_state.dart';
 import 'package:bandspace_mobile/features/auth/repository/authentication_repository.dart';
 import 'package:bandspace_mobile/features/auth/services/authentication_storage.dart';
+import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 
 class AuthenticationCubit extends Cubit<AuthenticationState> {
   final AuthenticationRepository repository;
@@ -34,7 +35,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
         emit(Unauthenticated());
       }
     } catch (e) {
-      log(e.toString());
+      log(getErrorMessage(e));
       emit(Unauthenticated());
     }
   }

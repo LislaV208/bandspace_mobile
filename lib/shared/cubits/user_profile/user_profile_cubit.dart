@@ -31,7 +31,7 @@ class UserProfileCubit extends Cubit<UserProfileState> {
         userRepository.getProfile().listen((user) {
           emit(UserProfileLoadSuccess(user));
         })..onError((error) {
-          emit(UserProfileLoadFailure(getErrorMessage(error)));
+          emit(UserProfileLoadFailure(error));
         });
   }
 
@@ -65,7 +65,7 @@ class UserProfileCubit extends Cubit<UserProfileState> {
           stackTrace: stackTrace,
           hint: 'Failed to update user profile name',
         );
-        emit(UserProfileEditNameFailure(user, getErrorMessage(e)));
+        emit(UserProfileEditNameFailure(user, e));
       }
     }
   }
@@ -86,7 +86,7 @@ class UserProfileCubit extends Cubit<UserProfileState> {
           stackTrace: stackTrace,
           hint: 'Failed to delete user account',
         );
-        emit(UserProfileDeleteFailure(user, getErrorMessage(e)));
+        emit(UserProfileDeleteFailure(user, e));
       }
     }
   }
@@ -98,9 +98,9 @@ class UserProfileCubit extends Cubit<UserProfileState> {
         emit(UserSigningOut(currentState.user));
 
         await userRepository.signOut();
-        emit(const UserSignedOut());
+        emit(UserSignedOut(currentState.user));
       } catch (e) {
-        emit(UserSigningOutError(getErrorMessage(e), currentState.user));
+        emit(UserSigningOutError(e, currentState.user));
       }
     }
   }
