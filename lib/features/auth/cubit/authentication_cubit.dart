@@ -57,7 +57,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     emit(AuthenticationInProgress());
 
     try {
-      final tokens = await repository.signInWithEmail(
+      final tokens = await repository.registerWithEmail(
         email: email,
         password: password,
       );

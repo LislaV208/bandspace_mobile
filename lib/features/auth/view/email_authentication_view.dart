@@ -43,7 +43,7 @@ class _EmailAuthenticationViewState extends State<EmailAuthenticationView> {
       builder: (context, authenticationState) {
         final state = widget.state;
         final isLoading = authenticationState is AuthenticationInProgress;
-        final isLoginView = state.runtimeType == EmailAuthenticationLogin || isLoading;
+        final isLoginView = state.runtimeType == EmailAuthenticationLogin;
 
         return Form(
           key: _formKey,
@@ -247,7 +247,7 @@ class _EmailAuthenticationViewState extends State<EmailAuthenticationView> {
                       onPressed: isLoading
                           ? null
                           : () {
-                              context.read<AuthenticationScreenCubit>().toggleEmailAuthenticationView;
+                              context.read<AuthenticationScreenCubit>().toggleEmailAuthenticationView();
                             },
                       style: TextButton.styleFrom(
                         foregroundColor: Theme.of(context).colorScheme.secondary,

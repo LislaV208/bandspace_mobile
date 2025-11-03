@@ -45,8 +45,7 @@
 - [ ] "Zapomniałeś hasła?" → redirect do reset_password_screen
 
 **Ogólne:**
-- [ ] Błędy wyświetlają się w czerwonym kontenerze
-- [ ] Przełączanie login/register czyści błędy
+- [ ] Błędy wyświetlają się w dialogu (ErrorDialog)
 
 ## Dashboard
 - TBD

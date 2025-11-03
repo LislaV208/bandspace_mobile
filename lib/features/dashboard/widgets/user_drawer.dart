@@ -60,8 +60,7 @@ class UserDrawer extends StatelessWidget {
         vertical: 24.0,
       ), // Zwiększony padding
       child: BlocSelector<UserProfileCubit, UserProfileState, User?>(
-        selector: (state) =>
-            state is UserProfileLoadSuccess ? state.user : null,
+        selector: (state) => state is UserProfileLoadSuccess ? state.user : null,
         builder: (context, profileUser) {
           final user = profileUser;
 
@@ -69,21 +68,21 @@ class UserDrawer extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               UserAvatar(
-                size: 64,
+                size: 52,
               ),
-              const SizedBox(width: 16), // Zwiększony odstęp
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      user?.name ?? user?.email ?? 'Użytkownik',
-                      style: AppTextStyles.titleMedium.copyWith(
-                        color: AppColors.textPrimary,
-                      ), // Lekko mniejszy niż titleLarge
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
+                    FittedBox(
+                      child: Text(
+                        user?.name ?? user?.email ?? 'Użytkownik',
+                        style: AppTextStyles.titleMedium.copyWith(
+                          color: AppColors.textPrimary,
+                        ), // Lekko mniejszy niż titleLarge
+                      ),
                     ),
                     if (user?.name != null) ...[
                       const SizedBox(height: 4),
@@ -208,8 +207,7 @@ class UserDrawer extends StatelessWidget {
           }
         },
         builder: (context, state) {
-          final isSigningOut =
-              state is UserSigningOut || state is UserSignedOut;
+          final isSigningOut = state is UserSigningOut || state is UserSignedOut;
 
           return AlertDialog(
             title: const Text('Wylogowanie'),
@@ -220,9 +218,7 @@ class UserDrawer extends StatelessWidget {
                 child: const Text('Anuluj'),
               ),
               ElevatedButton(
-                onPressed: isSigningOut
-                    ? null
-                    : () => context.read<UserProfileCubit>().signOut(),
+                onPressed: isSigningOut ? null : () => context.read<UserProfileCubit>().signOut(),
                 child: isSigningOut
                     ? SizedBox.square(
                         dimension: 20,
