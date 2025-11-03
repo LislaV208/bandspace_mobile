@@ -64,6 +64,8 @@ class ErrorDialog extends StatelessWidget {
     String? fallbackMessage,
     bool barrierDismissible = false,
   }) {
+    logError(error);
+
     return showDialog<bool>(
       context: context,
       barrierDismissible: barrierDismissible,

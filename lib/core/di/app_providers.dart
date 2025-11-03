@@ -3,10 +3,10 @@ import 'package:provider/provider.dart';
 
 import 'package:bandspace_mobile/core/api/api_client.dart';
 import 'package:bandspace_mobile/core/auth/auth_event_service.dart';
+import 'package:bandspace_mobile/core/auth/google_sign_in_service.dart' show GoogleSignInService;
 import 'package:bandspace_mobile/core/storage/database_storage.dart';
 import 'package:bandspace_mobile/core/storage/sembast_database_storage.dart';
 import 'package:bandspace_mobile/features/auth/cubit/authentication_cubit.dart';
-import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
 import 'package:bandspace_mobile/features/auth/repository/authentication_repository.dart';
 import 'package:bandspace_mobile/features/auth/services/authentication_storage.dart';
 import 'package:bandspace_mobile/features/project_detail/repository/project_members_repository.dart';
@@ -15,17 +15,15 @@ import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.d
 import 'package:bandspace_mobile/shared/repositories/account_repository.dart';
 import 'package:bandspace_mobile/shared/repositories/invitations_repository.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
-import 'package:bandspace_mobile/shared/services/google_sign_in_service.dart';
-import 'package:bandspace_mobile/shared/services/session_storage_service.dart';
 import 'package:bandspace_mobile/shared/services/shared_preferences_storage.dart';
 import 'package:bandspace_mobile/shared/services/wakelock_service.dart';
 
 final appProviders = [
   // Core
   Provider(create: (context) => AuthEventService()),
-  Provider(
-    create: (context) => ApiClient(),
-  ),
+  Provider(create: (context) => ApiClient()),
+  Provider(create: (context) => GoogleSignInService()),
+
   Provider(create: (context) => SharedPreferencesStorage()),
   Provider(create: (context) => WakelockService()),
 
@@ -45,6 +43,7 @@ final appProviders = [
   RepositoryProvider(
     create: (context) => AuthenticationRepository(
       apiClient: context.read(),
+      googleSignInService: context.read(),
     ),
   ),
   RepositoryProvider(
@@ -64,15 +63,15 @@ final appProviders = [
       apiClient: context.read<ApiClient>(),
     ),
   ),
-  // Features
-  RepositoryProvider(
-    create: (context) => AuthRepository(
-      apiClient: context.read<ApiClient>(),
-      storageService: SessionStorageService(),
-      googleSignInService: GoogleSignInService(),
-    ),
-  ),
 
+  // Features
+  // RepositoryProvider(
+  //   create: (context) => AuthRepository(
+  //     apiClient: context.read<ApiClient>(),
+  //     storageService: SessionStorageService(),
+  //     googleSignInService: GoogleSignInService(),
+  //   ),
+  // ),
   RepositoryProvider(
     create: (context) => ProjectMembersRepository(
       apiClient: context.read<ApiClient>(),

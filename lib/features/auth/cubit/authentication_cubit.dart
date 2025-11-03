@@ -1,11 +1,8 @@
-import 'dart:developer';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/features/auth/cubit/authentication_state.dart';
 import 'package:bandspace_mobile/features/auth/repository/authentication_repository.dart';
 import 'package:bandspace_mobile/features/auth/services/authentication_storage.dart';
-import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 
 class AuthenticationCubit extends Cubit<AuthenticationState> {
   final AuthenticationRepository repository;
@@ -14,12 +11,11 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
   AuthenticationCubit({
     required this.repository,
     required this.storage,
-  }) : super(AuthenticationInitial()) {
-    _init();
-  }
+  }) : super(AuthenticationInitial());
 
-  Future<void> _init() async {
+  Future<void> initialize() async {
     try {
+      await repository.initialize();
       final tokens = await storage.getTokens();
       if (tokens != null) {
         emit(Authenticated(tokens: tokens));
@@ -27,8 +23,19 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
         emit(Unauthenticated());
       }
     } catch (e) {
-      log(getErrorMessage(e));
-      emit(Unauthenticated());
+      emit(AuthenticationError(e));
+    }
+  }
+
+  Future<void> authenticateWithGoogle() async {
+    emit(AuthenticationInProgress());
+
+    try {
+      final tokens = await repository.authenticateWithGoogle();
+      await storage.saveTokens(tokens);
+      emit(Authenticated(tokens: tokens));
+    } catch (e) {
+      emit(AuthenticationError(e));
     }
   }
 
@@ -67,8 +74,6 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
       emit(AuthenticationError(e));
     }
   }
-
-  // Future<void> authenticateWithGoogle() async {}
 
   Future<void> onSignedOut() async {
     await storage.clearTokens();

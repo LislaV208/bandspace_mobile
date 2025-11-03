@@ -34,25 +34,14 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 void logError(
   dynamic error, {
   StackTrace? stackTrace,
-  String? hint,
   Map<String, dynamic>? extras,
+  String? hint, // TODO: remove
 }) {
   if (kDebugMode) {
     // Tryb debug - loguj za pomocą developer.log
-    final message = StringBuffer();
-
-    if (hint != null) {
-      message.writeln('[$hint]');
-    }
-
-    message.write('Error: $error');
-
-    if (extras != null && extras.isNotEmpty) {
-      message.writeln('\nExtras: $extras');
-    }
 
     developer.log(
-      message.toString(),
+      getErrorMessage(error),
       name: 'ErrorLogger',
       error: error,
       stackTrace: stackTrace,
@@ -62,7 +51,7 @@ void logError(
     Sentry.captureException(
       error,
       stackTrace: stackTrace,
-      hint: hint != null ? Hint.withMap({'context': hint}) : null,
+      hint: Hint.withMap({'context': getErrorMessage(error)}),
       withScope: (scope) {
         if (extras != null) {
           scope.setContexts('extras', extras);

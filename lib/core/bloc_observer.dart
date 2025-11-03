@@ -20,7 +20,6 @@ class AppBlocObserver extends BlocObserver {
     logError(
       error,
       stackTrace: stackTrace,
-      hint: 'Błąd w ${bloc.runtimeType}',
     );
   }
 

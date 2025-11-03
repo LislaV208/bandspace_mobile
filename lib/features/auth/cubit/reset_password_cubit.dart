@@ -1,15 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 import 'package:bandspace_mobile/features/auth/cubit/reset_password_state.dart';
 import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
+import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 
 /// Cubit zarządzający stanem resetowania hasła
 class ResetPasswordCubit extends Cubit<ResetPasswordState> {
   final AuthRepository authRepository;
 
-  ResetPasswordCubit({required this.authRepository})
-    : super(const ResetPasswordInitial());
+  ResetPasswordCubit({required this.authRepository}) : super(const ResetPasswordInitial());
 
   /// Waliduje email
   bool _validateEmail(String email) {
@@ -51,7 +50,6 @@ class ResetPasswordCubit extends Cubit<ResetPasswordState> {
       logError(
         e,
         stackTrace: stackTrace,
-        hint: 'Password reset request failed',
         extras: {'email': email.trim()},
       );
       emit(ResetPasswordFailure(message: e.toString()));

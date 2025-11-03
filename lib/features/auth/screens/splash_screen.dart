@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:bandspace_mobile/features/auth/cubit/authentication_cubit.dart';
 import 'package:bandspace_mobile/shared/theme/theme.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -14,6 +16,8 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
+    context.read<AuthenticationCubit>().initialize();
+
     super.initState();
   }
 

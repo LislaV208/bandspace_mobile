@@ -17,6 +17,7 @@ import 'package:bandspace_mobile/features/dashboard/screens/dashboard_screen.dar
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 import 'package:bandspace_mobile/shared/navigation/custom_page_routes.dart';
 import 'package:bandspace_mobile/shared/theme/theme.dart';
+import 'package:bandspace_mobile/shared/widgets/dialogs/error_dialog.dart';
 
 /// Główna funkcja uruchamiająca aplikację.
 ///
@@ -102,6 +103,10 @@ class MainApp extends StatelessWidget {
               } else if (state is Unauthenticated) {
                 // błąd
                 if (state is AuthenticationError) {
+                  final context = _navigatorKey.currentContext;
+                  if (context != null) {
+                    ErrorDialog.show(context, error: state.error);
+                  }
                   return;
                 }
 

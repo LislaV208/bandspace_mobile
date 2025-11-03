@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/projects/projects_state.dart';
 import 'package:bandspace_mobile/shared/models/project.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
+import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 
 /// Cubit zarządzający listą projektów
 class ProjectsCubit extends Cubit<ProjectsState> {
@@ -50,7 +50,6 @@ class ProjectsCubit extends Cubit<ProjectsState> {
             logError(
               error,
               stackTrace: stackTrace,
-              hint: 'Projects stream error',
             );
             final currentState = state;
             if (currentState is ProjectsRefreshing) {
@@ -76,7 +75,6 @@ class ProjectsCubit extends Cubit<ProjectsState> {
         logError(
           e,
           stackTrace: stackTrace,
-          hint: 'Failed to refresh projects',
         );
         emit(ProjectsRefreshFailure(currentState.projects, e.toString()));
       }
@@ -88,7 +86,6 @@ class ProjectsCubit extends Cubit<ProjectsState> {
         logError(
           e,
           stackTrace: stackTrace,
-          hint: 'Failed to reload projects after failure',
         );
         emit(ProjectsLoadFailure(e.toString()));
       }
