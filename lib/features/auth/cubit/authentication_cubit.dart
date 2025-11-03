@@ -18,14 +18,6 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     _init();
   }
 
-  @override
-  void onChange(Change<AuthenticationState> change) {
-    log(
-      '${change.currentState.runtimeType} -> ${change.nextState.runtimeType}',
-    );
-    super.onChange(change);
-  }
-
   Future<void> _init() async {
     try {
       final tokens = await storage.getTokens();

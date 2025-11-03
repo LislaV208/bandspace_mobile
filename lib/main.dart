@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:bandspace_mobile/core/api/api_client.dart';
+import 'package:bandspace_mobile/core/bloc_observer.dart';
 import 'package:bandspace_mobile/core/config/env_config.dart';
 import 'package:bandspace_mobile/core/di/app_providers.dart';
 import 'package:bandspace_mobile/features/auth/api/authentication_interceptor.dart';
@@ -29,6 +30,8 @@ Future<void> main({String envFileName = '.env'}) async {
 
   // Ustawienie przezroczystego statusbara
   AppTheme.setStatusBarColor();
+
+  Bloc.observer = AppBlocObserver();
 
   await SentryFlutter.init(
     (options) {
