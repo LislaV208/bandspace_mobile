@@ -33,10 +33,10 @@ class ResetPasswordSuccess extends ResetPasswordState {
 
 /// Stan błędu resetowania hasła
 class ResetPasswordFailure extends ResetPasswordState {
-  final String message;
+  final Object error;
 
-  const ResetPasswordFailure({required this.message});
+  const ResetPasswordFailure(this.error);
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [error];
 }

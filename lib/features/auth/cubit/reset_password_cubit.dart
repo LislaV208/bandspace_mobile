@@ -1,44 +1,21 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/features/auth/cubit/reset_password_state.dart';
-import 'package:bandspace_mobile/features/auth/repository/auth_repository.dart';
-import 'package:bandspace_mobile/shared/utils/error_logger.dart';
+import 'package:bandspace_mobile/features/auth/repository/authentication_repository.dart';
 
-/// Cubit zarządzający stanem resetowania hasła
 class ResetPasswordCubit extends Cubit<ResetPasswordState> {
-  final AuthRepository authRepository;
+  final AuthenticationRepository repository;
 
-  ResetPasswordCubit({required this.authRepository}) : super(const ResetPasswordInitial());
+  ResetPasswordCubit({required this.repository}) : super(const ResetPasswordInitial());
 
-  /// Waliduje email
-  bool _validateEmail(String email) {
-    if (email.isEmpty) {
-      return false;
-    }
-
-    // Podstawowa walidacja formatu email
-    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-    return emailRegex.hasMatch(email);
-  }
-
-  /// Wysyła żądanie resetowania hasła
   Future<void> requestPasswordReset(String email) async {
-    // Walidacja email
-    if (!_validateEmail(email)) {
-      emit(
-        const ResetPasswordFailure(message: "Wprowadź prawidłowy adres email."),
-      );
-      return;
-    }
-
-    // Ustaw stan ładowania
     emit(const ResetPasswordLoading());
 
     try {
-      // Wywołanie metody żądania resetowania hasła z repozytorium
-      final response = await authRepository.forgotPassword(email: email.trim());
+      final response = await repository.requestPasswordReset(
+        email: email.trim(),
+      );
 
-      // Sukces - pokaż komunikat
       emit(
         ResetPasswordSuccess(
           message: response.message.isNotEmpty
@@ -46,18 +23,8 @@ class ResetPasswordCubit extends Cubit<ResetPasswordState> {
               : "Link do resetowania hasła został wysłany na podany adres email. Sprawdź skrzynkę odbiorczą i kliknij w link, aby dokończyć proces resetowania hasła.",
         ),
       );
-    } catch (e, stackTrace) {
-      logError(
-        e,
-        stackTrace: stackTrace,
-        extras: {'email': email.trim()},
-      );
-      emit(ResetPasswordFailure(message: e.toString()));
+    } catch (e) {
+      emit(ResetPasswordFailure(e));
     }
-  }
-
-  /// Resetuje stan do początku procesu
-  void resetState() {
-    emit(const ResetPasswordInitial());
   }
 }

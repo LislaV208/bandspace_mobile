@@ -1,6 +1,7 @@
 import 'package:bandspace_mobile/core/api/api_repository.dart';
 import 'package:bandspace_mobile/core/auth/google_sign_in_service.dart';
 import 'package:bandspace_mobile/features/auth/models/authentication_tokens.dart';
+import 'package:bandspace_mobile/shared/models/forgot_password_request.dart';
 
 class GoogleSignInCancelledByUser implements Exception {
   const GoogleSignInCancelledByUser();
@@ -72,5 +73,16 @@ class AuthenticationRepository extends ApiRepository {
     final tokens = AuthenticationTokens.fromMap(data);
 
     return tokens;
+  }
+
+  Future<ForgotPasswordResponse> requestPasswordReset({required String email}) async {
+    final request = ForgotPasswordRequest(email: email);
+
+    final response = await apiClient.post(
+      '/api/auth/password/request-reset',
+      data: request.toJson(),
+    );
+
+    return ForgotPasswordResponse.fromJson(response.data);
   }
 }

@@ -7,6 +7,7 @@ import 'package:bandspace_mobile/features/auth/cubit/authentication_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/authentication_screen_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/authentication_screen_state.dart';
 import 'package:bandspace_mobile/features/auth/cubit/authentication_state.dart';
+import 'package:bandspace_mobile/features/auth/cubit/reset_password_cubit.dart';
 import 'package:bandspace_mobile/features/auth/screens/auth_screen.dart';
 import 'package:bandspace_mobile/features/auth/screens/reset_password_screen.dart';
 import 'package:bandspace_mobile/shared/utils/validators.dart';
@@ -165,7 +166,12 @@ class _EmailAuthenticationViewState extends State<EmailAuthenticationView> {
                               ? null
                               : () => Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (context) => ResetPasswordScreen.create(),
+                                    builder: (_) => BlocProvider(
+                                      create: (_) => ResetPasswordCubit(
+                                        repository: context.read(),
+                                      ),
+                                      child: const ResetPasswordScreen(),
+                                    ),
                                   ),
                                 ),
                           style: TextButton.styleFrom(

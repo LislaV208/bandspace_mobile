@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:bandspace_mobile/features/account/cubit/change_password_cubit.dart';
 import 'package:bandspace_mobile/features/account/screens/change_password_screen.dart';
 import 'package:bandspace_mobile/features/auth/cubit/authentication_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
@@ -227,7 +228,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     context,
                   ).push(
                     MaterialPageRoute(
-                      builder: (context) => const ChangePasswordScreen(),
+                      builder: (context) => BlocProvider(
+                        create: (context) => ChangePasswordCubit(
+                          repository: context.read(),
+                        ),
+                        child: const ChangePasswordScreen(),
+                      ),
                     ),
                   );
                 },
