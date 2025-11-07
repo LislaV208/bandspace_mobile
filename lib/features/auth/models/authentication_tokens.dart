@@ -1,28 +1,20 @@
-import 'package:equatable/equatable.dart';
+import 'package:parsable/parsable.dart';
 
-class AuthenticationTokens extends Equatable {
-  final String accessToken;
-  final String refreshToken;
+class AuthenticationTokens extends Parsable {
+  String get accessToken => get('accessToken');
+  String get refreshToken => get('refreshToken');
 
-  const AuthenticationTokens({
-    required this.accessToken,
-    required this.refreshToken,
-  });
+  const AuthenticationTokens._({required super.data});
 
-  @override
-  List<Object?> get props => [accessToken, refreshToken];
-
-  factory AuthenticationTokens.fromMap(Map<String, dynamic> map) {
-    return AuthenticationTokens(
-      accessToken: map['accessToken'],
-      refreshToken: map['refreshToken'],
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
+  factory AuthenticationTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) => AuthenticationTokens._(
+    data: {
       'accessToken': accessToken,
       'refreshToken': refreshToken,
-    };
-  }
+    },
+  );
+
+  factory AuthenticationTokens.fromMap(Map<String, dynamic> map) => AuthenticationTokens._(data: map);
 }

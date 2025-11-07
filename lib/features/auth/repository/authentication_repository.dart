@@ -75,6 +75,20 @@ class AuthenticationRepository extends ApiRepository {
     return tokens;
   }
 
+  Future<AuthenticationTokens> refreshTokens({
+    required String refreshToken,
+  }) async {
+    final response = await apiClient.post(
+      '/api/auth/refresh',
+      data: {'refreshToken': refreshToken},
+    );
+
+    final data = response.data;
+    final tokens = AuthenticationTokens.fromMap(data);
+
+    return tokens;
+  }
+
   Future<ForgotPasswordResponse> requestPasswordReset({required String email}) async {
     final request = ForgotPasswordRequest(email: email);
 

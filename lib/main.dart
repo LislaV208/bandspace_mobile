@@ -92,8 +92,12 @@ class MainApp extends StatelessWidget {
             listener: (context, state) {
               // zalogowany
               if (state is Authenticated) {
-                context.read<ApiClient>().addInterceptor(
-                  AuthenticationInterceptor(tokens: state.tokens),
+                context.read<ApiClient>().addAuthenticationInterceptor(
+                  AuthenticationInterceptor(
+                    apiClient: context.read(),
+                    storage: context.read(),
+                    repository: context.read(),
+                  ),
                 );
 
                 context.read<UserProfileCubit>().loadProfile();
@@ -101,6 +105,11 @@ class MainApp extends StatelessWidget {
                   FadePageRoute(page: DashboardScreen.create()),
                 );
               } else if (state is Unauthenticated) {
+                // ładowanie
+                if (state is AuthenticationInProgress) {
+                  return;
+                }
+
                 // błąd
                 if (state is AuthenticationError) {
                   final context = _navigatorKey.currentContext;
@@ -110,10 +119,7 @@ class MainApp extends StatelessWidget {
                   return;
                 }
 
-                // ładowanie
-                if (state is AuthenticationInProgress) {
-                  return;
-                }
+                context.read<ApiClient>().removeAuthenticationInterceptor();
 
                 // niezalogowany
                 _navigatorKey.currentState?.popUntil(

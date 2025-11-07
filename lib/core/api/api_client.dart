@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
 
 import 'package:bandspace_mobile/core/config/env_config.dart';
+import 'package:bandspace_mobile/features/auth/api/authentication_interceptor.dart';
 
 /// Klasa ApiClient odpowiedzialna za wykonywanie żądań HTTP
 /// do API BandSpace przy użyciu biblioteki dio z obsługą automatycznego
@@ -35,10 +36,14 @@ class ApiClient {
     ]);
   }
 
-  void addInterceptor(Interceptor interceptor) {
+  void addAuthenticationInterceptor(AuthenticationInterceptor interceptor) {
     if (!dio.interceptors.contains(interceptor)) {
       dio.interceptors.add(interceptor);
     }
+  }
+
+  void removeAuthenticationInterceptor() {
+    dio.interceptors.removeWhere((interceptor) => interceptor is AuthenticationInterceptor);
   }
 
   /// Wykonuje żądanie GET
@@ -119,6 +124,24 @@ class ApiClient {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) => dio.patch(
+    path,
+    data: data,
+    queryParameters: queryParameters,
+    options: options,
+    cancelToken: cancelToken,
+    onSendProgress: onSendProgress,
+    onReceiveProgress: onReceiveProgress,
+  );
+
+  Future<Response> request(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) => dio.request(
     path,
     data: data,
     queryParameters: queryParameters,
