@@ -2,13 +2,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
 import 'package:bandspace_mobile/core/api/api_client.dart';
-import 'package:bandspace_mobile/core/auth/auth_event_service.dart';
-import 'package:bandspace_mobile/core/auth/google_sign_in_service.dart' show GoogleSignInService;
 import 'package:bandspace_mobile/core/storage/database_storage.dart';
 import 'package:bandspace_mobile/core/storage/sembast_database_storage.dart';
-import 'package:bandspace_mobile/features/auth/cubit/authentication_cubit.dart';
-import 'package:bandspace_mobile/features/auth/repository/authentication_repository.dart';
-import 'package:bandspace_mobile/features/auth/services/authentication_storage.dart';
+import 'package:bandspace_mobile/features/authentication/cubit/authentication/authentication_cubit.dart';
+import 'package:bandspace_mobile/features/authentication/repository/authentication_repository.dart';
+import 'package:bandspace_mobile/features/authentication/services/authentication_storage.dart';
+import 'package:bandspace_mobile/features/authentication/services/google_sign_in_service.dart' show GoogleSignInService;
 import 'package:bandspace_mobile/features/project_detail/repository/project_members_repository.dart';
 import 'package:bandspace_mobile/shared/cubits/user_invitations/user_invitations_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
@@ -20,7 +19,6 @@ import 'package:bandspace_mobile/shared/services/wakelock_service.dart';
 
 final appProviders = [
   // Core
-  Provider(create: (context) => AuthEventService()),
   Provider(create: (context) => ApiClient()),
   Provider(create: (context) => GoogleSignInService()),
 

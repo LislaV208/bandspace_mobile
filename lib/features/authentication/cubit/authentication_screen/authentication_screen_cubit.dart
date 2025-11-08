@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/features/auth/cubit/authentication_screen_state.dart';
+import 'package:bandspace_mobile/features/authentication/cubit/authentication_screen/authentication_screen_state.dart';
 
 class AuthenticationScreenCubit extends Cubit<AuthenticationScreenState> {
   AuthenticationScreenCubit() : super(GoogleAuthentication());

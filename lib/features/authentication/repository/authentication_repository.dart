@@ -1,6 +1,6 @@
 import 'package:bandspace_mobile/core/api/api_repository.dart';
-import 'package:bandspace_mobile/core/auth/google_sign_in_service.dart';
-import 'package:bandspace_mobile/features/auth/models/authentication_tokens.dart';
+import 'package:bandspace_mobile/features/authentication/models/authentication_tokens.dart';
+import 'package:bandspace_mobile/features/authentication/services/google_sign_in_service.dart';
 import 'package:bandspace_mobile/shared/models/forgot_password_request.dart';
 
 class GoogleSignInCancelledByUser implements Exception {

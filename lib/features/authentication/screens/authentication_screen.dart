@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:bandspace_mobile/features/auth/cubit/authentication_cubit.dart';
-import 'package:bandspace_mobile/features/auth/cubit/authentication_screen_cubit.dart';
-import 'package:bandspace_mobile/features/auth/cubit/authentication_screen_state.dart';
-import 'package:bandspace_mobile/features/auth/cubit/authentication_state.dart';
-import 'package:bandspace_mobile/features/auth/view/email_authentication_view.dart';
-import 'package:bandspace_mobile/features/auth/view/google_authentication_view.dart';
+import 'package:bandspace_mobile/features/authentication/cubit/authentication/authentication_cubit.dart';
+import 'package:bandspace_mobile/features/authentication/cubit/authentication/authentication_state.dart';
+import 'package:bandspace_mobile/features/authentication/cubit/authentication_screen/authentication_screen_cubit.dart';
+import 'package:bandspace_mobile/features/authentication/cubit/authentication_screen/authentication_screen_state.dart';
+import 'package:bandspace_mobile/features/authentication/view/email_authentication_view.dart';
+import 'package:bandspace_mobile/features/authentication/view/google_authentication_view.dart';
 import 'package:bandspace_mobile/shared/theme/app_colors.dart';
 import 'package:bandspace_mobile/shared/theme/text_styles.dart';
 
-class AuthScreen extends StatelessWidget {
-  const AuthScreen({super.key});
+class AuthenticationScreen extends StatelessWidget {
+  const AuthenticationScreen({super.key});
 
   static const transitionDuration = Duration(milliseconds: 300);
   static const transitionCurve = Curves.easeInOut;

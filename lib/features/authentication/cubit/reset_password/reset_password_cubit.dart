@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/features/auth/cubit/reset_password_state.dart';
-import 'package:bandspace_mobile/features/auth/repository/authentication_repository.dart';
+import 'package:bandspace_mobile/features/authentication/cubit/reset_password/reset_password_state.dart';
+import 'package:bandspace_mobile/features/authentication/repository/authentication_repository.dart';
 
 class ResetPasswordCubit extends Cubit<ResetPasswordState> {
   final AuthenticationRepository repository;

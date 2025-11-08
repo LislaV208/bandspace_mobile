@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/features/auth/cubit/authentication_state.dart';
-import 'package:bandspace_mobile/features/auth/repository/authentication_repository.dart';
-import 'package:bandspace_mobile/features/auth/services/authentication_storage.dart';
+import 'package:bandspace_mobile/features/authentication/cubit/authentication/authentication_state.dart';
+import 'package:bandspace_mobile/features/authentication/repository/authentication_repository.dart';
+import 'package:bandspace_mobile/features/authentication/services/authentication_storage.dart';
 
 class AuthenticationCubit extends Cubit<AuthenticationState> {
   final AuthenticationRepository repository;

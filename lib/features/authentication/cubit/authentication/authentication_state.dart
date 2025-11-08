@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import 'package:bandspace_mobile/features/auth/models/authentication_tokens.dart';
+import 'package:bandspace_mobile/features/authentication/models/authentication_tokens.dart';
 
 sealed class AuthenticationState extends Equatable {
   @override

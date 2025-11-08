@@ -5,7 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:bandspace_mobile/features/account/screens/profile_screen.dart';
-import 'package:bandspace_mobile/features/auth/cubit/authentication_cubit.dart';
+import 'package:bandspace_mobile/features/authentication/cubit/authentication/authentication_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
