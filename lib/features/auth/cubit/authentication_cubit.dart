@@ -11,9 +11,11 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
   AuthenticationCubit({
     required this.repository,
     required this.storage,
-  }) : super(AuthenticationInitial());
+  }) : super(AuthenticationInitial()) {
+    _initialize();
+  }
 
-  Future<void> initialize() async {
+  Future<void> _initialize() async {
     try {
       await repository.initialize();
       final tokens = await storage.getTokens();
@@ -23,12 +25,12 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
         emit(Unauthenticated());
       }
     } catch (e) {
-      emit(AuthenticationError(e));
+      emit(UnauthenticatedFailed(e));
     }
   }
 
   Future<void> authenticateWithGoogle() async {
-    emit(AuthenticationInProgress());
+    emit(Authenticating());
 
     try {
       final tokens = await repository.authenticateWithGoogle();
@@ -37,7 +39,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     } on GoogleSignInCancelledByUser {
       emit(Unauthenticated());
     } catch (e) {
-      emit(AuthenticationError(e));
+      emit(UnauthenticatedFailed(e));
     }
   }
 
@@ -45,7 +47,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     required String email,
     required String password,
   }) async {
-    emit(AuthenticationInProgress());
+    emit(Authenticating());
 
     try {
       final tokens = await repository.signInWithEmail(
@@ -55,7 +57,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
       await storage.saveTokens(tokens);
       emit(Authenticated(tokens: tokens));
     } catch (e) {
-      emit(AuthenticationError(e));
+      emit(UnauthenticatedFailed(e));
     }
   }
 
@@ -63,7 +65,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     required String email,
     required String password,
   }) async {
-    emit(AuthenticationInProgress());
+    emit(Authenticating());
 
     try {
       final tokens = await repository.registerWithEmail(
@@ -73,12 +75,12 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
       await storage.saveTokens(tokens);
       emit(Authenticated(tokens: tokens));
     } catch (e) {
-      emit(AuthenticationError(e));
+      emit(UnauthenticatedFailed(e));
     }
   }
 
   Future<void> onSignedOut() async {
     await storage.clearTokens();
-    emit(Unauthenticated());
+    emit(UnauthenticatedSignedOut());
   }
 }

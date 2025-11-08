@@ -36,7 +36,7 @@ class GoogleAuthenticationView extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: BlocSelector<AuthenticationCubit, AuthenticationState, bool>(
                   selector: (state) {
-                    return state is AuthenticationInProgress;
+                    return state is Authenticating;
                   },
                   builder: (context, isLoading) {
                     return Row(

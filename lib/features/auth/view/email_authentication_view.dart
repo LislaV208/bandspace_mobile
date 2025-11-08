@@ -43,7 +43,7 @@ class _EmailAuthenticationViewState extends State<EmailAuthenticationView> {
     return BlocBuilder<AuthenticationCubit, AuthenticationState>(
       builder: (context, authenticationState) {
         final state = widget.state;
-        final isLoading = authenticationState is AuthenticationInProgress;
+        final isLoading = authenticationState is Authenticating;
         final isLoginView = state.runtimeType == EmailAuthenticationLogin;
 
         return Form(

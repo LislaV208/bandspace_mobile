@@ -12,7 +12,6 @@ import 'package:bandspace_mobile/features/auth/cubit/authentication_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/authentication_screen_cubit.dart';
 import 'package:bandspace_mobile/features/auth/cubit/authentication_state.dart';
 import 'package:bandspace_mobile/features/auth/screens/auth_screen.dart';
-import 'package:bandspace_mobile/features/auth/screens/splash_screen.dart';
 import 'package:bandspace_mobile/features/dashboard/screens/dashboard_screen.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 import 'package:bandspace_mobile/shared/navigation/custom_page_routes.dart';
@@ -89,6 +88,7 @@ class MainApp extends StatelessWidget {
         ),
         builder: (context, child) {
           return BlocListener<AuthenticationCubit, AuthenticationState>(
+            listenWhen: (previous, current) => previous is! AuthenticationInitial,
             listener: (context, state) {
               // zalogowany
               if (state is Authenticated) {
@@ -97,6 +97,9 @@ class MainApp extends StatelessWidget {
                     apiClient: context.read(),
                     storage: context.read(),
                     repository: context.read(),
+                    onSessionExpired: () {
+                      context.read<AuthenticationCubit>().onSignedOut();
+                    },
                   ),
                 );
 
@@ -105,40 +108,43 @@ class MainApp extends StatelessWidget {
                   FadePageRoute(page: DashboardScreen.create()),
                 );
               } else if (state is Unauthenticated) {
-                // ładowanie
-                if (state is AuthenticationInProgress) {
+                // logowanie
+                if (state is Authenticating) {
                   return;
                 }
 
-                // błąd
-                if (state is AuthenticationError) {
+                // błąd podczas logowania - pokazujemy tylko blad i nic wiecej
+                if (state is UnauthenticatedFailed) {
                   final context = _navigatorKey.currentContext;
                   if (context != null) {
                     ErrorDialog.show(context, error: state.error);
                   }
-                  return;
                 }
 
                 context.read<ApiClient>().removeAuthenticationInterceptor();
 
-                // niezalogowany
-                _navigatorKey.currentState?.popUntil(
-                  (context) => context.isFirst,
-                );
-                _navigatorKey.currentState?.pushReplacement(
-                  FadePageRoute(
-                    page: BlocProvider(
-                      create: (context) => AuthenticationScreenCubit(),
-                      child: const AuthScreen(),
+                if (state is UnauthenticatedExpired || state is UnauthenticatedSignedOut) {
+                  _navigatorKey.currentState?.popUntil(
+                    (route) => route.isFirst,
+                  );
+                  _navigatorKey.currentState?.pushReplacement(
+                    FadePageRoute(
+                      page: BlocProvider(
+                        create: (context) => AuthenticationScreenCubit(),
+                        child: const AuthScreen(),
+                      ),
                     ),
-                  ),
-                );
+                  );
+                }
               }
             },
             child: child ?? const SizedBox(),
           );
         },
-        home: const SplashScreen(),
+        home: BlocProvider(
+          create: (context) => AuthenticationScreenCubit(),
+          child: const AuthScreen(),
+        ),
         debugShowCheckedModeBanner: false,
       ),
     );

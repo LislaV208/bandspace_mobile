@@ -4,15 +4,19 @@ import 'package:bandspace_mobile/core/api/api_client.dart';
 import 'package:bandspace_mobile/features/auth/repository/authentication_repository.dart';
 import 'package:bandspace_mobile/features/auth/services/authentication_storage.dart';
 
+typedef OnSessionExpired = void Function();
+
 class AuthenticationInterceptor extends Interceptor {
   final ApiClient apiClient;
   final AuthenticationStorage storage;
   final AuthenticationRepository repository;
+  final OnSessionExpired onSessionExpired;
 
   AuthenticationInterceptor({
     required this.apiClient,
     required this.storage,
     required this.repository,
+    required this.onSessionExpired,
   });
 
   @override
@@ -38,20 +42,29 @@ class AuthenticationInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode != 401) return handler.next(err);
 
+    var sessionExpired = false;
+
     final options = err.response?.requestOptions;
-    if (options == null) return handler.reject(err);
+    // if (options == null) return handler.reject(err);
+    if (options == null) sessionExpired = true;
 
     final tokens = await storage.getTokens();
-    if (tokens == null) return handler.reject(err);
+    // if (tokens == null) return handler.reject(err);
+    if (tokens == null) sessionExpired = true;
+
+    if (sessionExpired) {
+      onSessionExpired();
+      return handler.reject(err);
+    }
 
     try {
       final newTokens = await repository.refreshTokens(
-        refreshToken: tokens.refreshToken,
+        refreshToken: tokens!.refreshToken,
       );
 
       await storage.saveTokens(newTokens);
 
-      options.headers['Authorization'] = 'Bearer ${newTokens.accessToken}';
+      options!.headers['Authorization'] = 'Bearer ${newTokens.accessToken}';
 
       final response = await apiClient.request(
         options.path,
@@ -71,6 +84,7 @@ class AuthenticationInterceptor extends Interceptor {
 
       handler.resolve(response);
     } on DioException catch (e) {
+      onSessionExpired();
       handler.reject(e);
     }
   }
