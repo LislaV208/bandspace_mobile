@@ -7,14 +7,14 @@ import 'package:bandspace_mobile/core/api/api_client.dart';
 import 'package:bandspace_mobile/core/bloc_observer.dart';
 import 'package:bandspace_mobile/core/config/env_config.dart';
 import 'package:bandspace_mobile/core/di/app_providers.dart';
+import 'package:bandspace_mobile/core/navigation/custom_page_routes.dart';
 import 'package:bandspace_mobile/features/authentication/api/authentication_interceptor.dart';
 import 'package:bandspace_mobile/features/authentication/cubit/authentication/authentication_cubit.dart';
-import 'package:bandspace_mobile/features/authentication/cubit/authentication_screen/authentication_screen_cubit.dart';
 import 'package:bandspace_mobile/features/authentication/cubit/authentication/authentication_state.dart';
+import 'package:bandspace_mobile/features/authentication/cubit/authentication_screen/authentication_screen_cubit.dart';
 import 'package:bandspace_mobile/features/authentication/screens/authentication_screen.dart';
 import 'package:bandspace_mobile/features/dashboard/screens/dashboard_screen.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
-import 'package:bandspace_mobile/shared/navigation/custom_page_routes.dart';
 import 'package:bandspace_mobile/shared/theme/theme.dart';
 import 'package:bandspace_mobile/shared/widgets/dialogs/error_dialog.dart';
 
