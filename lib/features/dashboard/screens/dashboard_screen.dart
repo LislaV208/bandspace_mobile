@@ -43,40 +43,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return MultiBlocListener(
       listeners: [
-        // Listener dla automatycznego przekierowania po wylogowaniu
-        // TODO
-        // BlocListener<AuthCubit, AuthState>(
-        //   listenWhen: (previous, current) {
-        //     // Słuchaj tylko gdy wcześniej użytkownik był zalogowany, a teraz nie jest
-        //     return previous.user != null && current.user == null;
-        //   },
-        //   listener: (context, state) {
-        //     // Pokaż SnackBar jeśli wylogowanie było spowodowane błędem tokenu
-        //     if (state.loggedOutDueToTokenFailure) {
-        //       ScaffoldMessenger.of(context).showSnackBar(
-        //         SnackBar(
-        //           content: Text('Wystąpił błąd sesji. Zaloguj się ponownie.'),
-        //           backgroundColor: Theme.of(context).colorScheme.errorContainer,
-        //         ),
-        //       );
-        //     }
-
-        //     // Użytkownik został wylogowany - przekieruj do AuthScreen
-        //     Navigator.of(context).pushAndRemoveUntil(
-        //       MaterialPageRoute(
-        //         builder: (context) => BlocProvider(
-        //           create: (context) => AuthenticationScreenCubit(),
-        //           child: const AuthScreen(),
-        //         ),
-        //       ),
-        //       (route) => false, // Usuń wszystkie poprzednie ekrany ze stosu
-        //     );
-        //   },
-        // ),
         BlocListener<UserProfileCubit, UserProfileState>(
           listenWhen: (previous, current) =>
-              previous is UserProfileEditNameSubmitting &&
-              current is UserProfileLoadSuccess,
+              previous is UserProfileEditNameSubmitting && current is UserProfileLoadSuccess,
           listener: (context, state) {
             if (state is UserProfileLoadSuccess) {
               context.read<ProjectsCubit>().refreshProjects();
@@ -84,8 +53,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           },
         ),
         BlocListener<UserInvitationsCubit, UserInvitationsState>(
-          listenWhen: (previous, current) =>
-              current is UserInvitationsActionSuccess,
+          listenWhen: (previous, current) => current is UserInvitationsActionSuccess,
           listener: (context, state) {
             context.read<ProjectsCubit>().refreshProjects();
           },

@@ -12,12 +12,8 @@ import 'package:bandspace_mobile/shared/models/user.dart';
 import 'package:bandspace_mobile/shared/theme/theme.dart';
 import 'package:bandspace_mobile/shared/widgets/user_avatar.dart';
 
-///
-/// Zawiera informacje o użytkowniku oraz opcje nawigacji.
 class UserDrawer extends StatelessWidget {
   const UserDrawer({super.key});
-
-  /// Obiekt użytkownika zawierający dane do wyświetlenia.
 
   @override
   Widget build(BuildContext context) {
