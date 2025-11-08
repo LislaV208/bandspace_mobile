@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
-import 'package:bandspace_mobile/shared/repositories/account_repository.dart';
+import 'package:bandspace_mobile/features/account/repositories/account_repository.dart';
 import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 
 /// Cubit zarządzający stanem profilu użytkownika

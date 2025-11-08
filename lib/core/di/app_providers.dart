@@ -11,7 +11,7 @@ import 'package:bandspace_mobile/features/authentication/services/google_sign_in
 import 'package:bandspace_mobile/features/project_detail/repository/project_members_repository.dart';
 import 'package:bandspace_mobile/shared/cubits/user_invitations/user_invitations_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
-import 'package:bandspace_mobile/shared/repositories/account_repository.dart';
+import 'package:bandspace_mobile/features/account/repositories/account_repository.dart';
 import 'package:bandspace_mobile/shared/repositories/invitations_repository.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 import 'package:bandspace_mobile/shared/services/shared_preferences_storage.dart';
