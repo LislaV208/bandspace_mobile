@@ -6,7 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:bandspace_mobile/features/account/cubit/change_password_cubit.dart';
 import 'package:bandspace_mobile/features/account/screens/change_password_screen.dart';
-import 'package:bandspace_mobile/features/authentication/cubit/authentication/authentication_cubit.dart';
+import 'package:bandspace_mobile/core/authentication/cubit/authentication_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 import 'package:bandspace_mobile/shared/utils/error_logger.dart';

@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
 
+import 'package:bandspace_mobile/core/authentication/authentication_interceptor.dart';
 import 'package:bandspace_mobile/core/config/env_config.dart';
-import 'package:bandspace_mobile/features/authentication/api/authentication_interceptor.dart';
 
 /// Klasa ApiClient odpowiedzialna za wykonywanie żądań HTTP
 /// do API BandSpace przy użyciu biblioteki dio z obsługą automatycznego

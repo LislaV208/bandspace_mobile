@@ -1,6 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import 'package:bandspace_mobile/features/authentication/models/authentication_tokens.dart';
+import 'package:bandspace_mobile/core/authentication/authentication_tokens.dart';
 
 class AuthenticationStorage {
   final _storage = FlutterSecureStorage();

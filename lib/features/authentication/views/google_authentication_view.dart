@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 
-import 'package:bandspace_mobile/features/authentication/cubit/authentication/authentication_cubit.dart';
+import 'package:bandspace_mobile/core/authentication/cubit/authentication_cubit.dart';
 import 'package:bandspace_mobile/features/authentication/cubit/authentication_screen/authentication_screen_cubit.dart';
-import 'package:bandspace_mobile/features/authentication/cubit/authentication/authentication_state.dart';
+import 'package:bandspace_mobile/core/authentication/cubit/authentication_state.dart';
 
 class GoogleAuthenticationView extends StatelessWidget {
   const GoogleAuthenticationView({super.key});

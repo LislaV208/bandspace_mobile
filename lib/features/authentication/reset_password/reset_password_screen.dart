@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 
-import 'package:bandspace_mobile/features/authentication/cubit/reset_password/reset_password_cubit.dart';
-import 'package:bandspace_mobile/features/authentication/cubit/reset_password/reset_password_state.dart';
+import 'package:bandspace_mobile/features/authentication/reset_password/cubit/reset_password_cubit.dart';
+import 'package:bandspace_mobile/features/authentication/reset_password/cubit/reset_password_state.dart';
 import 'package:bandspace_mobile/shared/utils/validators.dart';
 import 'package:bandspace_mobile/shared/widgets/dialogs/error_dialog.dart';
 import 'package:bandspace_mobile/shared/widgets/dialogs/info_dialog.dart';

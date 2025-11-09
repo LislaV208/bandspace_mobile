@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 
 import 'package:bandspace_mobile/core/api/api_client.dart';
+import 'package:bandspace_mobile/core/authentication/authentication_storage.dart';
 import 'package:bandspace_mobile/features/authentication/repository/authentication_repository.dart';
-import 'package:bandspace_mobile/features/authentication/services/authentication_storage.dart';
 
 typedef OnSessionExpired = void Function();
 

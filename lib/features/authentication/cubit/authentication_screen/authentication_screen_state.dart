@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-abstract class AuthenticationScreenState extends Equatable {
+sealed class AuthenticationScreenState extends Equatable {
   @override
   List<Object?> get props => [];
 }
