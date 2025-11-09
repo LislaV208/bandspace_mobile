@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 import 'package:bandspace_mobile/features/dashboard/cubit/create_project/create_project_state.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
+import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 
 class CreateProjectCubit extends Cubit<CreateProjectState> {
   final ProjectsRepository projectsRepository;
@@ -21,7 +21,6 @@ class CreateProjectCubit extends Cubit<CreateProjectState> {
       logError(
         e,
         stackTrace: stackTrace,
-        hint: 'Failed to create project',
         extras: {'projectName': name.trim()},
       );
       emit(CreateProjectFailure(e.toString()));

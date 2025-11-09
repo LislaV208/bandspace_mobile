@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 import 'package:bandspace_mobile/features/project_detail/cubit/create_song/new_song_state.dart';
 import 'package:bandspace_mobile/shared/models/song_create_data.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
+import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 
 /// Cubit zarządzający stanem tworzenia nowego utworu
 class NewSongCubit extends Cubit<NewSongState> {
@@ -39,7 +39,6 @@ class NewSongCubit extends Cubit<NewSongState> {
       logError(
         e,
         stackTrace: stackTrace,
-        hint: 'Failed to select song file',
       );
       emit(NewSongSelectFileFailure(e.toString()));
     }
@@ -85,16 +84,13 @@ class NewSongCubit extends Cubit<NewSongState> {
         logError(
           e,
           stackTrace: stackTrace,
-          hint: 'Failed to upload song',
           extras: {
             'songName': songName,
             'projectId': projectId,
             'hasFile': hasFile,
           },
         );
-        final progress = state is NewSongUploading
-            ? (state as NewSongUploading).uploadProgress
-            : 0.0;
+        final progress = state is NewSongUploading ? (state as NewSongUploading).uploadProgress : 0.0;
         emit(NewSongUploadFailure(progress, songName, e.toString()));
       }
     }

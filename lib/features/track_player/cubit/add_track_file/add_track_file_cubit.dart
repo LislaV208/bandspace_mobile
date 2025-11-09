@@ -4,10 +4,10 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 import 'package:bandspace_mobile/features/track_player/cubit/add_track_file/add_track_file_state.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
 import 'package:bandspace_mobile/shared/services/wakelock_service.dart';
+import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 
 class AddTrackFileCubit extends Cubit<AddTrackFileState> {
   final ProjectsRepository projectsRepository;
@@ -43,7 +43,6 @@ class AddTrackFileCubit extends Cubit<AddTrackFileState> {
       logError(
         e,
         stackTrace: stackTrace,
-        hint: 'Failed to select audio file for track',
       );
       emit(AddTrackFileFailure(e.toString()));
     }
@@ -82,7 +81,6 @@ class AddTrackFileCubit extends Cubit<AddTrackFileState> {
         logError(
           e,
           stackTrace: stackTrace,
-          hint: 'Failed to upload track file: $fileName',
         );
         log(
           'Track file upload failed: $fileName. Error: $e',

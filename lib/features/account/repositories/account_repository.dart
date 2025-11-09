@@ -76,4 +76,9 @@ class AccountRepository extends CachedRepository {
     await apiClient.delete('/api/account');
     await invalidateAll();
   }
+
+  Future<void> signOut() async {
+    await apiClient.post('/api/auth/logout');
+    await invalidateAll();
+  }
 }

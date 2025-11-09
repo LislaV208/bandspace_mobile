@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
-import 'package:bandspace_mobile/shared/repositories/account_repository.dart';
+import 'package:bandspace_mobile/features/account/repositories/account_repository.dart';
+import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 
 /// Cubit zarządzający stanem profilu użytkownika
 class UserProfileCubit extends Cubit<UserProfileState> {
@@ -31,7 +31,7 @@ class UserProfileCubit extends Cubit<UserProfileState> {
         userRepository.getProfile().listen((user) {
           emit(UserProfileLoadSuccess(user));
         })..onError((error) {
-          emit(UserProfileLoadFailure(getErrorMessage(error)));
+          emit(UserProfileLoadFailure(error));
         });
   }
 
@@ -65,7 +65,7 @@ class UserProfileCubit extends Cubit<UserProfileState> {
           stackTrace: stackTrace,
           hint: 'Failed to update user profile name',
         );
-        emit(UserProfileEditNameFailure(user, getErrorMessage(e)));
+        emit(UserProfileEditNameFailure(user, e));
       }
     }
   }
@@ -86,7 +86,21 @@ class UserProfileCubit extends Cubit<UserProfileState> {
           stackTrace: stackTrace,
           hint: 'Failed to delete user account',
         );
-        emit(UserProfileDeleteFailure(user, getErrorMessage(e)));
+        emit(UserProfileDeleteFailure(user, e));
+      }
+    }
+  }
+
+  Future<void> signOut() async {
+    if (state is UserProfileLoadSuccess) {
+      final currentState = state as UserProfileLoadSuccess;
+      try {
+        emit(UserSigningOut(currentState.user));
+
+        await userRepository.signOut();
+        emit(UserSignedOut(currentState.user));
+      } catch (e) {
+        emit(UserSigningOutError(e, currentState.user));
       }
     }
   }

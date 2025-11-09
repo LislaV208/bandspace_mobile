@@ -1,4 +1,5 @@
 {
   "cmake.ignoreCMakeListsMissing": true,
   "kiroAgent.configureMCP": "Enabled",
+  "dart.flutterSdkPath": ".fvm/versions/3.35.7"
 }

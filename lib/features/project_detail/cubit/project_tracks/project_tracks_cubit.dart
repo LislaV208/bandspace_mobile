@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:developer';
-import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/features/project_detail/cubit/project_tracks/project_tracks_state.dart';
 import 'package:bandspace_mobile/shared/models/track.dart';
 import 'package:bandspace_mobile/shared/repositories/projects_repository.dart';
+import 'package:bandspace_mobile/shared/utils/error_logger.dart';
 
 class ProjectTracksCubit extends Cubit<ProjectTracksState> {
   final ProjectsRepository projectsRepository;
@@ -100,7 +100,6 @@ class ProjectTracksCubit extends Cubit<ProjectTracksState> {
         logError(
           e,
           stackTrace: stackTrace,
-          hint: 'Failed to refresh project tracks',
         );
         emit(ProjectTracksRefreshFailure(currentState.tracks, e.toString()));
       }
@@ -112,7 +111,6 @@ class ProjectTracksCubit extends Cubit<ProjectTracksState> {
         logError(
           e,
           stackTrace: stackTrace,
-          hint: 'Failed to refresh project tracks after load failure',
         );
         emit(ProjectTracksLoadFailure(e.toString()));
       }

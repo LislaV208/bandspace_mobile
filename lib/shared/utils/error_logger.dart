@@ -34,25 +34,14 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 void logError(
   dynamic error, {
   StackTrace? stackTrace,
-  String? hint,
   Map<String, dynamic>? extras,
+  String? hint, // TODO: remove
 }) {
   if (kDebugMode) {
     // Tryb debug - loguj za pomocą developer.log
-    final message = StringBuffer();
-
-    if (hint != null) {
-      message.writeln('[$hint]');
-    }
-
-    message.write('Error: $error');
-
-    if (extras != null && extras.isNotEmpty) {
-      message.writeln('\nExtras: $extras');
-    }
 
     developer.log(
-      message.toString(),
+      getErrorMessage(error),
       name: 'ErrorLogger',
       error: error,
       stackTrace: stackTrace,
@@ -62,7 +51,7 @@ void logError(
     Sentry.captureException(
       error,
       stackTrace: stackTrace,
-      hint: hint != null ? Hint.withMap({'context': hint}) : null,
+      hint: Hint.withMap({'context': getErrorMessage(error)}),
       withScope: (scope) {
         if (extras != null) {
           scope.setContexts('extras', extras);
@@ -111,9 +100,7 @@ String getErrorMessage(
   final stringValue = error.toString();
 
   // Jeśli toString() zwraca coś sensownego (nie tylko typ), użyj tego
-  if (stringValue.isNotEmpty &&
-      !stringValue.startsWith('Instance of ') &&
-      !stringValue.startsWith('Exception:')) {
+  if (stringValue.isNotEmpty && !stringValue.startsWith('Instance of ') && !stringValue.startsWith('Exception:')) {
     return stringValue;
   }
 
@@ -122,6 +109,27 @@ String getErrorMessage(
 
 /// Ekstraktuje wiadomość błędu z DioException response
 String? _extractMessageFromDioException(DioException error) {
+  // Najpierw sprawdź typ błędu sieciowego - zwróć user-friendly komunikat
+  switch (error.type) {
+    case DioExceptionType.connectionTimeout:
+      return 'Przekroczono limit czasu połączenia. Sprawdź swoje połączenie internetowe i spróbuj ponownie.';
+    case DioExceptionType.sendTimeout:
+      return 'Przekroczono limit czasu wysyłania danych. Sprawdź swoje połączenie internetowe i spróbuj ponownie.';
+    case DioExceptionType.receiveTimeout:
+      return 'Przekroczono limit czasu odpowiedzi serwera. Spróbuj ponownie za chwilę.';
+    case DioExceptionType.connectionError:
+      return 'Brak połączenia z internetem. Sprawdź swoje połączenie i spróbuj ponownie.';
+    case DioExceptionType.badCertificate:
+      return 'Problem z certyfikatem bezpieczeństwa. Skontaktuj się z administratorem.';
+    case DioExceptionType.cancel:
+      return 'Żądanie zostało anulowane.';
+    case DioExceptionType.badResponse:
+    case DioExceptionType.unknown:
+      // Kontynuuj do próby ekstrakcji z response
+      break;
+  }
+
+  // Sprawdź czy jest response z danymi
   final response = error.response;
   if (response?.data == null) return null;
 
@@ -137,8 +145,7 @@ String? _extractMessageFromDioException(DioException error) {
         if (errorField is String) {
           return errorField;
         }
-        if (errorField is Map<String, dynamic> &&
-            errorField.containsKey('message')) {
+        if (errorField is Map<String, dynamic> && errorField.containsKey('message')) {
           return errorField['message'] as String?;
         }
       }

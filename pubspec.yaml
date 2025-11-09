@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 0.4.1+8
 
 environment:
-  sdk: ^3.8.1
+  sdk: ^3.9.2
 
 dependencies:
   just_audio: ^0.10.4
@@ -37,6 +37,8 @@ dependencies:
   flutter_native_splash: ^2.4.6
   wakelock_plus: ^1.4.0
   sentry_flutter: ^9.7.0
+  meta: ^1.16.0
+  parsable: ^0.2.0
 
 dev_dependencies:
   flutter_test:
