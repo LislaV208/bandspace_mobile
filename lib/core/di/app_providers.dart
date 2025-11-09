@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:bandspace_mobile/core/api/api_client.dart';
 import 'package:bandspace_mobile/core/authentication/authentication_storage.dart';
-import 'package:bandspace_mobile/core/authentication/cubit/authentication_cubit.dart';
+import 'package:bandspace_mobile/core/authentication/cubit/app_authentication_cubit.dart';
 import 'package:bandspace_mobile/core/storage/database_storage.dart';
 import 'package:bandspace_mobile/core/storage/sembast_database_storage.dart';
 import 'package:bandspace_mobile/features/account/repositories/account_repository.dart';
@@ -84,7 +84,7 @@ final appProviders = [
 
   // Cubity
   BlocProvider(
-    create: (context) => AuthenticationCubit(
+    create: (context) => AppAuthenticationCubit(
       repository: context.read(),
       storage: context.read(),
     ),

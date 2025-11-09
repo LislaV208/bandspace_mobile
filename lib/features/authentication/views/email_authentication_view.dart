@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/core/authentication/cubit/authentication_cubit.dart';
-import 'package:bandspace_mobile/core/authentication/cubit/authentication_state.dart';
+import 'package:bandspace_mobile/core/authentication/cubit/app_authentication_cubit.dart';
+import 'package:bandspace_mobile/core/authentication/cubit/app_authentication_state.dart';
 import 'package:bandspace_mobile/features/authentication/cubit/authentication_screen/authentication_screen_cubit.dart';
 import 'package:bandspace_mobile/features/authentication/cubit/authentication_screen/authentication_screen_state.dart';
 import 'package:bandspace_mobile/features/authentication/reset_password/cubit/reset_password_cubit.dart';
@@ -40,10 +40,10 @@ class _EmailAuthenticationViewState extends State<EmailAuthenticationView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthenticationCubit, AuthenticationState>(
+    return BlocBuilder<AppAuthenticationCubit, AppAuthenticationState>(
       builder: (context, authenticationState) {
         final state = widget.state;
-        final isLoading = authenticationState is Authenticating;
+        final isLoading = authenticationState is AppAuthenticating;
         final isLoginView = state.runtimeType == EmailAuthenticationLogin;
 
         return Form(
@@ -201,7 +201,7 @@ class _EmailAuthenticationViewState extends State<EmailAuthenticationView> {
                           final email = _emailController.text;
                           final password = _passwordController.text;
 
-                          final authenticationCubit = context.read<AuthenticationCubit>();
+                          final authenticationCubit = context.read<AppAuthenticationCubit>();
 
                           if (isLoginView) {
                             authenticationCubit.signInWithEmail(

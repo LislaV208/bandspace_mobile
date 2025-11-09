@@ -2,42 +2,42 @@ import 'package:equatable/equatable.dart';
 
 import 'package:bandspace_mobile/core/authentication/authentication_tokens.dart';
 
-sealed class AuthenticationState extends Equatable {
+sealed class AppAuthenticationState extends Equatable {
   @override
   List<Object?> get props => [];
 }
 
 /// Aplikacja dopiero startuje i jeszcze nie wiemy
 /// czy uzytkownik jest zalogowany czy nie
-class AuthenticationInitial extends AuthenticationState {}
+class AppAuthenticationInitial extends AppAuthenticationState {}
 
 /// Uzytkownik nie jest zalogowany
-class Unauthenticated extends AuthenticationState {}
+class AppUnauthenticated extends AppAuthenticationState {}
 
 /// Niezalogowany uzytkownik jest w trakcie logowania
-class Authenticating extends Unauthenticated {}
+class AppAuthenticating extends AppUnauthenticated {}
 
 /// Niezalogowany uzytkownik z nieokreślonym błędem
-class UnauthenticatedFailed extends Unauthenticated {
+class AppUnauthenticatedFailed extends AppUnauthenticated {
   final Object error;
 
-  UnauthenticatedFailed(this.error);
+  AppUnauthenticatedFailed(this.error);
 
   @override
   List<Object?> get props => [error];
 }
 
 /// Niezalogowany uzytkownik ktoremu wygasla sesja
-class UnauthenticatedExpired extends Unauthenticated {}
+class AppUnauthenticatedExpired extends AppUnauthenticated {}
 
 /// Niezalogowany uzytkownik ktory się wylogował
-class UnauthenticatedSignedOut extends Unauthenticated {}
+class AppUnauthenticatedSignedOut extends AppUnauthenticated {}
 
 /// Uzytkownik jest zalogowany
-class Authenticated extends AuthenticationState {
+class AppAuthenticated extends AppAuthenticationState {
   final AuthenticationTokens tokens;
 
-  Authenticated({required this.tokens});
+  AppAuthenticated({required this.tokens});
 
   @override
   List<Object?> get props => [tokens];

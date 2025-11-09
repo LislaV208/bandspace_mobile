@@ -10,8 +10,8 @@ import 'package:bandspace_mobile/core/config/env_config.dart';
 import 'package:bandspace_mobile/core/di/app_providers.dart';
 import 'package:bandspace_mobile/core/navigation/custom_page_routes.dart';
 import 'package:bandspace_mobile/features/authentication/authentication_screen.dart';
-import 'package:bandspace_mobile/core/authentication/cubit/authentication_cubit.dart';
-import 'package:bandspace_mobile/core/authentication/cubit/authentication_state.dart';
+import 'package:bandspace_mobile/core/authentication/cubit/app_authentication_cubit.dart';
+import 'package:bandspace_mobile/core/authentication/cubit/app_authentication_state.dart';
 import 'package:bandspace_mobile/features/authentication/cubit/authentication_screen/authentication_screen_cubit.dart';
 import 'package:bandspace_mobile/features/dashboard/screens/dashboard_screen.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
@@ -87,18 +87,18 @@ class MainApp extends StatelessWidget {
           ),
         ),
         builder: (context, child) {
-          return BlocListener<AuthenticationCubit, AuthenticationState>(
-            listenWhen: (previous, current) => previous is! AuthenticationInitial,
+          return BlocListener<AppAuthenticationCubit, AppAuthenticationState>(
+            listenWhen: (previous, current) => previous is! AppAuthenticationInitial,
             listener: (context, state) {
               // zalogowany
-              if (state is Authenticated) {
+              if (state is AppAuthenticated) {
                 context.read<ApiClient>().addAuthenticationInterceptor(
                   AuthenticationInterceptor(
                     apiClient: context.read(),
                     storage: context.read(),
                     repository: context.read(),
                     onSessionExpired: () {
-                      context.read<AuthenticationCubit>().onSignedOut();
+                      context.read<AppAuthenticationCubit>().onSignedOut();
                     },
                   ),
                 );
@@ -107,14 +107,14 @@ class MainApp extends StatelessWidget {
                 _navigatorKey.currentState?.pushReplacement(
                   FadePageRoute(page: DashboardScreen.create()),
                 );
-              } else if (state is Unauthenticated) {
+              } else if (state is AppUnauthenticated) {
                 // logowanie
-                if (state is Authenticating) {
+                if (state is AppAuthenticating) {
                   return;
                 }
 
                 // błąd podczas logowania - pokazujemy tylko blad i nic wiecej
-                if (state is UnauthenticatedFailed) {
+                if (state is AppUnauthenticatedFailed) {
                   final context = _navigatorKey.currentContext;
                   if (context != null) {
                     ErrorDialog.show(context, error: state.error);
@@ -123,7 +123,7 @@ class MainApp extends StatelessWidget {
 
                 context.read<ApiClient>().removeAuthenticationInterceptor();
 
-                if (state is UnauthenticatedExpired || state is UnauthenticatedSignedOut) {
+                if (state is AppUnauthenticatedExpired || state is AppUnauthenticatedSignedOut) {
                   _navigatorKey.currentState?.popUntil(
                     (route) => route.isFirst,
                   );

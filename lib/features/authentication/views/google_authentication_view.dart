@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 
-import 'package:bandspace_mobile/core/authentication/cubit/authentication_cubit.dart';
+import 'package:bandspace_mobile/core/authentication/cubit/app_authentication_cubit.dart';
 import 'package:bandspace_mobile/features/authentication/cubit/authentication_screen/authentication_screen_cubit.dart';
-import 'package:bandspace_mobile/core/authentication/cubit/authentication_state.dart';
+import 'package:bandspace_mobile/core/authentication/cubit/app_authentication_state.dart';
 
 class GoogleAuthenticationView extends StatelessWidget {
   const GoogleAuthenticationView({super.key});
@@ -29,14 +29,14 @@ class GoogleAuthenticationView extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
-                context.read<AuthenticationCubit>().authenticateWithGoogle();
+                context.read<AppAuthenticationCubit>().authenticateWithGoogle();
               },
               borderRadius: BorderRadius.circular(20),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: BlocSelector<AuthenticationCubit, AuthenticationState, bool>(
+                child: BlocSelector<AppAuthenticationCubit, AppAuthenticationState, bool>(
                   selector: (state) {
-                    return state is Authenticating;
+                    return state is AppAuthenticating;
                   },
                   builder: (context, isLoading) {
                     return Row(

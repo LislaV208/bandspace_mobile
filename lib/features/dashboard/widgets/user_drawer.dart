@@ -5,7 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:bandspace_mobile/features/account/screens/profile_screen.dart';
-import 'package:bandspace_mobile/core/authentication/cubit/authentication_cubit.dart';
+import 'package:bandspace_mobile/core/authentication/cubit/app_authentication_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_cubit.dart';
 import 'package:bandspace_mobile/shared/cubits/user_profile/user_profile_state.dart';
 import 'package:bandspace_mobile/shared/models/user.dart';
@@ -199,7 +199,7 @@ class UserDrawer extends StatelessWidget {
       builder: (context) => BlocConsumer<UserProfileCubit, UserProfileState>(
         listener: (context, state) {
           if (state is UserSignedOut) {
-            context.read<AuthenticationCubit>().onSignedOut();
+            context.read<AppAuthenticationCubit>().onSignedOut();
           }
         },
         builder: (context, state) {

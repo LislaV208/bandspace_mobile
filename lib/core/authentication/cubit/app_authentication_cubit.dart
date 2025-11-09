@@ -1,17 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/authentication/authentication_storage.dart';
-import 'package:bandspace_mobile/core/authentication/cubit/authentication_state.dart';
+import 'package:bandspace_mobile/core/authentication/cubit/app_authentication_state.dart';
 import 'package:bandspace_mobile/features/authentication/repository/authentication_repository.dart';
 
-class AuthenticationCubit extends Cubit<AuthenticationState> {
+class AppAuthenticationCubit extends Cubit<AppAuthenticationState> {
   final AuthenticationRepository repository;
   final AuthenticationStorage storage;
 
-  AuthenticationCubit({
+  AppAuthenticationCubit({
     required this.repository,
     required this.storage,
-  }) : super(AuthenticationInitial()) {
+  }) : super(AppAuthenticationInitial()) {
     _initialize();
   }
 
@@ -20,26 +20,26 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
       await repository.initialize();
       final tokens = await storage.getTokens();
       if (tokens != null) {
-        emit(Authenticated(tokens: tokens));
+        emit(AppAuthenticated(tokens: tokens));
       } else {
-        emit(Unauthenticated());
+        emit(AppUnauthenticated());
       }
     } catch (e) {
-      emit(UnauthenticatedFailed(e));
+      emit(AppUnauthenticatedFailed(e));
     }
   }
 
   Future<void> authenticateWithGoogle() async {
-    emit(Authenticating());
+    emit(AppAuthenticating());
 
     try {
       final tokens = await repository.authenticateWithGoogle();
       await storage.saveTokens(tokens);
-      emit(Authenticated(tokens: tokens));
+      emit(AppAuthenticated(tokens: tokens));
     } on GoogleSignInCancelledByUser {
-      emit(Unauthenticated());
+      emit(AppUnauthenticated());
     } catch (e) {
-      emit(UnauthenticatedFailed(e));
+      emit(AppUnauthenticatedFailed(e));
     }
   }
 
@@ -47,7 +47,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     required String email,
     required String password,
   }) async {
-    emit(Authenticating());
+    emit(AppAuthenticating());
 
     try {
       final tokens = await repository.signInWithEmail(
@@ -55,9 +55,9 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
         password: password,
       );
       await storage.saveTokens(tokens);
-      emit(Authenticated(tokens: tokens));
+      emit(AppAuthenticated(tokens: tokens));
     } catch (e) {
-      emit(UnauthenticatedFailed(e));
+      emit(AppUnauthenticatedFailed(e));
     }
   }
 
@@ -65,7 +65,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     required String email,
     required String password,
   }) async {
-    emit(Authenticating());
+    emit(AppAuthenticating());
 
     try {
       final tokens = await repository.registerWithEmail(
@@ -73,14 +73,14 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
         password: password,
       );
       await storage.saveTokens(tokens);
-      emit(Authenticated(tokens: tokens));
+      emit(AppAuthenticated(tokens: tokens));
     } catch (e) {
-      emit(UnauthenticatedFailed(e));
+      emit(AppUnauthenticatedFailed(e));
     }
   }
 
   Future<void> onSignedOut() async {
     await storage.clearTokens();
-    emit(UnauthenticatedSignedOut());
+    emit(AppUnauthenticatedSignedOut());
   }
 }
