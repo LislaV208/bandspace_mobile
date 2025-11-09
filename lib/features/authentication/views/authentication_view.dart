@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:bandspace_mobile/features/authentication/cubit/authentication_screen/authentication_screen_cubit.dart';
-import 'package:bandspace_mobile/features/authentication/cubit/authentication_screen/authentication_screen_state.dart';
+import 'package:bandspace_mobile/features/authentication/cubit/authentication_cubit.dart';
+import 'package:bandspace_mobile/features/authentication/cubit/authentication_state.dart';
 import 'package:bandspace_mobile/features/authentication/views/email_authentication_view.dart';
 import 'package:bandspace_mobile/features/authentication/views/google_authentication_view.dart';
 import 'package:bandspace_mobile/features/authentication/views/widgets/authentication_header.dart';
@@ -34,7 +34,7 @@ class AuthenticationView extends StatelessWidget {
                       MediaQuery.of(context).padding.bottom -
                       120, // Header height approximation
                 ),
-                child: BlocBuilder<AuthenticationScreenCubit, AuthenticationScreenState>(
+                child: BlocBuilder<AuthenticationCubit, AuthenticationState>(
                   builder: (context, state) {
                     return AnimatedSwitcher(
                       duration: transitionDuration,

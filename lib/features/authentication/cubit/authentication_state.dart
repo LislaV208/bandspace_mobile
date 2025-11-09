@@ -1,15 +1,15 @@
 import 'package:equatable/equatable.dart';
 
-sealed class AuthenticationScreenState extends Equatable {
+sealed class AuthenticationState extends Equatable {
   @override
   List<Object?> get props => [];
 }
 
 // Google Authentication
-class GoogleAuthentication extends AuthenticationScreenState {}
+class GoogleAuthentication extends AuthenticationState {}
 
 // Email Authentication
-class EmailAuthentication extends AuthenticationScreenState {
+class EmailAuthentication extends AuthenticationState {
   final bool showPassword;
 
   EmailAuthentication({required this.showPassword});

@@ -4,8 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 import 'package:bandspace_mobile/core/authentication/cubit/app_authentication_cubit.dart';
-import 'package:bandspace_mobile/features/authentication/cubit/authentication_screen/authentication_screen_cubit.dart';
 import 'package:bandspace_mobile/core/authentication/cubit/app_authentication_state.dart';
+import 'package:bandspace_mobile/features/authentication/cubit/authentication_cubit.dart';
 
 class GoogleAuthenticationView extends StatelessWidget {
   const GoogleAuthenticationView({super.key});
@@ -81,7 +81,7 @@ class GoogleAuthenticationView extends StatelessWidget {
         // Email button
         Center(
           child: TextButton.icon(
-            onPressed: () => context.read<AuthenticationScreenCubit>().useEmailAuthentication(),
+            onPressed: () => context.read<AuthenticationCubit>().useEmailAuthentication(),
             label: const Text(
               "Użyj adresu email i hasła",
             ),

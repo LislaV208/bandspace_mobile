@@ -5,8 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:bandspace_mobile/core/authentication/cubit/app_authentication_cubit.dart';
 import 'package:bandspace_mobile/core/authentication/cubit/app_authentication_state.dart';
-import 'package:bandspace_mobile/features/authentication/cubit/authentication_screen/authentication_screen_cubit.dart';
-import 'package:bandspace_mobile/features/authentication/cubit/authentication_screen/authentication_screen_state.dart';
+import 'package:bandspace_mobile/features/authentication/cubit/authentication_cubit.dart';
+import 'package:bandspace_mobile/features/authentication/cubit/authentication_state.dart';
 import 'package:bandspace_mobile/features/authentication/reset_password/cubit/reset_password_cubit.dart';
 import 'package:bandspace_mobile/features/authentication/reset_password/reset_password_screen.dart';
 import 'package:bandspace_mobile/features/authentication/views/authentication_view.dart';
@@ -57,7 +57,7 @@ class _EmailAuthenticationViewState extends State<EmailAuthenticationView> {
                   onPressed: isLoading
                       ? null
                       : () {
-                          context.read<AuthenticationScreenCubit>().useGoogleAuthentication();
+                          context.read<AuthenticationCubit>().useGoogleAuthentication();
                         },
                   label: Text('Użyj konta Google'),
                   icon: Icon(Icons.arrow_back),
@@ -94,7 +94,7 @@ class _EmailAuthenticationViewState extends State<EmailAuthenticationView> {
                       state.showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                     ),
                     onPressed: () {
-                      context.read<AuthenticationScreenCubit>().togglePasswordVisibility();
+                      context.read<AuthenticationCubit>().togglePasswordVisibility();
                     },
                   ),
                 ),
@@ -144,7 +144,7 @@ class _EmailAuthenticationViewState extends State<EmailAuthenticationView> {
                               state.showRepeatedPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                             ),
                             onPressed: () {
-                              context.read<AuthenticationScreenCubit>().toggleRepeatedPasswordVisibility();
+                              context.read<AuthenticationCubit>().toggleRepeatedPasswordVisibility();
                             },
                           ),
                         ),
@@ -253,7 +253,7 @@ class _EmailAuthenticationViewState extends State<EmailAuthenticationView> {
                       onPressed: isLoading
                           ? null
                           : () {
-                              context.read<AuthenticationScreenCubit>().toggleEmailAuthenticationView();
+                              context.read<AuthenticationCubit>().toggleEmailAuthenticationView();
                             },
                       style: TextButton.styleFrom(
                         foregroundColor: Theme.of(context).colorScheme.secondary,
